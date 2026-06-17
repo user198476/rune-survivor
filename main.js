@@ -33,6 +33,7 @@ let projectiles = [];
 let gems = [];
 let powerUps = [];
 let spikes = [];
+let spikeCanvas = null;
 let particles = [];
 let floatingTexts = [];
 let currentUpgrades = [];
@@ -158,6 +159,7 @@ function resetGame() {
 	gems = [];
 	powerUps = [];
 	spikes = [];
+	spikeCanvas = null;
 	particles = [];
 	floatingTexts = [];
 
@@ -533,9 +535,11 @@ function updateSpikes() {
 	}
 
 	for (const spike of spikes) {
-		const d = distance(player, spike);
+		const dx = player.x - spike.x;
+		const dy = player.y - spike.y;
+		const radius = player.radius + spike.radius;
 
-		if (d < player.radius + spike.radius) {
+		if (dx * dx + dy * dy < radius * radius) {
 			damagePlayerFromSpike(spike);
 			break;
 		}
@@ -668,6 +672,7 @@ function activateDamageBoost() {
 	player.damageBoostTimer = 12;
 
 	spikes = createSpikes();
+	spikeCanvas = createSpikeCanvas(spikes);
 
 	addFloatingText(
 		player.x,
@@ -820,6 +825,7 @@ function updatePlayer(dt) {
 
 		if (spikes.length > 0) {
 			spikes = [];
+			spikeCanvas = null;
 		}
 	}
 }
@@ -1075,41 +1081,61 @@ function drawSpikes() {
 		return;
 	}
 
-	for (const spike of spikes) {
-		ctx.save();
-
-		ctx.translate(spike.x, spike.y);
-		ctx.rotate(spike.angle);
-
-		const r = spike.radius;
-
-		ctx.shadowColor = spike.kind === "border" ? "#ff365d" : "#ff9b6b";
-		ctx.shadowBlur = spike.kind === "border" ? 9 : 12;
-
-		ctx.fillStyle = spike.kind === "border" ? "#7d7182" : "#9d8580";
-		ctx.strokeStyle = spike.kind === "border" ? "#ff365d" : "#ff9b6b";
-		ctx.lineWidth = 2;
-
-		ctx.beginPath();
-		ctx.moveTo(r + 9, 0);
-		ctx.lineTo(-r, -r * 0.78);
-		ctx.lineTo(-r, r * 0.78);
-		ctx.closePath();
-		ctx.fill();
-		ctx.stroke();
-
-		ctx.shadowBlur = 0;
-
-		ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-		ctx.beginPath();
-		ctx.moveTo(r + 4, 0);
-		ctx.lineTo(-r * 0.25, -r * 0.25);
-		ctx.lineTo(-r * 0.1, 0);
-		ctx.closePath();
-		ctx.fill();
-
-		ctx.restore();
+	if (!spikeCanvas) {
+		spikeCanvas = createSpikeCanvas(spikes);
 	}
+
+	ctx.drawImage(spikeCanvas, 0, 0);
+}
+
+function createSpikeCanvas(spikeList) {
+	const buffer = document.createElement("canvas");
+	buffer.width = GAME_WIDTH;
+	buffer.height = GAME_HEIGHT;
+
+	const bufferCtx = buffer.getContext("2d");
+
+	for (const spike of spikeList) {
+		drawSingleSpike(bufferCtx, spike);
+	}
+
+	return buffer;
+}
+
+function drawSingleSpike(drawCtx, spike) {
+	drawCtx.save();
+
+	drawCtx.translate(spike.x, spike.y);
+	drawCtx.rotate(spike.angle);
+
+	const r = spike.radius;
+
+	drawCtx.shadowColor = spike.kind === "border" ? "#ff365d" : "#ff9b6b";
+	drawCtx.shadowBlur = spike.kind === "border" ? 9 : 12;
+
+	drawCtx.fillStyle = spike.kind === "border" ? "#7d7182" : "#9d8580";
+	drawCtx.strokeStyle = spike.kind === "border" ? "#ff365d" : "#ff9b6b";
+	drawCtx.lineWidth = 2;
+
+	drawCtx.beginPath();
+	drawCtx.moveTo(r + 9, 0);
+	drawCtx.lineTo(-r, -r * 0.78);
+	drawCtx.lineTo(-r, r * 0.78);
+	drawCtx.closePath();
+	drawCtx.fill();
+	drawCtx.stroke();
+
+	drawCtx.shadowBlur = 0;
+
+	drawCtx.fillStyle = "rgba(255, 255, 255, 0.35)";
+	drawCtx.beginPath();
+	drawCtx.moveTo(r + 4, 0);
+	drawCtx.lineTo(-r * 0.25, -r * 0.25);
+	drawCtx.lineTo(-r * 0.1, 0);
+	drawCtx.closePath();
+	drawCtx.fill();
+
+	drawCtx.restore();
 }
 
 function drawDamageOverlay() {
