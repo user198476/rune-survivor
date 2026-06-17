@@ -1,0 +1,228 @@
+css * {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #090814;
+  font-family: Arial, Helvetica, sans-serif;
+  color: white;
+}
+#game-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(
+      circle at center,
+      rgba(80, 57, 160, 0.25),
+      transparent 45%
+    ),
+    linear-gradient(180deg, #0e1024, #070711);
+}
+#gameCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  image-rendering: auto;
+}
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hud-top {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.hud-panel {
+  width: 240px;
+  padding: 10px;
+  background: rgba(12, 10, 28, 0.78);
+  border: 1px solid rgba(156, 119, 255, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(86, 65, 180, 0.25);
+}
+.label {
+  font-size: 12px;
+  color: #d8d0ff;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.bar {
+  width: 100%;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transition: width 0.15s ease;
+}
+.bar-fill.hp {
+  background: linear-gradient(90deg, #ff365d, #ff8b55);
+}
+.bar-fill.xp {
+  background: linear-gradient(90deg, #45d7ff, #9b6dff);
+}
+.hud-info {
+  margin-left: auto;
+  padding: 12px 16px;
+  display: flex;
+  gap: 20px;
+  background: rgba(12, 10, 28, 0.78);
+  border: 1px solid rgba(156, 119, 255, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(86, 65, 180, 0.25);
+}
+.hud-info span {
+  color: #d8d0ff;
+}
+.hud-info strong {
+  color: white;
+}
+.controls-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  color: #cfc7ff;
+  background: rgba(12, 10, 28, 0.72);
+  border: 1px solid rgba(156, 119, 255, 0.25);
+  border-radius: 999px;
+  font-size: 13px;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(3, 3, 10, 0.72);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+.hidden {
+  display: none;
+}
+.level-card-wrapper {
+  width: min(900px, 92vw);
+  text-align: center;
+}
+.level-card-wrapper h1,
+.game-over-box h1 {
+  margin: 0;
+  font-size: 48px;
+  text-shadow: 0 0 24px rgba(135, 91, 255, 0.75);
+}
+.level-card-wrapper p,
+.game-over-box p {
+  color: #d9d2ff;
+}
+.upgrade-cards {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.upgrade-card {
+  min-height: 220px;
+  padding: 22px;
+  border: 1px solid rgba(162, 129, 255, 0.45);
+  border-radius: 20px;
+  background: radial-gradient(
+      circle at top,
+      rgba(118, 75, 255, 0.28),
+      transparent 45%
+    ),
+    rgba(16, 13, 38, 0.95);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.upgrade-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(200, 177, 255, 0.85);
+  box-shadow: 0 0 35px rgba(125, 88, 255, 0.35);
+}
+.upgrade-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #4bdcff, #8c5cff);
+  box-shadow: 0 0 24px rgba(91, 197, 255, 0.35);
+  font-size: 28px;
+}
+.upgrade-card h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+.upgrade-card p {
+  margin: 0;
+  line-height: 1.4;
+  color: #d8d0ff;
+}
+.upgrade-key {
+  margin-top: 18px;
+  font-size: 13px;
+  color: #9d8ee8;
+}
+.game-over-box {
+  width: min(480px, 90vw);
+  padding: 36px;
+  text-align: center;
+  border: 1px solid rgba(162, 129, 255, 0.45);
+  border-radius: 24px;
+  background: radial-gradient(
+      circle at top,
+      rgba(118, 75, 255, 0.28),
+      transparent 45%
+    ),
+    rgba(16, 13, 38, 0.95);
+  box-shadow: 0 0 50px rgba(125, 88, 255, 0.35);
+}
+#restartButton {
+  margin-top: 18px;
+  padding: 14px 26px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #45d7ff, #9b6dff);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+#restartButton:hover {
+  filter: brightness(1.15);
+}
+@media (max-width: 800px) {
+  .hud-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .hud-panel {
+    width: 220px;
+  }
+  .hud-info {
+    margin-left: 0;
+  }
+  .upgrade-cards {
+    grid-template-columns: 1fr;
+  }
+  .upgrade-card {
+    min-height: auto;
+  }
+}

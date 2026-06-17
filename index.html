@@ -1,0 +1,58 @@
+html
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rune Survivor</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="game-wrapper">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+      <div id="hud">
+        <div class="hud-top">
+          <div class="hud-panel">
+            <div class="label">PV</div>
+            <div class="bar">
+              <div id="hpFill" class="bar-fill hp"></div>
+            </div>
+          </div>
+          <div class="hud-panel">
+            <div class="label">XP</div>
+            <div class="bar">
+              <div id="xpFill" class="bar-fill xp"></div>
+            </div>
+          </div>
+          <div class="hud-info">
+            <span>Niveau <strong id="levelText">1</strong>
+            </span>
+            <span>Kills <strong id="killsText">0</strong>
+            </span>
+            <span>Temps <strong id="timerText">00:00</strong>
+            </span>
+          </div>
+        </div>
+        <div class="controls-hint"> ZQSD / WASD / Flèches pour bouger — Le tir est automatique </div>
+      </div>
+      <div id="levelUpOverlay" class="overlay hidden">
+        <div class="level-card-wrapper">
+          <h1>Niveau supérieur</h1>
+          <p>Choisis une rune d’amélioration</p>
+          <div id="upgradeCards" class="upgrade-cards"></div>
+        </div>
+      </div>
+      <div id="gameOverOverlay" class="overlay hidden">
+        <div class="game-over-box">
+          <h1>Game Over</h1>
+          <p>Tu as survécu <strong id="finalTimeText">00:00</strong>
+          </p>
+          <p>Kills : <strong id="finalKillsText">0</strong>
+          </p>
+          <button id="restartButton">Rejouer</button>
+        </div>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>
