@@ -226,3 +226,52 @@ body {
     min-height: auto;
   }
 }
+.main-menu-box {
+  width: min(540px, 90vw);
+  padding: 44px 38px;
+  text-align: center;
+  border: 1px solid rgba(162, 129, 255, 0.5);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, rgba(118, 75, 255, 0.32), transparent 48%),
+    rgba(16, 13, 38, 0.96);
+  box-shadow: 0 0 60px rgba(125, 88, 255, 0.38);
+}
+
+.main-menu-box h1 {
+  margin: 0 0 14px;
+  font-size: 56px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 28px rgba(135, 91, 255, 0.85);
+}
+
+.main-menu-box p {
+  margin: 0 auto 30px;
+  max-width: 390px;
+  line-height: 1.5;
+  color: #d9d2ff;
+}
+
+#playButton {
+  padding: 16px 44px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #45d7ff, #9b6dff);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 28px rgba(91, 197, 255, 0.32);
+}
+
+#playButton:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+}
+
+.menu-controls {
+  margin-top: 28px;
+  color: #a99bea;
+  font-size: 14px;
+  line-height: 1.5;
+}

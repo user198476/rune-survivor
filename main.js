@@ -11,10 +11,12 @@ const gameOverOverlay = document.getElementById("gameOverOverlay");
 const finalTimeText = document.getElementById("finalTimeText");
 const finalKillsText = document.getElementById("finalKillsText");
 const restartButton = document.getElementById("restartButton");
+const mainMenuOverlay = document.getElementById("mainMenuOverlay");
+const playButton = document.getElementById("playButton");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
-let state = "playing";
+let state = "menu";
 let lastTime = 0;
 let gameTime = 0;
 let spawnTimer = 0;
@@ -95,7 +97,7 @@ const upgrades = [{
 }];
 
 function resetGame() {
-    state = "playing";
+    state = "menu";
     gameTime = 0;
     spawnTimer = 0;
     screenShake = 0;
@@ -127,7 +129,14 @@ function resetGame() {
     floatingTexts = [];
     levelUpOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");
+    mainMenuOverlay.classList.remove("hidden");
     updateHud();
+}
+
+function startGame() {
+  resetGame();
+  state = "playing";
+  mainMenuOverlay.classList.add("hidden");
 }
 
 function formatTime(seconds) {
@@ -723,13 +732,14 @@ window.addEventListener("keydown", (event) => {
         if (key === "3") chooseUpgrade(2);
     }
     if (state === "gameover" && key === "r") {
-        resetGame();
+        startGame();
     }
 });
 window.addEventListener("keyup", (event) => {
     keys.delete(event.key.toLowerCase());
 });
-restartButton.addEventListener("click", resetGame);
+playButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", startGame);
 resetGame();
 requestAnimationFrame((timestamp) => {
     lastTime = timestamp;
