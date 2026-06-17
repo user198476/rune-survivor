@@ -21,6 +21,7 @@ let lastTime = 0;
 let gameTime = 0;
 let spawnTimer = 0;
 let screenShake = 0;
+let screenShakeTimer = 0;
 let damageFlash = 0;
 let player;
 let enemies;
@@ -102,6 +103,7 @@ function resetGame() {
     gameTime = 0;
     spawnTimer = 0;
     screenShake = 0;
+    screenShakeTimer = 0;
     damageFlash = 0;
 
     // objet player (player object)
@@ -316,7 +318,8 @@ function damagePlayer(amount, source) {
   player.hitFlashTimer = 0.18;
 
   damageFlash = 0.45;
-  screenShake = Math.max(screenShake, 4.2);
+  screenShake = 2.2;      // force
+  screenShakeTimer = 0.06; // durée
 
   addFloatingText(
     player.x,
@@ -414,8 +417,22 @@ function update(dt) {
     updateGems(dt);
     updateParticles(dt);
     updateFloatingTexts(dt);
-    damageFlash = Math.max(0, damageFlash - dt * 28);
     updateHud();
+}
+
+function updateVisualEffects(dt) {
+  if (screenShakeTimer > 0) {
+    screenShakeTimer -= dt;
+
+    if (screenShakeTimer <= 0) {
+      screenShakeTimer = 0;
+      screenShake = 0;
+    }
+  } else {
+    screenShake = 0;
+  }
+
+  damageFlash = Math.max(0, damageFlash - dt * 2.8);
 }
 
 function updatePlayer(dt) {
@@ -806,13 +823,18 @@ function drawFloatingTexts() {
 }
 
 function gameLoop(timestamp) {
-    const dt = Math.min((timestamp - lastTime) / 1000, 0.033);
-    lastTime = timestamp;
-    if (state === "playing") {
-        update(dt);
-    }
-    render();
-    requestAnimationFrame(gameLoop);
+  const dt = Math.min((timestamp - lastTime) / 1000, 0.033);
+  lastTime = timestamp;
+
+  updateVisualEffects(dt);
+
+  if (state === "playing") {
+    update(dt);
+  }
+
+  render();
+
+  requestAnimationFrame(gameLoop);
 }
 window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
