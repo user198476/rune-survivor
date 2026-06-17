@@ -21,6 +21,7 @@ let lastTime = 0;
 let gameTime = 0;
 let spawnTimer = 0;
 let screenShake = 0;
+let damageFlash = 0;
 let player;
 let enemies;
 let projectiles;
@@ -101,6 +102,9 @@ function resetGame() {
     gameTime = 0;
     spawnTimer = 0;
     screenShake = 0;
+    damageFlash = 0;
+
+    // objet player (player object)
     player = {
         x: GAME_WIDTH / 2,
         y: GAME_HEIGHT / 2,
@@ -120,7 +124,10 @@ function resetGame() {
         projectileRadius: 7,
         projectileCount: 1,
         magnetRadius: 90,
-        invulnerabilityTimer: 0
+        invulnerabilityTimer: 0,
+        hitFlashTimer: 0,
+        knockbackX: 0,
+        knockbackY: 0
     };
     enemies = [];
     projectiles = [];
@@ -198,7 +205,7 @@ function spawnEnemy() {
             hp: 95 * difficulty,
             maxHp: 95 * difficulty,
             speed: 80 + difficulty * 5,
-            damage: 20,
+            damage: 16,
             xp: 12,
             color: "#ff6545"
         };
@@ -211,7 +218,7 @@ function spawnEnemy() {
             hp: 24 * difficulty,
             maxHp: 24 * difficulty,
             speed: 170 + difficulty * 10,
-            damage: 11,
+            damage: 7,
             xp: 6,
             color: "#ff4d8d"
         };
@@ -224,11 +231,12 @@ function spawnEnemy() {
             hp: 38 * difficulty,
             maxHp: 38 * difficulty,
             speed: 105 + difficulty * 7,
-            damage: 13,
+            damage: 8,
             xp: 8,
             color: "#8b5cff"
         };
     }
+    enemy.attackCooldown = 0;
     enemies.push(enemy);
 }
 
@@ -291,6 +299,50 @@ function addFloatingText(x, y, text, color = "white") {
         life: 0.8,
         maxLife: 0.8
     });
+}
+
+function damagePlayer(amount, source) {
+  if (state !== "playing") {
+    return;
+  }
+
+  if (player.invulnerabilityTimer > 0) {
+    return;
+  }
+
+  player.hp = Math.max(0, player.hp - amount);
+
+  player.invulnerabilityTimer = 0.45;
+  player.hitFlashTimer = 0.18;
+
+  damageFlash = 0.45;
+  screenShake = Math.max(screenShake, 8);
+
+  addFloatingText(
+    player.x,
+    player.y - player.radius - 18,
+    `-${Math.ceil(amount)}`,
+    "#ff5f75"
+  );
+
+  createParticles(player.x, player.y, 26, "#ff365d", 1.9);
+
+  if (source) {
+    const dir = normalize(player.x - source.x, player.y - source.y);
+
+    player.knockbackX += dir.x * 430;
+    player.knockbackY += dir.y * 430;
+
+    source.x -= dir.x * 18;
+    source.y -= dir.y * 18;
+  }
+
+  if (player.hp <= 0) {
+    player.hp = 0;
+    endGame();
+  }
+
+  updateHud();
 }
 
 function dropGem(x, y, value) {
@@ -362,7 +414,7 @@ function update(dt) {
     updateGems(dt);
     updateParticles(dt);
     updateFloatingTexts(dt);
-    screenShake = Math.max(0, screenShake - dt * 20);
+    damageFlash = Math.max(0, damageFlash - dt * 2.8);
     updateHud();
 }
 
@@ -376,6 +428,12 @@ function updatePlayer(dt) {
     const dir = normalize(dx, dy);
     player.x += dir.x * player.speed * dt;
     player.y += dir.y * player.speed * dt;
+
+    player.x += player.knockbackX * dt;
+    player.y += player.knockbackY * dt;
+
+    player.knockbackX *= Math.pow(0.02, dt);
+    player.knockbackY *= Math.pow(0.02, dt);
     player.x = Math.max(player.radius, Math.min(GAME_WIDTH - player.radius, player.x));
     player.y = Math.max(player.radius, Math.min(GAME_HEIGHT - player.radius, player.y));
     player.fireCooldown -= dt;
@@ -387,6 +445,7 @@ function updatePlayer(dt) {
         }
     }
     player.invulnerabilityTimer = Math.max(0, player.invulnerabilityTimer - dt);
+    player.hitFlashTimer = Math.max(0, player.hitFlashTimer - dt);
 }
 
 function updateSpawns(dt) {
@@ -405,21 +464,25 @@ function updateSpawns(dt) {
 }
 
 function updateEnemies(dt) {
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        const enemy = enemies[i];
-        const dir = normalize(player.x - enemy.x, player.y - enemy.y);
-        enemy.x += dir.x * enemy.speed * dt;
-        enemy.y += dir.y * enemy.speed * dt;
-        const d = distance(player, enemy);
-        if (d < player.radius + enemy.radius) {
-            player.hp -= enemy.damage * dt;
-            screenShake = Math.max(screenShake, 2.4);
-            if (player.hp <= 0) {
-                player.hp = 0;
-                endGame();
-            }
-        }
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const enemy = enemies[i];
+
+    enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
+
+    const dir = normalize(player.x - enemy.x, player.y - enemy.y);
+
+    enemy.x += dir.x * enemy.speed * dt;
+    enemy.y += dir.y * enemy.speed * dt;
+
+    const d = distance(player, enemy);
+
+    if (d < player.radius + enemy.radius) {
+      if (enemy.attackCooldown <= 0) {
+        damagePlayer(enemy.damage, enemy);
+        enemy.attackCooldown = 0.65;
+      }
     }
+  }
 }
 
 function updateProjectiles(dt) {
@@ -534,6 +597,7 @@ function render() {
     drawParticles();
     drawFloatingTexts();
     ctx.restore();
+    drawDamageOverlay();
 }
 
 function drawBackground() {
@@ -576,11 +640,46 @@ function drawBackground() {
     ctx.restore();
 }
 
+function drawDamageOverlay() {
+  if (damageFlash <= 0) {
+    return;
+  }
+
+  const alpha = Math.min(0.42, damageFlash);
+
+  ctx.save();
+
+  ctx.fillStyle = `rgba(255, 20, 55, ${alpha * 0.18})`;
+  ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+  const gradient = ctx.createRadialGradient(
+    GAME_WIDTH / 2,
+    GAME_HEIGHT / 2,
+    130,
+    GAME_WIDTH / 2,
+    GAME_HEIGHT / 2,
+    620
+  );
+
+  gradient.addColorStop(0, "rgba(255, 20, 55, 0)");
+  gradient.addColorStop(1, `rgba(255, 20, 55, ${alpha})`);
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+  ctx.restore();
+}
+
 function drawPlayer() {
     ctx.save();
+    const isHit = player.hitFlashTimer > 0;
+    const isBlinking = player.invulnerabilityTimer > 0 && !isHit && Math.floor(gameTime * 24) % 2 === 0;
+    if (isBlinking) {
+        ctx.globalAlpha = 0.55;
+    }
     const glow = ctx.createRadialGradient(player.x, player.y, 8, player.x, player.y, 58);
     glow.addColorStop(0, "rgba(88, 221, 255, 0.38)");
-    glow.addColorStop(1, "rgba(88, 221, 255, 0)");
+    glow.addColorStop(0, isHit ? "rgba(255, 65, 95, 0.55)" : "rgba(88, 221, 255, 0.38)");
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(player.x, player.y, 58, 0, Math.PI * 2);
@@ -589,11 +688,11 @@ function drawPlayer() {
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius + 4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#6ee6ff";
+    ctx.fillStyle = isHit ? "#ffffff" : "#6ee6ff";
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#f7f0ff";
+    ctx.fillStyle = isHit ? "#ff365d" : "#f7f0ff";
     ctx.beginPath();
     ctx.arc(player.x, player.y - 5, 9, 0, Math.PI * 2);
     ctx.fill();
