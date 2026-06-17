@@ -316,7 +316,7 @@ function damagePlayer(amount, source) {
   player.hitFlashTimer = 0.18;
 
   damageFlash = 0.45;
-  screenShake = Math.max(screenShake, 8);
+  screenShake = Math.max(screenShake, 4.2);
 
   addFloatingText(
     player.x,
@@ -414,7 +414,7 @@ function update(dt) {
     updateGems(dt);
     updateParticles(dt);
     updateFloatingTexts(dt);
-    damageFlash = Math.max(0, damageFlash - dt * 2.8);
+    damageFlash = Math.max(0, damageFlash - dt * 28);
     updateHud();
 }
 
@@ -506,7 +506,6 @@ function updateProjectiles(dt) {
                     dropGem(enemy.x, enemy.y, enemy.xp);
                     createParticles(enemy.x, enemy.y, 22, enemy.color, 1.7);
                     enemies.splice(j, 1);
-                    screenShake = Math.max(screenShake, 3.2);
                 }
                 break;
             }
@@ -677,13 +676,6 @@ function drawPlayer() {
     if (isBlinking) {
         ctx.globalAlpha = 0.55;
     }
-    const glow = ctx.createRadialGradient(player.x, player.y, 8, player.x, player.y, 58);
-    glow.addColorStop(0, "rgba(88, 221, 255, 0.38)");
-    glow.addColorStop(0, isHit ? "rgba(255, 65, 95, 0.55)" : "rgba(88, 221, 255, 0.38)");
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, 58, 0, Math.PI * 2);
-    ctx.fill();
     ctx.fillStyle = "#27214f";
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius + 4, 0, Math.PI * 2);
