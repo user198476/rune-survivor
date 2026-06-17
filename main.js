@@ -13,6 +13,8 @@ const finalKillsText = document.getElementById("finalKillsText");
 const restartButton = document.getElementById("restartButton");
 const mainMenuOverlay = document.getElementById("mainMenuOverlay");
 const playButton = document.getElementById("playButton");
+const pauseOverlay = document.getElementById("pauseOverlay");
+const resumeButton = document.getElementById("resumeButton");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
@@ -137,6 +139,7 @@ function resetGame() {
     particles = [];
     floatingTexts = [];
     levelUpOverlay.classList.add("hidden");
+    pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");
     mainMenuOverlay.classList.remove("hidden");
     updateHud();
@@ -146,6 +149,44 @@ function startGame() {
   resetGame();
   state = "playing";
   mainMenuOverlay.classList.add("hidden");
+}
+
+function pauseGame() {
+  if (state !== "playing") {
+    return;
+  }
+
+  state = "paused";
+  pauseOverlay.classList.remove("hidden");
+}
+
+function resumeGame() {
+  if (state !== "paused") {
+    return;
+  }
+
+  state = "playing";
+  pauseOverlay.classList.add("hidden");
+}
+
+function togglePause() {
+  if (state === "playing") {
+    pauseGame();
+    return;
+  }
+
+  if (state === "paused") {
+    resumeGame();
+  }
+}
+
+function isPauseKey(event) {
+  return (
+    event.key === "Escape" ||
+    event.key === "Enter" ||
+    event.key === " " ||
+    event.key.toLowerCase() === "p"
+  );
 }
 
 function formatTime(seconds) {
@@ -209,7 +250,7 @@ function spawnEnemy() {
             speed: 80 + difficulty * 5,
             damage: 16,
             xp: 12,
-            color: "#ff6545"
+            color: "#aaf737"
         };
     } else if (gameTime > 25 && typeRoll > 0.65) {
         enemy = {
@@ -837,22 +878,36 @@ function gameLoop(timestamp) {
   requestAnimationFrame(gameLoop);
 }
 window.addEventListener("keydown", (event) => {
-    const key = event.key.toLowerCase();
-    keys.add(key);
-    if (state === "levelup") {
-        if (key === "1") chooseUpgrade(0);
-        if (key === "2") chooseUpgrade(1);
-        if (key === "3") chooseUpgrade(2);
+  const key = event.key.toLowerCase();
+
+  if (isPauseKey(event)) {
+    event.preventDefault();
+
+    if (!event.repeat) {
+      togglePause();
     }
-    if (state === "gameover" && key === "r") {
-        startGame();
-    }
+
+    return;
+  }
+
+  keys.add(key);
+
+  if (state === "levelup") {
+    if (key === "1") chooseUpgrade(0);
+    if (key === "2") chooseUpgrade(1);
+    if (key === "3") chooseUpgrade(2);
+  }
+
+  if (state === "gameover" && key === "r") {
+    startGame();
+  }
 });
 window.addEventListener("keyup", (event) => {
     keys.delete(event.key.toLowerCase());
 });
 playButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
+resumeButton.addEventListener("click", resumeGame);
 resetGame();
 requestAnimationFrame((timestamp) => {
     lastTime = timestamp;
