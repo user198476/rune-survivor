@@ -103,6 +103,17 @@ const upgrades = [{
 		player.maxHp += 25;
 		player.hp = Math.min(player.maxHp, player.hp + 25);
 	}
+}, {
+	id: "projectileBounce",
+	icon: "↯",
+	title: "Rune de ricochet",
+	description: "Tes projectiles rebondissent 1 fois sur les murs. Permanent.",
+	canAppear() {
+		return player.projectileBounces === 0;
+	},
+	apply() {
+		player.projectileBounces = 1;
+	}
 }];
 
 function resetGame() {
@@ -135,6 +146,7 @@ function resetGame() {
 		projectileSpeed: 620,
 		projectileRadius: 7,
 		projectileCount: 1,
+		projectileBounces: 0,
 		magnetRadius: 90,
 		invulnerabilityTimer: 0,
 		hitFlashTimer: 0,
@@ -322,7 +334,8 @@ function shootAt(target) {
 			vy: Math.sin(angle) * player.projectileSpeed,
 			radius: player.projectileRadius,
 			damage: player.damage * player.damageMultiplier,
-			life: 1.4
+			life: 1.8,
+			bouncesLeft: player.projectileBounces
 		});
 	}
 	createParticles(player.x, player.y, 8, "#59dfff", 2.5);
@@ -694,16 +707,28 @@ function showLevelUp() {
 	levelUpOverlay.classList.remove("hidden");
 }
 
-function getRandomUpgrades(count) {
-	const pool = upgrades.filter((upgrade) => {
-		if (typeof upgrade.canAppear === "function") {
-			return upgrade.canAppear();
-		}
+function canUpgradeAppear(upgrade) {
+	if (typeof upgrade.canAppear === "function") {
+		return upgrade.canAppear();
+	}
 
-		return true;
+	return true;
+}
+
+function getRandomUpgrades(count) {
+	const selected = [];
+
+	const priorityUpgrade = upgrades.find((upgrade) => {
+		return upgrade.id === "projectileBounce" && canUpgradeAppear(upgrade);
 	});
 
-	const selected = [];
+	if (priorityUpgrade) {
+		selected.push(priorityUpgrade);
+	}
+
+	const pool = upgrades.filter((upgrade) => {
+		return upgrade !== priorityUpgrade && canUpgradeAppear(upgrade);
+	});
 
 	while (selected.length < count && pool.length > 0) {
 		const index = Math.floor(Math.random() * pool.length);
@@ -836,6 +861,41 @@ function updateEnemies(dt) {
 	}
 }
 
+function handleProjectileBounce(projectile) {
+	if (projectile.bouncesLeft <= 0) {
+		return false;
+	}
+
+	let bounced = false;
+
+	if (projectile.x - projectile.radius <= 0) {
+		projectile.x = projectile.radius;
+		projectile.vx *= -1;
+		bounced = true;
+	} else if (projectile.x + projectile.radius >= GAME_WIDTH) {
+		projectile.x = GAME_WIDTH - projectile.radius;
+		projectile.vx *= -1;
+		bounced = true;
+	}
+
+	if (projectile.y - projectile.radius <= 0) {
+		projectile.y = projectile.radius;
+		projectile.vy *= -1;
+		bounced = true;
+	} else if (projectile.y + projectile.radius >= GAME_HEIGHT) {
+		projectile.y = GAME_HEIGHT - projectile.radius;
+		projectile.vy *= -1;
+		bounced = true;
+	}
+
+	if (bounced) {
+		projectile.bouncesLeft -= 1;
+		createParticles(projectile.x, projectile.y, 10, "#ffd86b", 1.2);
+	}
+
+	return bounced;
+}
+
 function updateProjectiles(dt) {
 	for (let i = projectiles.length - 1; i >= 0; i--) {
 		const projectile = projectiles[i];
@@ -864,7 +924,14 @@ function updateProjectiles(dt) {
 		if (projectileRemoved) {
 			continue;
 		}
-		const outside = projectile.x < -100 || projectile.x > GAME_WIDTH + 100 || projectile.y < -100 || projectile.y > GAME_HEIGHT + 100;
+		handleProjectileBounce(projectile);
+
+		const outside =
+			projectile.x < -100 ||
+			projectile.x > GAME_WIDTH + 100 ||
+			projectile.y < -100 ||
+			projectile.y > GAME_HEIGHT + 100;
+
 		if (projectile.life <= 0 || outside) {
 			projectiles.splice(i, 1);
 		}
