@@ -353,6 +353,49 @@ body {
   color: white;
 }
 
+.score-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.new-badge {
+  position: absolute;
+  top: -18px;
+  right: -28px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffdf6e, #ff5f75);
+  color: #241209;
+  font-size: 11px;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.8px;
+  transform: rotate(-16deg);
+  box-shadow: 0 0 16px rgba(255, 216, 107, 0.45);
+  animation: newBadgePulse 0.85s ease-in-out infinite alternate;
+}
+
+.final-score-line {
+  position: relative;
+  display: inline-block;
+}
+
+.final-new-badge {
+  top: -16px;
+  right: -42px;
+  font-size: 12px;
+}
+
+@keyframes newBadgePulse {
+  from {
+    transform: rotate(-16deg) scale(1);
+  }
+
+  to {
+    transform: rotate(-16deg) scale(1.12);
+  }
+}
+
 .hidden {
   display: none !important;
 }

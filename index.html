@@ -38,6 +38,11 @@
             </span>
             <span>Temps <strong id="timerText">00:00</strong>
             </span>
+            <span class="score-wrapper"> Score <strong id="scoreText">0</strong>
+              <em id="newBestBadge" class="new-badge hidden">NEW</em>
+            </span>
+            <span>Record <strong id="bestScoreText">0</strong>
+            </span>
           </div>
         </div>
         <div id="buffPanel" class="buff-panel hidden">
@@ -68,10 +73,16 @@
       <div id="gameOverOverlay" class="overlay hidden">
         <div class="game-over-box">
           <h1>Game Over</h1>
-          <p>Tu as survécu <strong id="finalTimeText">00:00</strong>
+          <p>Tu as survécu <strong id="finalTimeText">00:00</strong></p>
+          <p>Kills : <strong id="finalKillsText">0</strong></p>
+
+          <p class="final-score-line">
+            Score : <strong id="finalScoreText">0</strong>
+            <em id="finalNewBestBadge" class="new-badge final-new-badge hidden">NEW</em>
           </p>
-          <p>Kills : <strong id="finalKillsText">0</strong>
-          </p>
+
+          <p>Meilleur score : <strong id="finalBestScoreText">0</strong></p>
+
           <button id="restartButton">Rejouer</button>
         </div>
       </div>

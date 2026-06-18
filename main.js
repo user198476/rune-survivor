@@ -19,6 +19,12 @@ const buffPanel = document.getElementById("buffPanel");
 const buffTimerText = document.getElementById("buffTimerText");
 const shieldPanel = document.getElementById("shieldPanel");
 const shieldTimerText = document.getElementById("shieldTimerText");
+const scoreText = document.getElementById("scoreText");
+const bestScoreText = document.getElementById("bestScoreText");
+const newBestBadge = document.getElementById("newBestBadge");
+const finalScoreText = document.getElementById("finalScoreText");
+const finalBestScoreText = document.getElementById("finalBestScoreText");
+const finalNewBestBadge = document.getElementById("finalNewBestBadge");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
@@ -41,6 +47,14 @@ let floatingTexts = [];
 let currentUpgrades = [];
 let powerUpSpawnTimer = 0;
 let shieldSpawnTimer = 0;
+const BEST_SCORE_STORAGE_KEYS = ["runeSurvivorBestScore", "runeSurvivor.bestScore", "RuneSurvivor_BEST_SCORE"];
+const BEST_SCORE_STATS_KEY = "runeSurvivor.stats";
+const CURRENT_RUN_STORAGE_KEY = "runeSurvivor.currentRun";
+let bestScore = 0;
+let currentScore = 0;
+let newBestThisRun = false;
+let lastSavedCurrentScore = -1;
+let lastSavedBestScore = -1;
 const upgrades = [{
     id: "damage",
     icon: "✦",
@@ -138,6 +152,11 @@ function resetGame() {
     screenShake = 0;
     screenShakeTimer = 0;
     damageFlash = 0;
+    bestScore = loadBestScore();
+    currentScore = 0;
+    newBestThisRun = false;
+    lastSavedCurrentScore = -1;
+    lastSavedBestScore = bestScore;
     // objet player (player object)
     player = {
         x: GAME_WIDTH / 2,
@@ -228,6 +247,102 @@ function formatTime(seconds) {
     const m = Math.floor(seconds / 60).toString().padStart(2, "0");
     const s = Math.floor(seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
+}
+
+function safeLocalStorageGet(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (error) {
+        return null;
+    }
+}
+
+function safeLocalStorageSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+    } catch (error) {
+        // Si le navigateur bloque localStorage, le jeu continue quand même.
+    }
+}
+
+function parseStoredScore(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return 0;
+    }
+    return Math.max(0, Math.floor(parsed));
+}
+
+function loadBestScore() {
+    let loadedBest = 0;
+    for (const key of BEST_SCORE_STORAGE_KEYS) {
+        loadedBest = Math.max(loadedBest, parseStoredScore(safeLocalStorageGet(key)));
+    }
+    const statsRaw = safeLocalStorageGet(BEST_SCORE_STATS_KEY);
+    if (statsRaw) {
+        try {
+            const stats = JSON.parse(statsRaw);
+            loadedBest = Math.max(loadedBest, parseStoredScore(stats.bestScore));
+        } catch (error) {
+            // Stats corrompues : on ignore et on garde les autres clés.
+        }
+    }
+    return loadedBest;
+}
+
+function saveBestScore(score) {
+    const safeScore = Math.max(0, Math.floor(score));
+    if (safeScore <= lastSavedBestScore) {
+        return;
+    }
+    lastSavedBestScore = safeScore;
+    for (const key of BEST_SCORE_STORAGE_KEYS) {
+        safeLocalStorageSet(key, String(safeScore));
+    }
+    safeLocalStorageSet(BEST_SCORE_STATS_KEY, JSON.stringify({
+        bestScore: safeScore,
+        bestKills: player ? player.kills : 0,
+        bestTime: Math.floor(gameTime),
+        updatedAt: new Date().toISOString()
+    }));
+}
+
+function saveCurrentRunScore(score) {
+    const safeScore = Math.max(0, Math.floor(score));
+    if (safeScore === lastSavedCurrentScore) {
+        return;
+    }
+    lastSavedCurrentScore = safeScore;
+    safeLocalStorageSet(CURRENT_RUN_STORAGE_KEY, JSON.stringify({
+        score: safeScore,
+        kills: player ? player.kills : 0,
+        time: Math.floor(gameTime),
+        level: player ? player.level : 1,
+        savedAt: new Date().toISOString()
+    }));
+}
+
+function getCurrentScore() {
+    if (!player) {
+        return 0;
+    }
+    return player.kills * 10 + Math.floor(gameTime);
+}
+
+function updateScoreState() {
+    currentScore = getCurrentScore();
+    saveCurrentRunScore(currentScore);
+    if (currentScore > bestScore) {
+        bestScore = currentScore;
+        newBestThisRun = true;
+        saveBestScore(bestScore);
+    }
+}
+
+function finalizeScore() {
+    updateScoreState();
+    saveBestScore(bestScore);
+    saveCurrentRunScore(currentScore);
 }
 
 function randomBetween(min, max) {
@@ -1027,6 +1142,14 @@ function updateHud() {
     levelText.textContent = player.level;
     killsText.textContent = player.kills;
     timerText.textContent = formatTime(gameTime);
+    updateScoreState();
+    scoreText.textContent = currentScore;
+    bestScoreText.textContent = bestScore;
+    if (newBestThisRun) {
+        newBestBadge.classList.remove("hidden");
+    } else {
+        newBestBadge.classList.add("hidden");
+    }
     if (player.damageBoostTimer > 0) {
         buffPanel.classList.remove("hidden");
         buffTimerText.textContent = `${Math.ceil(player.damageBoostTimer)}s`;
@@ -1042,9 +1165,17 @@ function updateHud() {
 }
 
 function endGame() {
+    finalizeScore();
     state = "gameover";
     finalTimeText.textContent = formatTime(gameTime);
     finalKillsText.textContent = player.kills;
+    finalScoreText.textContent = currentScore;
+    finalBestScoreText.textContent = bestScore;
+    if (newBestThisRun) {
+        finalNewBestBadge.classList.remove("hidden");
+    } else {
+        finalNewBestBadge.classList.add("hidden");
+    }
     gameOverOverlay.classList.remove("hidden");
 }
 
@@ -1398,6 +1529,12 @@ window.addEventListener("keyup", (event) => {
 playButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
 resumeButton.addEventListener("click", resumeGame);
+window.addEventListener("beforeunload", () => {
+    if (!player) {
+        return;
+    }
+    finalizeScore();
+});
 resetGame();
 requestAnimationFrame((timestamp) => {
     lastTime = timestamp;
