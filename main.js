@@ -83,9 +83,9 @@ const upgrades = [{
     id: "projectileSpeed",
     icon: "◆",
     title: "Rune véloce",
-    description: "+20% vitesse des projectiles.",
+    description: "+30% vitesse des projectiles.",
     apply() {
-        player.projectileSpeed *= 1.2;
+        player.projectileSpeed *= 1.3;
     }
 }, {
     id: "magnet",
