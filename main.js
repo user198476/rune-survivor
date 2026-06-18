@@ -17,6 +17,8 @@ const pauseOverlay = document.getElementById("pauseOverlay");
 const resumeButton = document.getElementById("resumeButton");
 const buffPanel = document.getElementById("buffPanel");
 const buffTimerText = document.getElementById("buffTimerText");
+const shieldPanel = document.getElementById("shieldPanel");
+const shieldTimerText = document.getElementById("shieldTimerText");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
@@ -38,6 +40,7 @@ let particles = [];
 let floatingTexts = [];
 let currentUpgrades = [];
 let powerUpSpawnTimer = 0;
+let shieldSpawnTimer = 0;
 const upgrades = [{
     id: "damage",
     icon: "✦",
@@ -150,6 +153,8 @@ function resetGame() {
         damage: 18,
         damageMultiplier: 1,
         damageBoostTimer: 0,
+        shieldTimer: 0,
+        shieldBlockCooldown: 0,
         lifeSteal: 0,
         lifeStealBuffer: 0,
         spikeInvulnerabilityTimer: 0,
@@ -175,6 +180,7 @@ function resetGame() {
     particles = [];
     floatingTexts = [];
     powerUpSpawnTimer = 6;
+    shieldSpawnTimer = 12;
     levelUpOverlay.classList.add("hidden");
     pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");
@@ -378,6 +384,9 @@ function damagePlayer(amount, source) {
     if (state !== "playing") {
         return;
     }
+    if (blockDamageWithShield(source)) {
+        return;
+    }
     if (player.invulnerabilityTimer > 0) {
         return;
     }
@@ -401,6 +410,25 @@ function damagePlayer(amount, source) {
         endGame();
     }
     updateHud();
+}
+
+function blockDamageWithShield(source) {
+    if (player.shieldTimer <= 0) {
+        return false;
+    }
+    if (player.shieldBlockCooldown <= 0) {
+        player.shieldBlockCooldown = 0.25;
+        addFloatingText(player.x, player.y - player.radius - 22, "BLOQUÉ", "#d8dde8");
+        createParticles(player.x, player.y, 18, "#d8dde8", 1.4);
+        screenShake = 1.4;
+        screenShakeTimer = 0.04;
+        if (source) {
+            const dir = normalize(player.x - source.x, player.y - source.y);
+            player.knockbackX += dir.x * 260;
+            player.knockbackY += dir.y * 260;
+        }
+    }
+    return true;
 }
 
 function dropGem(x, y, value) {
@@ -454,7 +482,7 @@ function createSpikes() {
         x: GAME_WIDTH / 2,
         y: GAME_HEIGHT / 2
     };
-	const playerSafeZone = 50;
+    const playerSafeZone = 50;
     let added = 0;
     let attempts = 0;
     while (added < 12 && attempts < 300) {
@@ -467,17 +495,17 @@ function createSpikes() {
             }, center) < 180) {
             continue;
         }
-
-		const dxPlayer = x - player.x;
-		const dyPlayer = y - player.y;
-
-		if (dxPlayer * dxPlayer + dyPlayer * dyPlayer < playerSafeZone * playerSafeZone) {
-			continue;
-		}
-
-		if (distance({ x, y }, player) < playerSafeZone) {
-			continue;
-		}
+        const dxPlayer = x - player.x;
+        const dyPlayer = y - player.y;
+        if (dxPlayer * dxPlayer + dyPlayer * dyPlayer < playerSafeZone * playerSafeZone) {
+            continue;
+        }
+        if (distance({
+                x,
+                y
+            }, player) < playerSafeZone) {
+            continue;
+        }
         if (isTooCloseToSpike(result, x, y, 95)) {
             continue;
         }
@@ -530,6 +558,9 @@ function damagePlayerFromSpike(spike) {
     if (state !== "playing") {
         return;
     }
+    if (blockDamageWithShield(spike)) {
+        return;
+    }
     if (player.spikeInvulnerabilityTimer > 0) {
         return;
     }
@@ -578,6 +609,31 @@ function spawnDamageBoost() {
     }
 }
 
+function spawnShieldPowerUp() {
+    for (let attempt = 0; attempt < 120; attempt++) {
+        const x = randomBetween(90, GAME_WIDTH - 90);
+        const y = randomBetween(90, GAME_HEIGHT - 90);
+        if (distance({
+                x,
+                y
+            }, player) < 160) {
+            continue;
+        }
+        if (isTooCloseToSpike(spikes, x, y, 70)) {
+            continue;
+        }
+        powerUps.push({
+            type: "shield",
+            x,
+            y,
+            radius: 16,
+            life: 18,
+            pulse: 0
+        });
+        return;
+    }
+}
+
 function updatePowerUps(dt) {
     if (!powerUps) {
         powerUps = [];
@@ -591,21 +647,38 @@ function updatePowerUps(dt) {
         }
         powerUpSpawnTimer = randomBetween(18, 26);
     }
+    shieldSpawnTimer -= dt;
+    if (shieldSpawnTimer <= 0) {
+        const hasShieldPowerUp = powerUps.some((powerUp) => powerUp.type === "shield");
+        const shieldActive = player.shieldTimer > 0;
+        if (!hasShieldPowerUp && !shieldActive) {
+            spawnShieldPowerUp();
+        }
+        shieldSpawnTimer = randomBetween(28, 42);
+    }
     for (let i = powerUps.length - 1; i >= 0; i--) {
         const powerUp = powerUps[i];
         powerUp.life -= dt;
         powerUp.pulse += dt;
         const d = distance(player, powerUp);
         if (d < player.radius + powerUp.radius) {
-            const activated = activateDamageBoost();
+            let activated = false;
+            if (powerUp.type === "damageBoost") {
+                activated = activateDamageBoost();
+            }
+            if (powerUp.type === "shield") {
+                activated = activateShield();
+            }
             if (activated) {
-                createParticles(powerUp.x, powerUp.y, 36, "#ffd86b", 2.4);
+                const color = powerUp.type === "shield" ? "#d8dde8" : "#ffd86b";
+                createParticles(powerUp.x, powerUp.y, 36, color, 2.4);
                 powerUps.splice(i, 1);
             }
             continue;
         }
         if (powerUp.life <= 0) {
-            createParticles(powerUp.x, powerUp.y, 14, "#ffd86b", 1.1);
+            const color = powerUp.type === "shield" ? "#d8dde8" : "#ffd86b";
+            createParticles(powerUp.x, powerUp.y, 14, color, 1.1);
             powerUps.splice(i, 1);
         }
     }
@@ -621,6 +694,18 @@ function activateDamageBoost() {
     spikeCanvas = createSpikeCanvas(spikes);
     addFloatingText(player.x, player.y - player.radius - 34, "DÉGÂTS x2", "#ffd86b");
     createParticles(player.x, player.y, 48, "#ffd86b", 2.5);
+    updateHud();
+    return true;
+}
+
+function activateShield() {
+    if (player.shieldTimer > 0) {
+        return false;
+    }
+    player.shieldTimer = 8;
+    player.shieldBlockCooldown = 0;
+    addFloatingText(player.x, player.y - player.radius - 34, "BOUCLIER", "#d8dde8");
+    createParticles(player.x, player.y, 42, "#d8dde8", 2.1);
     updateHud();
     return true;
 }
@@ -743,6 +828,8 @@ function updatePlayer(dt) {
     player.invulnerabilityTimer = Math.max(0, player.invulnerabilityTimer - dt);
     player.spikeInvulnerabilityTimer = Math.max(0, player.spikeInvulnerabilityTimer - dt);
     player.hitFlashTimer = Math.max(0, player.hitFlashTimer - dt);
+    player.shieldTimer = Math.max(0, player.shieldTimer - dt);
+    player.shieldBlockCooldown = Math.max(0, player.shieldBlockCooldown - dt);
     player.damageBoostTimer = Math.max(0, player.damageBoostTimer - dt);
     if (player.damageBoostTimer <= 0) {
         player.damageMultiplier = 1;
@@ -945,6 +1032,12 @@ function updateHud() {
         buffTimerText.textContent = `${Math.ceil(player.damageBoostTimer)}s`;
     } else {
         buffPanel.classList.add("hidden");
+    }
+    if (player.shieldTimer > 0) {
+        shieldPanel.classList.remove("hidden");
+        shieldTimerText.textContent = `${Math.ceil(player.shieldTimer)}s`;
+    } else {
+        shieldPanel.classList.add("hidden");
     }
 }
 
@@ -1197,35 +1290,49 @@ function drawPowerUps() {
         return;
     }
     for (const powerUp of powerUps) {
+        const isShield = powerUp.type === "shield";
+        const color = isShield ? "#d8dde8" : "#ffd86b";
+        const darkColor = isShield ? "#1c2028" : "#241209";
+        const label = isShield ? "⛨" : "x2";
         const pulse = Math.sin(powerUp.pulse * 7) * 0.18 + 1;
         const radius = powerUp.radius * pulse;
         ctx.save();
         ctx.translate(powerUp.x, powerUp.y);
         ctx.rotate(gameTime * 2.2);
         const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, 52);
-        glow.addColorStop(0, "rgba(255, 216, 107, 0.55)");
-        glow.addColorStop(1, "rgba(255, 216, 107, 0)");
+        glow.addColorStop(0, isShield ? "rgba(216, 221, 232, 0.48)" : "rgba(255, 216, 107, 0.55)");
+        glow.addColorStop(1, isShield ? "rgba(216, 221, 232, 0)" : "rgba(255, 216, 107, 0)");
         ctx.fillStyle = glow;
         ctx.beginPath();
         ctx.arc(0, 0, 52, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowColor = "#ffd86b";
+        ctx.shadowColor = color;
         ctx.shadowBlur = 22;
-        ctx.fillStyle = "#ffd86b";
-        ctx.beginPath();
-        ctx.moveTo(0, -radius);
-        ctx.lineTo(radius, 0);
-        ctx.lineTo(0, radius);
-        ctx.lineTo(-radius, 0);
-        ctx.closePath();
-        ctx.fill();
+        ctx.fillStyle = color;
+        if (isShield) {
+            ctx.beginPath();
+            ctx.moveTo(0, -radius);
+            ctx.quadraticCurveTo(radius, -radius * 0.65, radius * 0.72, radius * 0.35);
+            ctx.quadraticCurveTo(radius * 0.35, radius, 0, radius * 1.15);
+            ctx.quadraticCurveTo(-radius * 0.35, radius, -radius * 0.72, radius * 0.35);
+            ctx.quadraticCurveTo(-radius, -radius * 0.65, 0, -radius);
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(0, -radius);
+            ctx.lineTo(radius, 0);
+            ctx.lineTo(0, radius);
+            ctx.lineTo(-radius, 0);
+            ctx.closePath();
+            ctx.fill();
+        }
         ctx.shadowBlur = 0;
         ctx.rotate(-gameTime * 2.2);
-        ctx.fillStyle = "#241209";
-        ctx.font = "bold 14px Arial";
+        ctx.fillStyle = darkColor;
+        ctx.font = isShield ? "bold 18px Arial" : "bold 14px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("x2", 0, 1);
+        ctx.fillText(label, 0, 1);
         ctx.restore();
     }
 }

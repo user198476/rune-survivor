@@ -339,6 +339,20 @@ body {
   color: white;
 }
 
+.shield-panel {
+  top: 126px;
+  border-color: rgba(210, 216, 226, 0.55);
+  background:
+    radial-gradient(circle at top, rgba(210, 216, 226, 0.22), transparent 60%),
+    rgba(20, 22, 28, 0.88);
+  box-shadow: 0 0 28px rgba(210, 216, 226, 0.18);
+  color: #d8dde8;
+}
+
+.shield-panel strong {
+  color: white;
+}
+
 .hidden {
   display: none !important;
 }
