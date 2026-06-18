@@ -153,10 +153,10 @@ const upgrades = [{
     title: "Rune vampirique",
     description: "+5% de vol de vie. Les dégâts infligés te rendent des PV.",
     canAppear() {
-        return player.lifeSteal < 0.25;
+        return player.lifeSteal < 0.15;
     },
     apply() {
-        player.lifeSteal = Math.min(0.25, Number((player.lifeSteal + 0.05).toFixed(2)));
+        player.lifeSteal = Math.min(0.15, Number((player.lifeSteal + 0.03).toFixed(2)));
     }
 }];
 const META_STORAGE_KEYS = {
@@ -309,9 +309,9 @@ function resetGame() {
         x: GAME_WIDTH / 2,
         y: GAME_HEIGHT / 2,
         radius: 18,
-		aimAngle: 0,
-		targetAimAngle: 0,
-		aimTurnSpeed: 16,
+        aimAngle: 0,
+        targetAimAngle: 0,
+        aimTurnSpeed: 16,
         hp: 100,
         maxHp: 100,
         speed: 260,
@@ -527,22 +527,19 @@ function normalize(dx, dy) {
 }
 
 function getShortestAngleDifference(from, to) {
-	let diff = to - from;
-
-	while (diff > Math.PI) {
-		diff -= Math.PI * 2;
-	}
-
-	while (diff < -Math.PI) {
-		diff += Math.PI * 2;
-	}
-
-	return diff;
+    let diff = to - from;
+    while (diff > Math.PI) {
+        diff -= Math.PI * 2;
+    }
+    while (diff < -Math.PI) {
+        diff += Math.PI * 2;
+    }
+    return diff;
 }
 
 function lerpAngle(from, to, speed, dt) {
-	const diff = getShortestAngleDifference(from, to);
-	return from + diff * Math.min(1, speed * dt);
+    const diff = getShortestAngleDifference(from, to);
+    return from + diff * Math.min(1, speed * dt);
 }
 
 function spawnEnemy() {
@@ -1084,6 +1081,7 @@ function chooseUpgrade(index) {
         return;
     }
     upgrade.apply();
+    clampPlayerStats();
     createParticles(player.x, player.y, 40, "#b88cff", 2.2);
     levelUpOverlay.classList.add("hidden");
     state = "playing";
@@ -1136,22 +1134,14 @@ function updatePlayer(dt) {
     player.y = Math.max(player.radius, Math.min(GAME_HEIGHT - player.radius, player.y));
     player.fireCooldown -= dt;
     const target = findNearestEnemy();
-
-	if (target) {
-		player.targetAimAngle = Math.atan2(target.y - player.y, target.x - player.x);
-	}
-
-	player.aimAngle = lerpAngle(
-		player.aimAngle,
-		player.targetAimAngle,
-		player.aimTurnSpeed,
-		dt
-	);
-
-	if (player.fireCooldown <= 0 && target) {
-		shootAt(target);
-		player.fireCooldown = player.fireRate;
-	}
+    if (target) {
+        player.targetAimAngle = Math.atan2(target.y - player.y, target.x - player.x);
+    }
+    player.aimAngle = lerpAngle(player.aimAngle, player.targetAimAngle, player.aimTurnSpeed, dt);
+    if (player.fireCooldown <= 0 && target) {
+        shootAt(target);
+        player.fireCooldown = player.fireRate;
+    }
     player.invulnerabilityTimer = Math.max(0, player.invulnerabilityTimer - dt);
     player.spikeInvulnerabilityTimer = Math.max(0, player.spikeInvulnerabilityTimer - dt);
     player.hitFlashTimer = Math.max(0, player.hitFlashTimer - dt);
@@ -1342,7 +1332,8 @@ function applyLifeSteal(damageDealt) {
     if (damageDealt <= 0) {
         return;
     }
-    player.lifeStealBuffer += damageDealt * player.lifeSteal;
+    const effectiveLifeSteal = Math.min(0.15, player.lifeSteal);
+    player.lifeStealBuffer += damageDealt * effectiveLifeSteal;
     const healAmount = Math.floor(player.lifeStealBuffer);
     if (healAmount <= 0) {
         return;
@@ -1594,70 +1585,54 @@ function drawDamageOverlay() {
 }
 
 function drawPlayer() {
-	ctx.save();
-
-	const isHit = player.hitFlashTimer > 0;
-	const isBlinking =
-		player.invulnerabilityTimer > 0 &&
-		!isHit &&
-		Math.floor(gameTime * 24) % 2 === 0;
-
-	ctx.translate(player.x, player.y);
-	ctx.rotate(player.aimAngle);
-
-	if (isBlinking) {
-		ctx.globalAlpha = 0.55;
-	}
-
-	// Ombre / base sombre
-	ctx.fillStyle = "#27214f";
-	ctx.beginPath();
-	ctx.arc(0, 0, player.radius + 4, 0, Math.PI * 2);
-	ctx.fill();
-
-	// Corps du mage
-	ctx.fillStyle = isHit ? "#ffffff" : "#6ee6ff";
-	ctx.beginPath();
-	ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
-	ctx.fill();
-
-	// Petit visage / capuche orientée vers l’avant
-	ctx.fillStyle = isHit ? "#ff365d" : "#f7f0ff";
-	ctx.beginPath();
-	ctx.arc(7, -3, 8, 0, Math.PI * 2);
-	ctx.fill();
-
-	// Petite cape arrière pour rendre l’orientation lisible
-	ctx.fillStyle = "rgba(39, 33, 79, 0.95)";
-	ctx.beginPath();
-	ctx.moveTo(-10, -10);
-	ctx.lineTo(-27, 0);
-	ctx.lineTo(-10, 10);
-	ctx.closePath();
-	ctx.fill();
-
-	// Baguette magique orientée vers l’avant
-	ctx.strokeStyle = "#d9c9ff";
-	ctx.lineWidth = 5;
-	ctx.lineCap = "round";
-
-	ctx.beginPath();
-	ctx.moveTo(8, 12);
-	ctx.lineTo(31, 0);
-	ctx.stroke();
-
-	// Orbe au bout de la baguette
-	ctx.fillStyle = "#ffdf6e";
-	ctx.shadowColor = "#ffdf6e";
-	ctx.shadowBlur = 18;
-
-	ctx.beginPath();
-	ctx.arc(35, 0, 6, 0, Math.PI * 2);
-	ctx.fill();
-
-	ctx.shadowBlur = 0;
-
-	ctx.restore();
+    ctx.save();
+    const isHit = player.hitFlashTimer > 0;
+    const isBlinking = player.invulnerabilityTimer > 0 && !isHit && Math.floor(gameTime * 24) % 2 === 0;
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.aimAngle);
+    if (isBlinking) {
+        ctx.globalAlpha = 0.55;
+    }
+    // Ombre / base sombre
+    ctx.fillStyle = "#27214f";
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius + 4, 0, Math.PI * 2);
+    ctx.fill();
+    // Corps du mage
+    ctx.fillStyle = isHit ? "#ffffff" : "#6ee6ff";
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+    ctx.fill();
+    // Petit visage / capuche orientée vers l’avant
+    ctx.fillStyle = isHit ? "#ff365d" : "#f7f0ff";
+    ctx.beginPath();
+    ctx.arc(7, -3, 8, 0, Math.PI * 2);
+    ctx.fill();
+    // Petite cape arrière pour rendre l’orientation lisible
+    ctx.fillStyle = "rgba(39, 33, 79, 0.95)";
+    ctx.beginPath();
+    ctx.moveTo(-10, -10);
+    ctx.lineTo(-27, 0);
+    ctx.lineTo(-10, 10);
+    ctx.closePath();
+    ctx.fill();
+    // Baguette magique orientée vers l’avant
+    ctx.strokeStyle = "#d9c9ff";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(8, 12);
+    ctx.lineTo(31, 0);
+    ctx.stroke();
+    // Orbe au bout de la baguette
+    ctx.fillStyle = "#ffdf6e";
+    ctx.shadowColor = "#ffdf6e";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(35, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
 }
 
 function getEnemySprite(enemy) {
@@ -1964,11 +1939,15 @@ function applyPermanentBonusesToPlayer() {
     player.projectileSpeed *= 1 + bonuses.projectileSpeedPercent;
     player.maxHp += bonuses.maxHpFlat;
     player.hp = player.maxHp;
-    player.lifeSteal += bonuses.lifeStealPercent;
+    player.lifeSteal = Math.min(0.15, player.lifeSteal + bonuses.lifeStealPercent);
     player.shieldDurationBonus = bonuses.shieldDurationFlat;
     player.speed *= 1 + bonuses.moveSpeedPercent;
     player.magnetRadius += bonuses.magnetFlat;
     player.xpGainMultiplier = 1 + bonuses.xpGainPercent;
+}
+
+function clampPlayerStats() {
+    player.lifeSteal = Math.min(0.15, Math.max(0, player.lifeSteal));
 }
 
 function renderSkillTree() {
