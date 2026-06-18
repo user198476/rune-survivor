@@ -57,6 +57,11 @@ let currentScore = 0;
 let newBestThisRun = false;
 let lastSavedCurrentScore = -1;
 let lastSavedBestScore = -1;
+const ENEMY_GRID_SIZE = 140;
+const MAX_PARTICLES = 450;
+const MAX_FLOATING_TEXTS = 90;
+let enemyGrid = new Map();
+const enemySpriteCache = new Map();
 const upgrades = [{
     id: "damage",
     icon: "✦",
@@ -200,6 +205,7 @@ function resetGame() {
     spikeCanvas = null;
     particles = [];
     floatingTexts = [];
+	enemyGrid.clear();
     powerUpSpawnTimer = 6;
     shieldSpawnTimer = 12;
     levelUpOverlay.classList.add("hidden");
@@ -437,16 +443,26 @@ function spawnEnemy() {
 }
 
 function findNearestEnemy() {
-    let nearest = null;
-    let nearestDistance = Infinity;
-    for (const enemy of enemies) {
-        const d = distance(player, enemy);
-        if (d < nearestDistance && d <= player.range) {
-            nearest = enemy;
-            nearestDistance = d;
-        }
-    }
-    return nearest;
+	let nearest = null;
+	let nearestDistanceSq = Infinity;
+	const rangeSq = player.range * player.range;
+
+	for (const enemy of enemies) {
+		if (!enemy || enemy.dead) {
+			continue;
+		}
+
+		const dx = player.x - enemy.x;
+		const dy = player.y - enemy.y;
+		const dSq = dx * dx + dy * dy;
+
+		if (dSq < nearestDistanceSq && dSq <= rangeSq) {
+			nearest = enemy;
+			nearestDistanceSq = dSq;
+		}
+	}
+
+	return nearest;
 }
 
 function shootAt(target) {
@@ -471,31 +487,54 @@ function shootAt(target) {
 }
 
 function createParticles(x, y, count, color, speed = 1) {
-    for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const velocity = randomBetween(60, 160) * speed;
-        particles.push({
-            x,
-            y,
-            vx: Math.cos(angle) * velocity,
-            vy: Math.sin(angle) * velocity,
-            radius: randomBetween(2, 5),
-            color,
-            life: randomBetween(0.25, 0.55),
-            maxLife: 0.55
-        });
-    }
+	let adjustedCount = count;
+
+	if (enemies.length > 140) {
+		adjustedCount = Math.ceil(count * 0.35);
+	} else if (enemies.length > 100) {
+		adjustedCount = Math.ceil(count * 0.5);
+	} else if (enemies.length > 70) {
+		adjustedCount = Math.ceil(count * 0.7);
+	}
+
+	adjustedCount = Math.max(1, adjustedCount);
+
+	const overflow = particles.length + adjustedCount - MAX_PARTICLES;
+
+	if (overflow > 0) {
+		particles.splice(0, overflow);
+	}
+
+	for (let i = 0; i < adjustedCount; i++) {
+		const angle = Math.random() * Math.PI * 2;
+		const velocity = randomBetween(60, 160) * speed;
+
+		particles.push({
+			x,
+			y,
+			vx: Math.cos(angle) * velocity,
+			vy: Math.sin(angle) * velocity,
+			radius: randomBetween(2, 5),
+			color,
+			life: randomBetween(0.25, 0.55),
+			maxLife: 0.55
+		});
+	}
 }
 
 function addFloatingText(x, y, text, color = "white") {
-    floatingTexts.push({
-        x,
-        y,
-        text,
-        color,
-        life: 0.8,
-        maxLife: 0.8
-    });
+	if (floatingTexts.length >= MAX_FLOATING_TEXTS) {
+		floatingTexts.splice(0, floatingTexts.length - MAX_FLOATING_TEXTS + 1);
+	}
+
+	floatingTexts.push({
+		x,
+		y,
+		text,
+		color,
+		life: 0.8,
+		maxLife: 0.8
+	});
 }
 
 function damagePlayer(amount, source) {
@@ -907,7 +946,8 @@ function update(dt) {
     updatePowerUps(dt);
     updateSpawns(dt);
     updateEnemies(dt);
-    updateProjectiles(dt);
+	buildEnemyGrid();
+	updateProjectiles(dt);
     updateGems(dt);
     updateParticles(dt);
     updateFloatingTexts(dt);
@@ -982,20 +1022,33 @@ function updateSpawns(dt) {
 }
 
 function updateEnemies(dt) {
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        const enemy = enemies[i];
-        enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
-        const dir = normalize(player.x - enemy.x, player.y - enemy.y);
-        enemy.x += dir.x * enemy.speed * dt;
-        enemy.y += dir.y * enemy.speed * dt;
-        const d = distance(player, enemy);
-        if (d < player.radius + enemy.radius) {
-            if (enemy.attackCooldown <= 0) {
-                damagePlayer(enemy.damage, enemy);
-                enemy.attackCooldown = 0.65;
-            }
-        }
-    }
+	for (let i = enemies.length - 1; i >= 0; i--) {
+		const enemy = enemies[i];
+
+		if (!enemy || enemy.dead) {
+			continue;
+		}
+
+		enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
+
+		const dx = player.x - enemy.x;
+		const dy = player.y - enemy.y;
+		const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+		enemy.x += (dx / len) * enemy.speed * dt;
+		enemy.y += (dy / len) * enemy.speed * dt;
+
+		const hitDx = player.x - enemy.x;
+		const hitDy = player.y - enemy.y;
+		const hitRadius = player.radius + enemy.radius;
+
+		if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
+			if (enemy.attackCooldown <= 0) {
+				damagePlayer(enemy.damage, enemy);
+				enemy.attackCooldown = 0.65;
+			}
+		}
+	}
 }
 
 function handleProjectileBounce(projectile) {
@@ -1028,42 +1081,144 @@ function handleProjectileBounce(projectile) {
     return bounced;
 }
 
+function getEnemyGridCell(value) {
+	return Math.floor(value / ENEMY_GRID_SIZE);
+}
+
+function getEnemyGridKey(cellX, cellY) {
+	return `${cellX};${cellY}`;
+}
+
+function buildEnemyGrid() {
+	enemyGrid.clear();
+
+	for (let i = 0; i < enemies.length; i++) {
+		const enemy = enemies[i];
+
+		if (!enemy || enemy.dead) {
+			continue;
+		}
+
+		const cellX = getEnemyGridCell(enemy.x);
+		const cellY = getEnemyGridCell(enemy.y);
+		const key = getEnemyGridKey(cellX, cellY);
+
+		let bucket = enemyGrid.get(key);
+
+		if (!bucket) {
+			bucket = [];
+			enemyGrid.set(key, bucket);
+		}
+
+		bucket.push(i);
+	}
+}
+
+function forEachNearbyEnemyIndex(x, y, callback) {
+	const cellX = getEnemyGridCell(x);
+	const cellY = getEnemyGridCell(y);
+
+	for (let offsetY = -1; offsetY <= 1; offsetY++) {
+		for (let offsetX = -1; offsetX <= 1; offsetX++) {
+			const key = getEnemyGridKey(cellX + offsetX, cellY + offsetY);
+			const bucket = enemyGrid.get(key);
+
+			if (!bucket) {
+				continue;
+			}
+
+			for (const enemyIndex of bucket) {
+				const shouldStop = callback(enemyIndex);
+
+				if (shouldStop) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 function updateProjectiles(dt) {
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-        const projectile = projectiles[i];
-        projectile.x += projectile.vx * dt;
-        projectile.y += projectile.vy * dt;
-        projectile.life -= dt;
-        let projectileRemoved = false;
-        for (let j = enemies.length - 1; j >= 0; j--) {
-            const enemy = enemies[j];
-            const d = distance(projectile, enemy);
-            if (d < projectile.radius + enemy.radius) {
-                const damageDealt = Math.min(projectile.damage, enemy.hp);
-                enemy.hp -= projectile.damage;
-                applyLifeSteal(damageDealt);
-                addFloatingText(enemy.x, enemy.y - enemy.radius, Math.floor(projectile.damage), "#ffe6ff");
-                createParticles(projectile.x, projectile.y, 12, "#75e8ff", 1.3);
-                projectiles.splice(i, 1);
-                projectileRemoved = true;
-                if (enemy.hp <= 0) {
-                    player.kills += 1;
-                    dropGem(enemy.x, enemy.y, enemy.xp);
-                    createParticles(enemy.x, enemy.y, 22, enemy.color, 1.7);
-                    enemies.splice(j, 1);
-                }
-                break;
-            }
-        }
-        if (projectileRemoved) {
-            continue;
-        }
-        handleProjectileBounce(projectile);
-        const outside = projectile.x < -100 || projectile.x > GAME_WIDTH + 100 || projectile.y < -100 || projectile.y > GAME_HEIGHT + 100;
-        if (projectile.life <= 0 || outside) {
-            projectiles.splice(i, 1);
-        }
-    }
+	let enemiesNeedCleanup = false;
+
+	for (let i = projectiles.length - 1; i >= 0; i--) {
+		const projectile = projectiles[i];
+
+		projectile.x += projectile.vx * dt;
+		projectile.y += projectile.vy * dt;
+		projectile.life -= dt;
+
+		let projectileRemoved = false;
+
+		forEachNearbyEnemyIndex(projectile.x, projectile.y, (enemyIndex) => {
+			const enemy = enemies[enemyIndex];
+
+			if (!enemy || enemy.dead) {
+				return false;
+			}
+
+			const dx = projectile.x - enemy.x;
+			const dy = projectile.y - enemy.y;
+			const radius = projectile.radius + enemy.radius;
+
+			if (dx * dx + dy * dy < radius * radius) {
+				const damageDealt = Math.min(projectile.damage, enemy.hp);
+
+				enemy.hp -= projectile.damage;
+
+				if (typeof applyLifeSteal === "function") {
+					applyLifeSteal(damageDealt);
+				}
+
+				addFloatingText(
+					enemy.x,
+					enemy.y - enemy.radius,
+					Math.floor(projectile.damage),
+					"#ffe6ff"
+				);
+
+				createParticles(projectile.x, projectile.y, 12, "#75e8ff", 1.3);
+
+				projectiles.splice(i, 1);
+				projectileRemoved = true;
+
+				if (enemy.hp <= 0 && !enemy.dead) {
+					enemy.dead = true;
+					enemiesNeedCleanup = true;
+
+					player.kills += 1;
+					dropGem(enemy.x, enemy.y, enemy.xp);
+					createParticles(enemy.x, enemy.y, 22, enemy.color, 1.7);
+				}
+
+				return true;
+			}
+
+			return false;
+		});
+
+		if (projectileRemoved) {
+			continue;
+		}
+
+		handleProjectileBounce(projectile);
+
+		const outside =
+			projectile.x < -100 ||
+			projectile.x > GAME_WIDTH + 100 ||
+			projectile.y < -100 ||
+			projectile.y > GAME_HEIGHT + 100;
+
+		if (projectile.life <= 0 || outside) {
+			projectiles.splice(i, 1);
+		}
+	}
+
+	if (enemiesNeedCleanup) {
+		enemies = enemies.filter((enemy) => !enemy.dead);
+	}
 }
 
 function applyLifeSteal(damageDealt) {
@@ -1355,50 +1510,131 @@ function drawPlayer() {
     ctx.restore();
 }
 
+function getEnemySprite(enemy) {
+	const key = `${enemy.type}_${enemy.color}_${enemy.radius}`;
+
+	let sprite = enemySpriteCache.get(key);
+
+	if (!sprite) {
+		sprite = createEnemySprite(enemy);
+		enemySpriteCache.set(key, sprite);
+	}
+
+	return sprite;
+}
+
+function createEnemySprite(enemy) {
+	const padding = 32;
+	const size = Math.ceil((enemy.radius + padding) * 2);
+	const buffer = document.createElement("canvas");
+
+	buffer.width = size;
+	buffer.height = size;
+
+	const bctx = buffer.getContext("2d");
+	const cx = size / 2;
+	const cy = size / 2;
+
+	bctx.save();
+
+	bctx.fillStyle = enemy.color;
+	bctx.shadowColor = enemy.color;
+	bctx.shadowBlur = 16;
+
+	if (enemy.type === "bat") {
+		bctx.beginPath();
+		bctx.ellipse(cx, cy, enemy.radius + 8, enemy.radius, 0, 0, Math.PI * 2);
+		bctx.fill();
+
+		bctx.shadowBlur = 0;
+		bctx.fillStyle = "#1b1028";
+		bctx.beginPath();
+		bctx.arc(cx - 5, cy - 2, 2, 0, Math.PI * 2);
+		bctx.arc(cx + 5, cy - 2, 2, 0, Math.PI * 2);
+		bctx.fill();
+	} else if (enemy.type === "brute") {
+		bctx.beginPath();
+
+		if (typeof bctx.roundRect === "function") {
+			bctx.roundRect(
+				cx - enemy.radius,
+				cy - enemy.radius,
+				enemy.radius * 2,
+				enemy.radius * 2,
+				10
+			);
+		} else {
+			bctx.rect(
+				cx - enemy.radius,
+				cy - enemy.radius,
+				enemy.radius * 2,
+				enemy.radius * 2
+			);
+		}
+
+		bctx.fill();
+
+		bctx.shadowBlur = 0;
+		bctx.fillStyle = "#371010";
+		bctx.beginPath();
+		bctx.arc(cx - 8, cy - 5, 3, 0, Math.PI * 2);
+		bctx.arc(cx + 8, cy - 5, 3, 0, Math.PI * 2);
+		bctx.fill();
+	} else {
+		bctx.beginPath();
+		bctx.arc(cx, cy, enemy.radius, 0, Math.PI * 2);
+		bctx.fill();
+
+		bctx.shadowBlur = 0;
+		bctx.fillStyle = "#1b1028";
+		bctx.beginPath();
+		bctx.arc(cx - 6, cy - 4, 3, 0, Math.PI * 2);
+		bctx.arc(cx + 6, cy - 4, 3, 0, Math.PI * 2);
+		bctx.fill();
+	}
+
+	bctx.restore();
+
+	return {
+		canvas: buffer,
+		size
+	};
+}
+
 function drawEnemies() {
-    for (const enemy of enemies) {
-        ctx.save();
-        ctx.fillStyle = enemy.color;
-        ctx.shadowColor = enemy.color;
-        ctx.shadowBlur = 16;
-        if (enemy.type === "bat") {
-            ctx.beginPath();
-            ctx.ellipse(enemy.x, enemy.y, enemy.radius + 8, enemy.radius, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#1b1028";
-            ctx.beginPath();
-            ctx.arc(enemy.x - 5, enemy.y - 2, 2, 0, Math.PI * 2);
-            ctx.arc(enemy.x + 5, enemy.y - 2, 2, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (enemy.type === "brute") {
-            ctx.beginPath();
-            ctx.roundRect(enemy.x - enemy.radius, enemy.y - enemy.radius, enemy.radius * 2, enemy.radius * 2, 10);
-            ctx.fill();
-            ctx.fillStyle = "#371010";
-            ctx.beginPath();
-            ctx.arc(enemy.x - 8, enemy.y - 5, 3, 0, Math.PI * 2);
-            ctx.arc(enemy.x + 8, enemy.y - 5, 3, 0, Math.PI * 2);
-            ctx.fill();
-        } else {
-            ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#1b1028";
-            ctx.beginPath();
-            ctx.arc(enemy.x - 6, enemy.y - 4, 3, 0, Math.PI * 2);
-            ctx.arc(enemy.x + 6, enemy.y - 4, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.shadowBlur = 0;
-        const hpWidth = enemy.radius * 2;
-        const hpHeight = 5;
-        const hpPercent = enemy.hp / enemy.maxHp;
-        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-        ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth, hpHeight);
-        ctx.fillStyle = "#ff4066";
-        ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth * hpPercent, hpHeight);
-        ctx.restore();
-    }
+	for (const enemy of enemies) {
+		if (!enemy || enemy.dead) {
+			continue;
+		}
+
+		const sprite = getEnemySprite(enemy);
+
+		ctx.drawImage(
+			sprite.canvas,
+			enemy.x - sprite.size / 2,
+			enemy.y - sprite.size / 2
+		);
+
+		const hpWidth = enemy.radius * 2;
+		const hpHeight = 5;
+		const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
+
+		ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+		ctx.fillRect(
+			enemy.x - hpWidth / 2,
+			enemy.y - enemy.radius - 14,
+			hpWidth,
+			hpHeight
+		);
+
+		ctx.fillStyle = "#ff4066";
+		ctx.fillRect(
+			enemy.x - hpWidth / 2,
+			enemy.y - enemy.radius - 14,
+			hpWidth * hpPercent,
+			hpHeight
+		);
+	}
 }
 
 function drawProjectiles() {
