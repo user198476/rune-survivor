@@ -310,6 +310,8 @@ function resetGame() {
         y: GAME_HEIGHT / 2,
         radius: 18,
 		aimAngle: 0,
+		targetAimAngle: 0,
+		aimTurnSpeed: 16,
         hp: 100,
         maxHp: 100,
         speed: 260,
@@ -524,6 +526,25 @@ function normalize(dx, dy) {
     };
 }
 
+function getShortestAngleDifference(from, to) {
+	let diff = to - from;
+
+	while (diff > Math.PI) {
+		diff -= Math.PI * 2;
+	}
+
+	while (diff < -Math.PI) {
+		diff += Math.PI * 2;
+	}
+
+	return diff;
+}
+
+function lerpAngle(from, to, speed, dt) {
+	const diff = getShortestAngleDifference(from, to);
+	return from + diff * Math.min(1, speed * dt);
+}
+
 function spawnEnemy() {
     const side = Math.floor(Math.random() * 4);
     let x;
@@ -609,7 +630,7 @@ function findNearestEnemy() {
 
 function shootAt(target) {
     const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
-	player.aimAngle = baseAngle;
+    player.targetAimAngle = baseAngle;
     const count = player.projectileCount;
     const spread = count === 1 ? 0 : 0.18;
     for (let i = 0; i < count; i++) {
@@ -1117,8 +1138,15 @@ function updatePlayer(dt) {
     const target = findNearestEnemy();
 
 	if (target) {
-		player.aimAngle = Math.atan2(target.y - player.y, target.x - player.x);
+		player.targetAimAngle = Math.atan2(target.y - player.y, target.x - player.x);
 	}
+
+	player.aimAngle = lerpAngle(
+		player.aimAngle,
+		player.targetAimAngle,
+		player.aimTurnSpeed,
+		dt
+	);
 
 	if (player.fireCooldown <= 0 && target) {
 		shootAt(target);
