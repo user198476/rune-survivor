@@ -900,28 +900,23 @@ function showLevelUp() {
 }
 
 function canUpgradeAppear(upgrade) {
-    if (typeof upgrade.canAppear === "function") {
-        return upgrade.canAppear();
-    }
-    return true;
+	if (typeof upgrade.canAppear === "function") {
+		return upgrade.canAppear();
+	}
+
+	return true;
 }
 
 function getRandomUpgrades(count) {
-    const selected = [];
-    const priorityUpgrade = upgrades.find((upgrade) => {
-        return upgrade.id === "projectileBounce" && canUpgradeAppear(upgrade);
-    });
-    if (priorityUpgrade) {
-        selected.push(priorityUpgrade);
-    }
-    const pool = upgrades.filter((upgrade) => {
-        return upgrade !== priorityUpgrade && canUpgradeAppear(upgrade);
-    });
-    while (selected.length < count && pool.length > 0) {
-        const index = Math.floor(Math.random() * pool.length);
-        selected.push(pool.splice(index, 1)[0]);
-    }
-    return selected;
+	const pool = upgrades.filter((upgrade) => canUpgradeAppear(upgrade));
+	const selected = [];
+
+	while (selected.length < count && pool.length > 0) {
+		const index = Math.floor(Math.random() * pool.length);
+		selected.push(pool.splice(index, 1)[0]);
+	}
+
+	return selected;
 }
 
 function chooseUpgrade(index) {
