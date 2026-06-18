@@ -232,8 +232,11 @@ body {
   text-align: center;
   border: 1px solid rgba(162, 129, 255, 0.5);
   border-radius: 28px;
-  background:
-    radial-gradient(circle at top, rgba(118, 75, 255, 0.32), transparent 48%),
+  background: radial-gradient(
+      circle at top,
+      rgba(118, 75, 255, 0.32),
+      transparent 48%
+    ),
     rgba(16, 13, 38, 0.96);
   box-shadow: 0 0 60px rgba(125, 88, 255, 0.38);
 }
@@ -281,8 +284,11 @@ body {
   text-align: center;
   border: 1px solid rgba(162, 129, 255, 0.5);
   border-radius: 24px;
-  background:
-    radial-gradient(circle at top, rgba(118, 75, 255, 0.32), transparent 48%),
+  background: radial-gradient(
+      circle at top,
+      rgba(118, 75, 255, 0.32),
+      transparent 48%
+    ),
     rgba(16, 13, 38, 0.96);
   box-shadow: 0 0 55px rgba(125, 88, 255, 0.36);
 }
@@ -326,8 +332,11 @@ body {
   align-items: center;
   border: 1px solid rgba(255, 211, 103, 0.55);
   border-radius: 999px;
-  background:
-    radial-gradient(circle at top, rgba(255, 183, 64, 0.24), transparent 60%),
+  background: radial-gradient(
+      circle at top,
+      rgba(255, 183, 64, 0.24),
+      transparent 60%
+    ),
     rgba(28, 18, 8, 0.86);
   box-shadow: 0 0 28px rgba(255, 171, 64, 0.25);
   color: #ffe1a3;
@@ -342,8 +351,11 @@ body {
 .shield-panel {
   top: 126px;
   border-color: rgba(210, 216, 226, 0.55);
-  background:
-    radial-gradient(circle at top, rgba(210, 216, 226, 0.22), transparent 60%),
+  background: radial-gradient(
+      circle at top,
+      rgba(210, 216, 226, 0.22),
+      transparent 60%
+    ),
     rgba(20, 22, 28, 0.88);
   box-shadow: 0 0 28px rgba(210, 216, 226, 0.18);
   color: #d8dde8;
@@ -394,6 +406,32 @@ body {
   to {
     transform: rotate(-16deg) scale(1.12);
   }
+}
+
+.pause-score-box {
+  margin: 20px auto 26px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.pause-score-box div {
+  padding: 14px 12px;
+  border: 1px solid rgba(162, 129, 255, 0.35);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pause-score-box span {
+  display: block;
+  margin-bottom: 6px;
+  color: #bdb2ff;
+  font-size: 13px;
+}
+
+.pause-score-box strong {
+  color: white;
+  font-size: 24px;
 }
 
 .hidden {

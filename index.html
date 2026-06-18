@@ -66,6 +66,16 @@
         <div class="pause-box">
           <h1>Pause</h1>
           <p>La partie est arrêtée.</p>
+          <div class="pause-score-box">
+            <div>
+              <span>Score actuel</span>
+              <strong id="pauseScoreText">0</strong>
+            </div>
+            <div>
+              <span>Record</span>
+              <strong id="pauseBestScoreText">0</strong>
+            </div>
+          </div>
           <button id="resumeButton">Reprendre</button>
           <div class="menu-controls"> Échap / Entrée / Espace / P pour reprendre </div>
         </div>
@@ -73,16 +83,15 @@
       <div id="gameOverOverlay" class="overlay hidden">
         <div class="game-over-box">
           <h1>Game Over</h1>
-          <p>Tu as survécu <strong id="finalTimeText">00:00</strong></p>
-          <p>Kills : <strong id="finalKillsText">0</strong></p>
-
-          <p class="final-score-line">
-            Score : <strong id="finalScoreText">0</strong>
+          <p>Tu as survécu <strong id="finalTimeText">00:00</strong>
+          </p>
+          <p>Kills : <strong id="finalKillsText">0</strong>
+          </p>
+          <p class="final-score-line"> Score : <strong id="finalScoreText">0</strong>
             <em id="finalNewBestBadge" class="new-badge final-new-badge hidden">NEW</em>
           </p>
-
-          <p>Meilleur score : <strong id="finalBestScoreText">0</strong></p>
-
+          <p>Meilleur score : <strong id="finalBestScoreText">0</strong>
+          </p>
           <button id="restartButton">Rejouer</button>
         </div>
       </div>

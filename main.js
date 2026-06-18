@@ -25,6 +25,8 @@ const newBestBadge = document.getElementById("newBestBadge");
 const finalScoreText = document.getElementById("finalScoreText");
 const finalBestScoreText = document.getElementById("finalBestScoreText");
 const finalNewBestBadge = document.getElementById("finalNewBestBadge");
+const pauseScoreText = document.getElementById("pauseScoreText");
+const pauseBestScoreText = document.getElementById("pauseBestScoreText");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
@@ -217,6 +219,7 @@ function pauseGame() {
     if (state !== "playing") {
         return;
     }
+    updatePauseMenuScore();
     state = "paused";
     pauseOverlay.classList.remove("hidden");
 }
@@ -1162,6 +1165,12 @@ function updateHud() {
     } else {
         shieldPanel.classList.add("hidden");
     }
+}
+
+function updatePauseMenuScore() {
+    updateScoreState();
+    pauseScoreText.textContent = currentScore;
+    pauseBestScoreText.textContent = bestScore;
 }
 
 function endGame() {
