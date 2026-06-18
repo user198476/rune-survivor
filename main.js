@@ -454,6 +454,7 @@ function createSpikes() {
         x: GAME_WIDTH / 2,
         y: GAME_HEIGHT / 2
     };
+	const playerSafeZone = 50;
     let added = 0;
     let attempts = 0;
     while (added < 12 && attempts < 300) {
@@ -466,6 +467,17 @@ function createSpikes() {
             }, center) < 180) {
             continue;
         }
+
+		const dxPlayer = x - player.x;
+		const dyPlayer = y - player.y;
+
+		if (dxPlayer * dxPlayer + dyPlayer * dyPlayer < playerSafeZone * playerSafeZone) {
+			continue;
+		}
+
+		if (distance({ x, y }, player) < playerSafeZone) {
+			continue;
+		}
         if (isTooCloseToSpike(result, x, y, 95)) {
             continue;
         }
