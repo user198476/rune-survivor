@@ -1,0 +1,1 @@
+Faire pivoter le personnage joueur dans la direction du tir (comme ça le sprite est cohérent avec sa petite baguette magique)

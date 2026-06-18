@@ -13,9 +13,20 @@
         <div class="main-menu-box">
           <h1>Rune Survivor</h1>
           <p>Survis aux vagues de créatures et absorbe les cristaux d’XP.</p>
-          <button id="playButton">Jouer</button>
+          <div class="main-menu-actions">
+            <button id="playButton">Jouer</button>
+            <button id="openSkillTreeButton" class="secondary-menu-button"> Arbre de compétences </button>
+          </div>
+          <div class="menu-currency"> Pièces : <strong id="menuCoinsText">0</strong>
+          </div>
           <div class="menu-controls"> ZQSD / WASD / Flèches pour bouger <br /> Le tir est automatique </div>
         </div>
+      </div>
+      <div class="main-menu-actions">
+        <button id="playButton">Jouer</button>
+        <button id="openSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
+      </div>
+      <div class="menu-currency"> Pièces : <strong id="menuCoinsText">0</strong>
       </div>
       <div id="hud">
         <div class="hud-top">
@@ -77,7 +88,24 @@
             </div>
           </div>
           <button id="resumeButton">Reprendre</button>
+          <button id="pauseSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
           <div class="menu-controls"> Échap / Entrée / Espace / P pour reprendre </div>
+        </div>
+      </div>
+      <div id="skillTreeOverlay" class="overlay hidden">
+        <div class="skill-tree-box">
+          <div class="skill-tree-header">
+            <div>
+              <h1>Arbre de compétences</h1>
+              <p>Utilise tes pièces gagnées en run pour acheter des bonus permanents.</p>
+            </div>
+            <div class="skill-tree-header-right">
+              <div class="skill-tree-wallet"> Pièces <strong id="skillTreeCoinsText">0</strong>
+              </div>
+              <button id="closeSkillTreeButton" class="skill-tree-close-button">✕</button>
+            </div>
+          </div>
+          <div id="skillTreeBranches" class="skill-tree-branches"></div>
         </div>
       </div>
       <div id="gameOverOverlay" class="overlay hidden">
@@ -93,6 +121,7 @@
           <p>Meilleur score : <strong id="finalBestScoreText">0</strong>
           </p>
           <button id="restartButton">Rejouer</button>
+          <button id="gameOverSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
         </div>
       </div>
     </div>

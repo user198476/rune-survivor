@@ -27,6 +27,14 @@ const finalBestScoreText = document.getElementById("finalBestScoreText");
 const finalNewBestBadge = document.getElementById("finalNewBestBadge");
 const pauseScoreText = document.getElementById("pauseScoreText");
 const pauseBestScoreText = document.getElementById("pauseBestScoreText");
+const openSkillTreeButton = document.getElementById("openSkillTreeButton");
+const pauseSkillTreeButton = document.getElementById("pauseSkillTreeButton");
+const gameOverSkillTreeButton = document.getElementById("gameOverSkillTreeButton");
+const closeSkillTreeButton = document.getElementById("closeSkillTreeButton");
+const menuCoinsText = document.getElementById("menuCoinsText");
+const skillTreeCoinsText = document.getElementById("skillTreeCoinsText");
+const skillTreeOverlay = document.getElementById("skillTreeOverlay");
+const skillTreeBranches = document.getElementById("skillTreeBranches");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
@@ -151,6 +159,138 @@ const upgrades = [{
         player.lifeSteal = Math.min(0.25, Number((player.lifeSteal + 0.05).toFixed(2)));
     }
 }];
+const META_STORAGE_KEYS = {
+    coins: "runeSurvivor.meta.coins",
+    skills: "runeSurvivor.meta.skills"
+};
+let metaCoins = 0;
+let metaSkills = {};
+let runRewardGranted = false;
+let skillTreeReturnState = "menu";
+const SKILL_TREE = [{
+    id: "damage",
+    label: "Dégâts",
+    icon: "✦",
+    className: "damage",
+    nodes: [{
+        id: "damage_power",
+        title: "Puissance brute",
+        desc: "+5% dégâts par niveau.",
+        maxLevel: 5,
+        baseCost: 200,
+        costStep: 120,
+        effectType: "damagePercent",
+        effectValue: 0.05
+    }, {
+        id: "damage_rate",
+        title: "Cadence runique",
+        desc: "-4% de cooldown de tir par niveau.",
+        maxLevel: 5,
+        baseCost: 320,
+        costStep: 170,
+        requires: [{
+            id: "damage_power",
+            level: 1
+        }],
+        effectType: "fireRateReduction",
+        effectValue: 0.04
+    }, {
+        id: "damage_proj",
+        title: "Projectiles véloces",
+        desc: "+8% vitesse des projectiles par niveau.",
+        maxLevel: 5,
+        baseCost: 480,
+        costStep: 220,
+        requires: [{
+            id: "damage_rate",
+            level: 1
+        }],
+        effectType: "projectileSpeedPercent",
+        effectValue: 0.08
+    }]
+}, {
+    id: "defense",
+    label: "Vie / Défense",
+    icon: "❤",
+    className: "defense",
+    nodes: [{
+        id: "defense_hp",
+        title: "Vitalité",
+        desc: "+15 PV max par niveau.",
+        maxLevel: 5,
+        baseCost: 200,
+        costStep: 120,
+        effectType: "maxHpFlat",
+        effectValue: 15
+    }, {
+        id: "defense_lifesteal",
+        title: "Sang ancien",
+        desc: "+1% vol de vie permanent par niveau.",
+        maxLevel: 5,
+        baseCost: 360,
+        costStep: 190,
+        requires: [{
+            id: "defense_hp",
+            level: 1
+        }],
+        effectType: "lifeStealPercent",
+        effectValue: 0.01
+    }, {
+        id: "defense_shield",
+        title: "Maîtrise du bouclier",
+        desc: "+0.75s de durée de bouclier par niveau.",
+        maxLevel: 4,
+        baseCost: 520,
+        costStep: 260,
+        requires: [{
+            id: "defense_lifesteal",
+            level: 1
+        }],
+        effectType: "shieldDurationFlat",
+        effectValue: 0.75
+    }]
+}, {
+    id: "speed",
+    label: "Vitesse",
+    icon: "➜",
+    className: "speed",
+    nodes: [{
+        id: "speed_move",
+        title: "Célérité",
+        desc: "+5% vitesse de déplacement par niveau.",
+        maxLevel: 5,
+        baseCost: 200,
+        costStep: 120,
+        effectType: "moveSpeedPercent",
+        effectValue: 0.05
+    }, {
+        id: "speed_magnet",
+        title: "Attraction",
+        desc: "+14 de rayon d’aspiration XP par niveau.",
+        maxLevel: 5,
+        baseCost: 300,
+        costStep: 160,
+        requires: [{
+            id: "speed_move",
+            level: 1
+        }],
+        effectType: "magnetFlat",
+        effectValue: 14
+    }, {
+        id: "speed_xp",
+        title: "Instinct",
+        desc: "+5% d’XP gagnée par niveau.",
+        maxLevel: 5,
+        baseCost: 460,
+        costStep: 210,
+        requires: [{
+            id: "speed_magnet",
+            level: 1
+        }],
+        effectType: "xpGainPercent",
+        effectValue: 0.05
+    }]
+}];
 
 function resetGame() {
     state = "menu";
@@ -181,8 +321,10 @@ function resetGame() {
         damageBoostTimer: 0,
         shieldTimer: 0,
         shieldBlockCooldown: 0,
+        shieldDurationBonus: 0,
         lifeSteal: 0,
         lifeStealBuffer: 0,
+        xpGainMultiplier: 1,
         spikeInvulnerabilityTimer: 0,
         fireRate: 0.55,
         fireCooldown: 0,
@@ -197,6 +339,7 @@ function resetGame() {
         knockbackX: 0,
         knockbackY: 0
     };
+    applyPermanentBonusesToPlayer();
     enemies = [];
     projectiles = [];
     gems = [];
@@ -205,14 +348,16 @@ function resetGame() {
     spikeCanvas = null;
     particles = [];
     floatingTexts = [];
-	enemyGrid.clear();
+    enemyGrid.clear();
     powerUpSpawnTimer = 6;
     shieldSpawnTimer = 12;
+    runRewardGranted = false;
     levelUpOverlay.classList.add("hidden");
     pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");
     mainMenuOverlay.classList.remove("hidden");
     updateHud();
+    updateMetaCurrencyDisplays();
 }
 
 function startGame() {
@@ -443,26 +588,22 @@ function spawnEnemy() {
 }
 
 function findNearestEnemy() {
-	let nearest = null;
-	let nearestDistanceSq = Infinity;
-	const rangeSq = player.range * player.range;
-
-	for (const enemy of enemies) {
-		if (!enemy || enemy.dead) {
-			continue;
-		}
-
-		const dx = player.x - enemy.x;
-		const dy = player.y - enemy.y;
-		const dSq = dx * dx + dy * dy;
-
-		if (dSq < nearestDistanceSq && dSq <= rangeSq) {
-			nearest = enemy;
-			nearestDistanceSq = dSq;
-		}
-	}
-
-	return nearest;
+    let nearest = null;
+    let nearestDistanceSq = Infinity;
+    const rangeSq = player.range * player.range;
+    for (const enemy of enemies) {
+        if (!enemy || enemy.dead) {
+            continue;
+        }
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const dSq = dx * dx + dy * dy;
+        if (dSq < nearestDistanceSq && dSq <= rangeSq) {
+            nearest = enemy;
+            nearestDistanceSq = dSq;
+        }
+    }
+    return nearest;
 }
 
 function shootAt(target) {
@@ -487,54 +628,47 @@ function shootAt(target) {
 }
 
 function createParticles(x, y, count, color, speed = 1) {
-	let adjustedCount = count;
-
-	if (enemies.length > 140) {
-		adjustedCount = Math.ceil(count * 0.35);
-	} else if (enemies.length > 100) {
-		adjustedCount = Math.ceil(count * 0.5);
-	} else if (enemies.length > 70) {
-		adjustedCount = Math.ceil(count * 0.7);
-	}
-
-	adjustedCount = Math.max(1, adjustedCount);
-
-	const overflow = particles.length + adjustedCount - MAX_PARTICLES;
-
-	if (overflow > 0) {
-		particles.splice(0, overflow);
-	}
-
-	for (let i = 0; i < adjustedCount; i++) {
-		const angle = Math.random() * Math.PI * 2;
-		const velocity = randomBetween(60, 160) * speed;
-
-		particles.push({
-			x,
-			y,
-			vx: Math.cos(angle) * velocity,
-			vy: Math.sin(angle) * velocity,
-			radius: randomBetween(2, 5),
-			color,
-			life: randomBetween(0.25, 0.55),
-			maxLife: 0.55
-		});
-	}
+    let adjustedCount = count;
+    if (enemies.length > 140) {
+        adjustedCount = Math.ceil(count * 0.35);
+    } else if (enemies.length > 100) {
+        adjustedCount = Math.ceil(count * 0.5);
+    } else if (enemies.length > 70) {
+        adjustedCount = Math.ceil(count * 0.7);
+    }
+    adjustedCount = Math.max(1, adjustedCount);
+    const overflow = particles.length + adjustedCount - MAX_PARTICLES;
+    if (overflow > 0) {
+        particles.splice(0, overflow);
+    }
+    for (let i = 0; i < adjustedCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = randomBetween(60, 160) * speed;
+        particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * velocity,
+            vy: Math.sin(angle) * velocity,
+            radius: randomBetween(2, 5),
+            color,
+            life: randomBetween(0.25, 0.55),
+            maxLife: 0.55
+        });
+    }
 }
 
 function addFloatingText(x, y, text, color = "white") {
-	if (floatingTexts.length >= MAX_FLOATING_TEXTS) {
-		floatingTexts.splice(0, floatingTexts.length - MAX_FLOATING_TEXTS + 1);
-	}
-
-	floatingTexts.push({
-		x,
-		y,
-		text,
-		color,
-		life: 0.8,
-		maxLife: 0.8
-	});
+    if (floatingTexts.length >= MAX_FLOATING_TEXTS) {
+        floatingTexts.splice(0, floatingTexts.length - MAX_FLOATING_TEXTS + 1);
+    }
+    floatingTexts.push({
+        x,
+        y,
+        text,
+        color,
+        life: 0.8,
+        maxLife: 0.8
+    });
 }
 
 function damagePlayer(amount, source) {
@@ -859,7 +993,7 @@ function activateShield() {
     if (player.shieldTimer > 0) {
         return false;
     }
-    player.shieldTimer = 8;
+    player.shieldTimer = 8 + (player.shieldDurationBonus || 0);
     player.shieldBlockCooldown = 0;
     addFloatingText(player.x, player.y - player.radius - 34, "BOUCLIER", "#d8dde8");
     createParticles(player.x, player.y, 42, "#d8dde8", 2.1);
@@ -868,12 +1002,14 @@ function activateShield() {
 }
 
 function addXp(amount) {
-    player.xp += amount;
-    if (player.xp >= player.xpToNext) {
+    const adjustedAmount = amount * (player.xpGainMultiplier || 1);
+    player.xp += adjustedAmount;
+    while (player.xp >= player.xpToNext) {
         player.xp -= player.xpToNext;
         player.level += 1;
         player.xpToNext = Math.floor(player.xpToNext * 1.35 + 10);
         showLevelUp();
+        break;
     }
 }
 
@@ -900,23 +1036,20 @@ function showLevelUp() {
 }
 
 function canUpgradeAppear(upgrade) {
-	if (typeof upgrade.canAppear === "function") {
-		return upgrade.canAppear();
-	}
-
-	return true;
+    if (typeof upgrade.canAppear === "function") {
+        return upgrade.canAppear();
+    }
+    return true;
 }
 
 function getRandomUpgrades(count) {
-	const pool = upgrades.filter((upgrade) => canUpgradeAppear(upgrade));
-	const selected = [];
-
-	while (selected.length < count && pool.length > 0) {
-		const index = Math.floor(Math.random() * pool.length);
-		selected.push(pool.splice(index, 1)[0]);
-	}
-
-	return selected;
+    const pool = upgrades.filter((upgrade) => canUpgradeAppear(upgrade));
+    const selected = [];
+    while (selected.length < count && pool.length > 0) {
+        const index = Math.floor(Math.random() * pool.length);
+        selected.push(pool.splice(index, 1)[0]);
+    }
+    return selected;
 }
 
 function chooseUpgrade(index) {
@@ -941,8 +1074,8 @@ function update(dt) {
     updatePowerUps(dt);
     updateSpawns(dt);
     updateEnemies(dt);
-	buildEnemyGrid();
-	updateProjectiles(dt);
+    buildEnemyGrid();
+    updateProjectiles(dt);
     updateGems(dt);
     updateParticles(dt);
     updateFloatingTexts(dt);
@@ -1017,33 +1150,27 @@ function updateSpawns(dt) {
 }
 
 function updateEnemies(dt) {
-	for (let i = enemies.length - 1; i >= 0; i--) {
-		const enemy = enemies[i];
-
-		if (!enemy || enemy.dead) {
-			continue;
-		}
-
-		enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
-
-		const dx = player.x - enemy.x;
-		const dy = player.y - enemy.y;
-		const len = Math.sqrt(dx * dx + dy * dy) || 1;
-
-		enemy.x += (dx / len) * enemy.speed * dt;
-		enemy.y += (dy / len) * enemy.speed * dt;
-
-		const hitDx = player.x - enemy.x;
-		const hitDy = player.y - enemy.y;
-		const hitRadius = player.radius + enemy.radius;
-
-		if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
-			if (enemy.attackCooldown <= 0) {
-				damagePlayer(enemy.damage, enemy);
-				enemy.attackCooldown = 0.65;
-			}
-		}
-	}
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        if (!enemy || enemy.dead) {
+            continue;
+        }
+        enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        enemy.x += (dx / len) * enemy.speed * dt;
+        enemy.y += (dy / len) * enemy.speed * dt;
+        const hitDx = player.x - enemy.x;
+        const hitDy = player.y - enemy.y;
+        const hitRadius = player.radius + enemy.radius;
+        if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
+            if (enemy.attackCooldown <= 0) {
+                damagePlayer(enemy.damage, enemy);
+                enemy.attackCooldown = 0.65;
+            }
+        }
+    }
 }
 
 function handleProjectileBounce(projectile) {
@@ -1077,143 +1204,102 @@ function handleProjectileBounce(projectile) {
 }
 
 function getEnemyGridCell(value) {
-	return Math.floor(value / ENEMY_GRID_SIZE);
+    return Math.floor(value / ENEMY_GRID_SIZE);
 }
 
 function getEnemyGridKey(cellX, cellY) {
-	return `${cellX};${cellY}`;
+    return `${cellX};${cellY}`;
 }
 
 function buildEnemyGrid() {
-	enemyGrid.clear();
-
-	for (let i = 0; i < enemies.length; i++) {
-		const enemy = enemies[i];
-
-		if (!enemy || enemy.dead) {
-			continue;
-		}
-
-		const cellX = getEnemyGridCell(enemy.x);
-		const cellY = getEnemyGridCell(enemy.y);
-		const key = getEnemyGridKey(cellX, cellY);
-
-		let bucket = enemyGrid.get(key);
-
-		if (!bucket) {
-			bucket = [];
-			enemyGrid.set(key, bucket);
-		}
-
-		bucket.push(i);
-	}
+    enemyGrid.clear();
+    for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i];
+        if (!enemy || enemy.dead) {
+            continue;
+        }
+        const cellX = getEnemyGridCell(enemy.x);
+        const cellY = getEnemyGridCell(enemy.y);
+        const key = getEnemyGridKey(cellX, cellY);
+        let bucket = enemyGrid.get(key);
+        if (!bucket) {
+            bucket = [];
+            enemyGrid.set(key, bucket);
+        }
+        bucket.push(i);
+    }
 }
 
 function forEachNearbyEnemyIndex(x, y, callback) {
-	const cellX = getEnemyGridCell(x);
-	const cellY = getEnemyGridCell(y);
-
-	for (let offsetY = -1; offsetY <= 1; offsetY++) {
-		for (let offsetX = -1; offsetX <= 1; offsetX++) {
-			const key = getEnemyGridKey(cellX + offsetX, cellY + offsetY);
-			const bucket = enemyGrid.get(key);
-
-			if (!bucket) {
-				continue;
-			}
-
-			for (const enemyIndex of bucket) {
-				const shouldStop = callback(enemyIndex);
-
-				if (shouldStop) {
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
+    const cellX = getEnemyGridCell(x);
+    const cellY = getEnemyGridCell(y);
+    for (let offsetY = -1; offsetY <= 1; offsetY++) {
+        for (let offsetX = -1; offsetX <= 1; offsetX++) {
+            const key = getEnemyGridKey(cellX + offsetX, cellY + offsetY);
+            const bucket = enemyGrid.get(key);
+            if (!bucket) {
+                continue;
+            }
+            for (const enemyIndex of bucket) {
+                const shouldStop = callback(enemyIndex);
+                if (shouldStop) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 function updateProjectiles(dt) {
-	let enemiesNeedCleanup = false;
-
-	for (let i = projectiles.length - 1; i >= 0; i--) {
-		const projectile = projectiles[i];
-
-		projectile.x += projectile.vx * dt;
-		projectile.y += projectile.vy * dt;
-		projectile.life -= dt;
-
-		let projectileRemoved = false;
-
-		forEachNearbyEnemyIndex(projectile.x, projectile.y, (enemyIndex) => {
-			const enemy = enemies[enemyIndex];
-
-			if (!enemy || enemy.dead) {
-				return false;
-			}
-
-			const dx = projectile.x - enemy.x;
-			const dy = projectile.y - enemy.y;
-			const radius = projectile.radius + enemy.radius;
-
-			if (dx * dx + dy * dy < radius * radius) {
-				const damageDealt = Math.min(projectile.damage, enemy.hp);
-
-				enemy.hp -= projectile.damage;
-
-				if (typeof applyLifeSteal === "function") {
-					applyLifeSteal(damageDealt);
-				}
-
-				addFloatingText(
-					enemy.x,
-					enemy.y - enemy.radius,
-					Math.floor(projectile.damage),
-					"#ffe6ff"
-				);
-
-				createParticles(projectile.x, projectile.y, 12, "#75e8ff", 1.3);
-
-				projectiles.splice(i, 1);
-				projectileRemoved = true;
-
-				if (enemy.hp <= 0 && !enemy.dead) {
-					enemy.dead = true;
-					enemiesNeedCleanup = true;
-
-					player.kills += 1;
-					dropGem(enemy.x, enemy.y, enemy.xp);
-					createParticles(enemy.x, enemy.y, 22, enemy.color, 1.7);
-				}
-
-				return true;
-			}
-
-			return false;
-		});
-
-		if (projectileRemoved) {
-			continue;
-		}
-
-		handleProjectileBounce(projectile);
-
-		const outside =
-			projectile.x < -100 ||
-			projectile.x > GAME_WIDTH + 100 ||
-			projectile.y < -100 ||
-			projectile.y > GAME_HEIGHT + 100;
-
-		if (projectile.life <= 0 || outside) {
-			projectiles.splice(i, 1);
-		}
-	}
-
-	if (enemiesNeedCleanup) {
-		enemies = enemies.filter((enemy) => !enemy.dead);
-	}
+    let enemiesNeedCleanup = false;
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        const projectile = projectiles[i];
+        projectile.x += projectile.vx * dt;
+        projectile.y += projectile.vy * dt;
+        projectile.life -= dt;
+        let projectileRemoved = false;
+        forEachNearbyEnemyIndex(projectile.x, projectile.y, (enemyIndex) => {
+            const enemy = enemies[enemyIndex];
+            if (!enemy || enemy.dead) {
+                return false;
+            }
+            const dx = projectile.x - enemy.x;
+            const dy = projectile.y - enemy.y;
+            const radius = projectile.radius + enemy.radius;
+            if (dx * dx + dy * dy < radius * radius) {
+                const damageDealt = Math.min(projectile.damage, enemy.hp);
+                enemy.hp -= projectile.damage;
+                if (typeof applyLifeSteal === "function") {
+                    applyLifeSteal(damageDealt);
+                }
+                addFloatingText(enemy.x, enemy.y - enemy.radius, Math.floor(projectile.damage), "#ffe6ff");
+                createParticles(projectile.x, projectile.y, 12, "#75e8ff", 1.3);
+                projectiles.splice(i, 1);
+                projectileRemoved = true;
+                if (enemy.hp <= 0 && !enemy.dead) {
+                    enemy.dead = true;
+                    enemiesNeedCleanup = true;
+                    player.kills += 1;
+                    dropGem(enemy.x, enemy.y, enemy.xp);
+                    createParticles(enemy.x, enemy.y, 22, enemy.color, 1.7);
+                }
+                return true;
+            }
+            return false;
+        });
+        if (projectileRemoved) {
+            continue;
+        }
+        handleProjectileBounce(projectile);
+        const outside = projectile.x < -100 || projectile.x > GAME_WIDTH + 100 || projectile.y < -100 || projectile.y > GAME_HEIGHT + 100;
+        if (projectile.life <= 0 || outside) {
+            projectiles.splice(i, 1);
+        }
+    }
+    if (enemiesNeedCleanup) {
+        enemies = enemies.filter((enemy) => !enemy.dead);
+    }
 }
 
 function applyLifeSteal(damageDealt) {
@@ -1333,6 +1419,7 @@ function updatePauseMenuScore() {
 
 function endGame() {
     finalizeScore();
+    grantCoinsForRun();
     state = "gameover";
     finalTimeText.textContent = formatTime(gameTime);
     finalKillsText.textContent = player.kills;
@@ -1506,130 +1593,85 @@ function drawPlayer() {
 }
 
 function getEnemySprite(enemy) {
-	const key = `${enemy.type}_${enemy.color}_${enemy.radius}`;
-
-	let sprite = enemySpriteCache.get(key);
-
-	if (!sprite) {
-		sprite = createEnemySprite(enemy);
-		enemySpriteCache.set(key, sprite);
-	}
-
-	return sprite;
+    const key = `${enemy.type}_${enemy.color}_${enemy.radius}`;
+    let sprite = enemySpriteCache.get(key);
+    if (!sprite) {
+        sprite = createEnemySprite(enemy);
+        enemySpriteCache.set(key, sprite);
+    }
+    return sprite;
 }
 
 function createEnemySprite(enemy) {
-	const padding = 32;
-	const size = Math.ceil((enemy.radius + padding) * 2);
-	const buffer = document.createElement("canvas");
-
-	buffer.width = size;
-	buffer.height = size;
-
-	const bctx = buffer.getContext("2d");
-	const cx = size / 2;
-	const cy = size / 2;
-
-	bctx.save();
-
-	bctx.fillStyle = enemy.color;
-	bctx.shadowColor = enemy.color;
-	bctx.shadowBlur = 16;
-
-	if (enemy.type === "bat") {
-		bctx.beginPath();
-		bctx.ellipse(cx, cy, enemy.radius + 8, enemy.radius, 0, 0, Math.PI * 2);
-		bctx.fill();
-
-		bctx.shadowBlur = 0;
-		bctx.fillStyle = "#1b1028";
-		bctx.beginPath();
-		bctx.arc(cx - 5, cy - 2, 2, 0, Math.PI * 2);
-		bctx.arc(cx + 5, cy - 2, 2, 0, Math.PI * 2);
-		bctx.fill();
-	} else if (enemy.type === "brute") {
-		bctx.beginPath();
-
-		if (typeof bctx.roundRect === "function") {
-			bctx.roundRect(
-				cx - enemy.radius,
-				cy - enemy.radius,
-				enemy.radius * 2,
-				enemy.radius * 2,
-				10
-			);
-		} else {
-			bctx.rect(
-				cx - enemy.radius,
-				cy - enemy.radius,
-				enemy.radius * 2,
-				enemy.radius * 2
-			);
-		}
-
-		bctx.fill();
-
-		bctx.shadowBlur = 0;
-		bctx.fillStyle = "#371010";
-		bctx.beginPath();
-		bctx.arc(cx - 8, cy - 5, 3, 0, Math.PI * 2);
-		bctx.arc(cx + 8, cy - 5, 3, 0, Math.PI * 2);
-		bctx.fill();
-	} else {
-		bctx.beginPath();
-		bctx.arc(cx, cy, enemy.radius, 0, Math.PI * 2);
-		bctx.fill();
-
-		bctx.shadowBlur = 0;
-		bctx.fillStyle = "#1b1028";
-		bctx.beginPath();
-		bctx.arc(cx - 6, cy - 4, 3, 0, Math.PI * 2);
-		bctx.arc(cx + 6, cy - 4, 3, 0, Math.PI * 2);
-		bctx.fill();
-	}
-
-	bctx.restore();
-
-	return {
-		canvas: buffer,
-		size
-	};
+    const padding = 32;
+    const size = Math.ceil((enemy.radius + padding) * 2);
+    const buffer = document.createElement("canvas");
+    buffer.width = size;
+    buffer.height = size;
+    const bctx = buffer.getContext("2d");
+    const cx = size / 2;
+    const cy = size / 2;
+    bctx.save();
+    bctx.fillStyle = enemy.color;
+    bctx.shadowColor = enemy.color;
+    bctx.shadowBlur = 16;
+    if (enemy.type === "bat") {
+        bctx.beginPath();
+        bctx.ellipse(cx, cy, enemy.radius + 8, enemy.radius, 0, 0, Math.PI * 2);
+        bctx.fill();
+        bctx.shadowBlur = 0;
+        bctx.fillStyle = "#1b1028";
+        bctx.beginPath();
+        bctx.arc(cx - 5, cy - 2, 2, 0, Math.PI * 2);
+        bctx.arc(cx + 5, cy - 2, 2, 0, Math.PI * 2);
+        bctx.fill();
+    } else if (enemy.type === "brute") {
+        bctx.beginPath();
+        if (typeof bctx.roundRect === "function") {
+            bctx.roundRect(cx - enemy.radius, cy - enemy.radius, enemy.radius * 2, enemy.radius * 2, 10);
+        } else {
+            bctx.rect(cx - enemy.radius, cy - enemy.radius, enemy.radius * 2, enemy.radius * 2);
+        }
+        bctx.fill();
+        bctx.shadowBlur = 0;
+        bctx.fillStyle = "#371010";
+        bctx.beginPath();
+        bctx.arc(cx - 8, cy - 5, 3, 0, Math.PI * 2);
+        bctx.arc(cx + 8, cy - 5, 3, 0, Math.PI * 2);
+        bctx.fill();
+    } else {
+        bctx.beginPath();
+        bctx.arc(cx, cy, enemy.radius, 0, Math.PI * 2);
+        bctx.fill();
+        bctx.shadowBlur = 0;
+        bctx.fillStyle = "#1b1028";
+        bctx.beginPath();
+        bctx.arc(cx - 6, cy - 4, 3, 0, Math.PI * 2);
+        bctx.arc(cx + 6, cy - 4, 3, 0, Math.PI * 2);
+        bctx.fill();
+    }
+    bctx.restore();
+    return {
+        canvas: buffer,
+        size
+    };
 }
 
 function drawEnemies() {
-	for (const enemy of enemies) {
-		if (!enemy || enemy.dead) {
-			continue;
-		}
-
-		const sprite = getEnemySprite(enemy);
-
-		ctx.drawImage(
-			sprite.canvas,
-			enemy.x - sprite.size / 2,
-			enemy.y - sprite.size / 2
-		);
-
-		const hpWidth = enemy.radius * 2;
-		const hpHeight = 5;
-		const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
-
-		ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-		ctx.fillRect(
-			enemy.x - hpWidth / 2,
-			enemy.y - enemy.radius - 14,
-			hpWidth,
-			hpHeight
-		);
-
-		ctx.fillStyle = "#ff4066";
-		ctx.fillRect(
-			enemy.x - hpWidth / 2,
-			enemy.y - enemy.radius - 14,
-			hpWidth * hpPercent,
-			hpHeight
-		);
-	}
+    for (const enemy of enemies) {
+        if (!enemy || enemy.dead) {
+            continue;
+        }
+        const sprite = getEnemySprite(enemy);
+        ctx.drawImage(sprite.canvas, enemy.x - sprite.size / 2, enemy.y - sprite.size / 2);
+        const hpWidth = enemy.radius * 2;
+        const hpHeight = 5;
+        const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
+        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth, hpHeight);
+        ctx.fillStyle = "#ff4066";
+        ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth * hpPercent, hpHeight);
+    }
 }
 
 function drawProjectiles() {
@@ -1752,6 +1794,226 @@ function gameLoop(timestamp) {
     render();
     requestAnimationFrame(gameLoop);
 }
+
+function loadMetaProgression() {
+    try {
+        metaCoins = Math.max(0, Number(localStorage.getItem(META_STORAGE_KEYS.coins)) || 0);
+    } catch (error) {
+        metaCoins = 0;
+    }
+    try {
+        metaSkills = JSON.parse(localStorage.getItem(META_STORAGE_KEYS.skills) || "{}");
+    } catch (error) {
+        metaSkills = {};
+    }
+}
+
+function saveMetaProgression() {
+    try {
+        localStorage.setItem(META_STORAGE_KEYS.coins, String(Math.floor(metaCoins)));
+        localStorage.setItem(META_STORAGE_KEYS.skills, JSON.stringify(metaSkills));
+    } catch (error) {
+        // on ignore si localStorage bloque
+    }
+}
+
+function getSkillLevel(skillId) {
+    return metaSkills[skillId] || 0;
+}
+
+function getSkillCost(node) {
+    const currentLevel = getSkillLevel(node.id);
+    return node.baseCost + node.costStep * currentLevel;
+}
+
+function areRequirementsMet(node) {
+    if (!node.requires || node.requires.length === 0) {
+        return true;
+    }
+    return node.requires.every((requirement) => {
+        return getSkillLevel(requirement.id) >= requirement.level;
+    });
+}
+
+function canBuySkill(node) {
+    const currentLevel = getSkillLevel(node.id);
+    if (currentLevel >= node.maxLevel) {
+        return false;
+    }
+    if (!areRequirementsMet(node)) {
+        return false;
+    }
+    return metaCoins >= getSkillCost(node);
+}
+
+function updateMetaCurrencyDisplays() {
+    if (menuCoinsText) {
+        menuCoinsText.textContent = Math.floor(metaCoins);
+    }
+    if (skillTreeCoinsText) {
+        skillTreeCoinsText.textContent = Math.floor(metaCoins);
+    }
+}
+
+function getPermanentBonuses() {
+    const bonuses = {
+        damagePercent: 0,
+        fireRateReduction: 0,
+        projectileSpeedPercent: 0,
+        maxHpFlat: 0,
+        lifeStealPercent: 0,
+        shieldDurationFlat: 0,
+        moveSpeedPercent: 0,
+        magnetFlat: 0,
+        xpGainPercent: 0
+    };
+    for (const branch of SKILL_TREE) {
+        for (const node of branch.nodes) {
+            const level = getSkillLevel(node.id);
+            if (level <= 0) {
+                continue;
+            }
+            bonuses[node.effectType] += node.effectValue * level;
+        }
+    }
+    return bonuses;
+}
+
+function grantCoinsForRun() {
+    if (runRewardGranted) {
+        return;
+    }
+    metaCoins += currentScore;
+    runRewardGranted = true;
+    saveMetaProgression();
+    updateMetaCurrencyDisplays();
+}
+
+function applyPermanentBonusesToPlayer() {
+    const bonuses = getPermanentBonuses();
+    player.damage *= 1 + bonuses.damagePercent;
+    player.fireRate *= Math.max(0.35, 1 - bonuses.fireRateReduction);
+    player.projectileSpeed *= 1 + bonuses.projectileSpeedPercent;
+    player.maxHp += bonuses.maxHpFlat;
+    player.hp = player.maxHp;
+    player.lifeSteal += bonuses.lifeStealPercent;
+    player.shieldDurationBonus = bonuses.shieldDurationFlat;
+    player.speed *= 1 + bonuses.moveSpeedPercent;
+    player.magnetRadius += bonuses.magnetFlat;
+    player.xpGainMultiplier = 1 + bonuses.xpGainPercent;
+}
+
+function renderSkillTree() {
+    updateMetaCurrencyDisplays();
+    skillTreeBranches.innerHTML = "";
+    for (const branch of SKILL_TREE) {
+        const branchElement = document.createElement("div");
+        branchElement.className = `skill-branch ${branch.className}`;
+        const totalLevels = branch.nodes.reduce((sum, node) => sum + getSkillLevel(node.id), 0);
+        const maxLevels = branch.nodes.reduce((sum, node) => sum + node.maxLevel, 0);
+        branchElement.innerHTML = `
+      <div class="skill-branch-header">
+        <div class="branch-icon">${branch.icon}</div>
+        <h2>${branch.label}</h2>
+        <p>${totalLevels} / ${maxLevels} niveaux achetés</p>
+      </div>
+      <div class="skill-branch-track"></div>
+    `;
+        const track = branchElement.querySelector(".skill-branch-track");
+        for (const node of branch.nodes) {
+            const currentLevel = getSkillLevel(node.id);
+            const maxed = currentLevel >= node.maxLevel;
+            const available = canBuySkill(node);
+            const requirementsMet = areRequirementsMet(node);
+            const cost = getSkillCost(node);
+            const nodeElement = document.createElement("div");
+            let stateClass = "locked";
+            if (maxed) stateClass = "maxed";
+            else if (available) stateClass = "available";
+            nodeElement.className = `skill-node ${branch.className} ${stateClass}`;
+            const buttonLabel = maxed ? "Max" : available ? `Acheter (${cost})` : requirementsMet ? `Coût ${cost}` : "Verrouillé";
+            const buttonClass = available ? `skill-node-button buy ${branch.className}` : "skill-node-button disabled";
+            let requirementText = "";
+            if (!requirementsMet && node.requires) {
+                requirementText = `<div class="skill-node-requires">Prérequis non remplis</div>`;
+            }
+            nodeElement.innerHTML = `
+        <div class="skill-node-title">${node.title}</div>
+        <div class="skill-node-desc">${node.desc}</div>
+
+        <div class="skill-node-meta">
+          <div class="skill-node-level">Niveau ${currentLevel}/${node.maxLevel}</div>
+          ${!maxed ? `<div class="skill-node-cost">${cost} pièces</div>` : `<div class="skill-node-cost">Complété</div>`}
+        </div>
+
+        <button class="${buttonClass}" ${available ? "" : "disabled"}>${buttonLabel}</button>
+        ${requirementText}
+      `;
+            const button = nodeElement.querySelector("button");
+            if (available) {
+                button.addEventListener("click", () => buySkill(node.id));
+            }
+            track.appendChild(nodeElement);
+        }
+        skillTreeBranches.appendChild(branchElement);
+    }
+}
+
+function findSkillNodeById(skillId) {
+    for (const branch of SKILL_TREE) {
+        for (const node of branch.nodes) {
+            if (node.id === skillId) {
+                return node;
+            }
+        }
+    }
+    return null;
+}
+
+function buySkill(skillId) {
+    const node = findSkillNodeById(skillId);
+    if (!node) {
+        return;
+    }
+    if (!canBuySkill(node)) {
+        return;
+    }
+    metaCoins -= getSkillCost(node);
+    metaSkills[skillId] = getSkillLevel(skillId) + 1;
+    saveMetaProgression();
+    updateMetaCurrencyDisplays();
+    renderSkillTree();
+}
+
+function openSkillTree(fromState = state) {
+    skillTreeReturnState = fromState;
+    if (fromState === "menu") {
+        mainMenuOverlay.classList.add("hidden");
+    }
+    if (fromState === "paused") {
+        pauseOverlay.classList.add("hidden");
+    }
+    if (fromState === "gameover") {
+        gameOverOverlay.classList.add("hidden");
+    }
+    skillTreeOverlay.classList.remove("hidden");
+    state = "skilltree";
+    renderSkillTree();
+}
+
+function closeSkillTree() {
+    skillTreeOverlay.classList.add("hidden");
+    state = skillTreeReturnState;
+    if (skillTreeReturnState === "menu") {
+        mainMenuOverlay.classList.remove("hidden");
+    }
+    if (skillTreeReturnState === "paused") {
+        pauseOverlay.classList.remove("hidden");
+    }
+    if (skillTreeReturnState === "gameover") {
+        gameOverOverlay.classList.remove("hidden");
+    }
+}
 window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     if (isPauseKey(event)) {
@@ -1777,12 +2039,18 @@ window.addEventListener("keyup", (event) => {
 playButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
 resumeButton.addEventListener("click", resumeGame);
+openSkillTreeButton.addEventListener("click", () => openSkillTree("menu"));
+pauseSkillTreeButton.addEventListener("click", () => openSkillTree("paused"));
+gameOverSkillTreeButton.addEventListener("click", () => openSkillTree("gameover"));
+closeSkillTreeButton.addEventListener("click", closeSkillTree);
 window.addEventListener("beforeunload", () => {
     if (!player) {
         return;
     }
     finalizeScore();
 });
+loadMetaProgression();
+updateMetaCurrencyDisplays();
 resetGame();
 requestAnimationFrame((timestamp) => {
     lastTime = timestamp;
