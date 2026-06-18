@@ -845,7 +845,15 @@ function showLevelUp() {
     currentUpgrades.forEach((upgrade, index) => {
         const card = document.createElement("button");
         card.className = "upgrade-card";
-        card.innerHTML = ` <div class="upgrade-icon">${upgrade.icon}</div> <h2>${upgrade.title}</h2> <p>${upgrade.description}</p> <div class="upgrade-key">Touche ${index + 1}</div> `;
+        card.innerHTML = `
+		<div class="upgrade-icon">${upgrade.icon}</div>
+		<h2>${upgrade.title}</h2>
+		<p>${upgrade.description}</p>
+
+		<div class="upgrade-key">
+			<kbd class="upgrade-keycap">${index + 1}</kbd>
+		</div>
+	`;
         card.addEventListener("click", () => chooseUpgrade(index));
         upgradeCards.appendChild(card);
     });
