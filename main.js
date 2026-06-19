@@ -379,6 +379,7 @@ function pauseGame() {
     if (state !== "playing") {
         return;
     }
+    clearInputKeys();
     updatePauseMenuScore();
     state = "paused";
     pauseOverlay.classList.remove("hidden");
@@ -388,6 +389,7 @@ function resumeGame() {
     if (state !== "paused") {
         return;
     }
+    clearInputKeys();
     state = "playing";
     pauseOverlay.classList.add("hidden");
 }
@@ -2125,6 +2127,11 @@ function closeSkillTree() {
         gameOverOverlay.classList.remove("hidden");
     }
 }
+
+function clearInputKeys() {
+	keys.clear();
+}
+
 window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     if (isPauseKey(event)) {
@@ -2134,7 +2141,9 @@ window.addEventListener("keydown", (event) => {
         }
         return;
     }
-    keys.add(key);
+    if (state === "playing") {
+        keys.add(key);
+    }
     if (state === "levelup") {
         if (key === "1") chooseUpgrade(0);
         if (key === "2") chooseUpgrade(1);
@@ -2145,7 +2154,30 @@ window.addEventListener("keydown", (event) => {
     }
 });
 window.addEventListener("keyup", (event) => {
-    keys.delete(event.key.toLowerCase());
+	keys.delete(event.key.toLowerCase());
+
+	if (event.key === " ") {
+		keys.delete(" ");
+	}
+});
+window.addEventListener("blur", () => {
+	clearInputKeys();
+
+	if (state === "playing") {
+		pauseGame();
+	}
+});
+
+document.addEventListener("visibilitychange", () => {
+	clearInputKeys();
+
+	if (document.hidden && state === "playing") {
+		pauseGame();
+	}
+});
+
+window.addEventListener("mouseleave", () => {
+	clearInputKeys();
 });
 playButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
