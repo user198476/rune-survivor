@@ -798,11 +798,13 @@ body {
 }
 
 .skill-map-branch-label {
-  min-width: 205px;
+  z-index: 4;
+  min-width: 235px;
   padding: 9px 13px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 16px;
   border-radius: 16px;
   background: rgba(9, 14, 30, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.065);
@@ -812,8 +814,9 @@ body {
 .skill-map-branch-label span {
   font-size: 17px;
   font-weight: 900;
-  letter-spacing: 1.8px;
+  letter-spacing: 1.6px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .skill-map-branch-label strong {

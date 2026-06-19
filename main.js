@@ -343,7 +343,7 @@ const SKILL_TREE_LAYOUT = {
         },
 
         defense: {
-            label: { x: 90, y: 28 },
+            label: { x: 82, y: 28 },
             bend: 8,
             nodes: [
                 { x: 60, y: 520, card: "right", cardOffsetY: 34 },
