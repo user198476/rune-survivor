@@ -1,0 +1,2 @@
+- Retirer les barres de vies si pas de dégâts prit
+- Verifier si le système de horde fonctionne bien et coombien d'ennemi autour avant d'afficher "SUBMERGÉ" car j'ai pas vu le texte, et les dégâts sont un peu faible sur une horde

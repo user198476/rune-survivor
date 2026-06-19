@@ -186,6 +186,7 @@ const SKILL_TREE = [{
     className: "damage",
     nodes: [{
         id: "damage_power",
+        nodeIcon: "✦",
         title: "Puissance brute",
         desc: "+5% dégâts par niveau.",
         maxLevel: 5,
@@ -195,6 +196,7 @@ const SKILL_TREE = [{
         effectValue: 0.05
     }, {
         id: "damage_rate",
+        nodeIcon: "✹",
         title: "Cadence runique",
         desc: "-4% de cooldown de tir par niveau.",
         maxLevel: 5,
@@ -208,6 +210,7 @@ const SKILL_TREE = [{
         effectValue: 0.04
     }, {
         id: "damage_proj",
+        nodeIcon: "➶",
         title: "Projectiles véloces",
         desc: "+8% vitesse des projectiles par niveau.",
         maxLevel: 5,
@@ -227,6 +230,7 @@ const SKILL_TREE = [{
     className: "defense",
     nodes: [{
         id: "defense_hp",
+        nodeIcon: "♥",
         title: "Vitalité",
         desc: "+15 PV max par niveau.",
         maxLevel: 5,
@@ -236,6 +240,7 @@ const SKILL_TREE = [{
         effectValue: 15
     }, {
         id: "defense_lifesteal",
+        nodeIcon: "✚",
         title: "Sang ancien",
         desc: "+1% vol de vie permanent par niveau.",
         maxLevel: 5,
@@ -249,6 +254,7 @@ const SKILL_TREE = [{
         effectValue: 0.01
     }, {
         id: "defense_shield",
+        nodeIcon: "⛨",
         title: "Maîtrise du bouclier",
         desc: "+0.75s de durée de bouclier par niveau.",
         maxLevel: 4,
@@ -263,11 +269,13 @@ const SKILL_TREE = [{
     }]
 }, {
     id: "speed",
+    nodeIcon: "➜",
     label: "Vitesse",
     icon: "➜",
     className: "speed",
     nodes: [{
         id: "speed_move",
+        nodeIcon: "➜",
         title: "Célérité",
         desc: "+5% vitesse de déplacement par niveau.",
         maxLevel: 5,
@@ -277,6 +285,7 @@ const SKILL_TREE = [{
         effectValue: 0.05
     }, {
         id: "speed_magnet",
+        nodeIcon: "◌",
         title: "Attraction",
         desc: "+14 de rayon d’aspiration XP par niveau.",
         maxLevel: 5,
@@ -290,6 +299,7 @@ const SKILL_TREE = [{
         effectValue: 14
     }, {
         id: "speed_xp",
+        nodeIcon: "✧",
         title: "Instinct",
         desc: "+5% d’XP gagnée par niveau.",
         maxLevel: 5,
@@ -303,6 +313,46 @@ const SKILL_TREE = [{
         effectValue: 0.05
     }]
 }];
+const SKILL_TREE_MAP_HEIGHT = 680;
+
+const SKILL_TREE_LAYOUT = {
+    origin: {
+        x: 50,
+        y: 610
+    },
+
+    branches: {
+        damage: {
+            label: { x: 10, y: 28 },
+            bend: -8,
+            nodes: [
+                { x: 40, y: 520, card: "left", cardOffsetY: 34 },
+                { x: 30, y: 392, card: "left", cardOffsetY: -8 },
+                { x: 24, y: 256, card: "right", cardOffsetY: -34 }
+            ]
+        },
+
+        speed: {
+            label: { x: 50, y: 28 },
+            bend: 0,
+            nodes: [
+                { x: 50, y: 500, card: "right", cardOffsetY: 8 },
+                { x: 50, y: 360, card: "left", cardOffsetY: -10 },
+                { x: 50, y: 220, card: "right", cardOffsetY: -26 }
+            ]
+        },
+
+        defense: {
+            label: { x: 90, y: 28 },
+            bend: 8,
+            nodes: [
+                { x: 60, y: 520, card: "right", cardOffsetY: 34 },
+                { x: 70, y: 392, card: "right", cardOffsetY: -8 },
+                { x: 76, y: 256, card: "left", cardOffsetY: -34 }
+            ]
+        }
+    }
+};
 
 function resetGame() {
     state = "menu";
@@ -2159,59 +2209,223 @@ function clampPlayerStats() {
     player.lifeSteal = Math.min(0.15, Math.max(0, player.lifeSteal));
 }
 
+function getBranchProgress(branch) {
+    const totalLevels = branch.nodes.reduce((sum, node) => sum + getSkillLevel(node.id), 0);
+    const maxLevels = branch.nodes.reduce((sum, node) => sum + node.maxLevel, 0);
+
+    return {
+        totalLevels,
+        maxLevels
+    };
+}
+
+function getSkillNodeState(node) {
+    const currentLevel = getSkillLevel(node.id);
+    const maxed = currentLevel >= node.maxLevel;
+    const requirementsMet = areRequirementsMet(node);
+    const affordable = metaCoins >= getSkillCost(node);
+    const available = !maxed && requirementsMet && affordable;
+    const unlocked = requirementsMet;
+
+    return {
+        currentLevel,
+        maxed,
+        requirementsMet,
+        affordable,
+        available,
+        unlocked
+    };
+}
+
+function getBranchNodeActivation(branch, node, index) {
+    const state = getSkillNodeState(node);
+
+    if (state.currentLevel > 0 || state.maxed) {
+        return true;
+    }
+
+    if (index === 0 && state.requirementsMet) {
+        return true;
+    }
+
+    if (index > 0) {
+        const previousNode = branch.nodes[index - 1];
+        if (getSkillLevel(previousNode.id) > 0 && state.requirementsMet) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function buildSkillLinkPath(from, to, bend = 0) {
+    const dy = from.y - to.y;
+
+    const c1x = from.x + bend;
+    const c1y = from.y - dy * 0.32;
+
+    const c2x = to.x + bend;
+    const c2y = to.y + dy * 0.32;
+
+    return `
+        M ${from.x} ${from.y}
+        C ${c1x} ${c1y},
+          ${c2x} ${c2y},
+          ${to.x} ${to.y}
+    `;
+}
+
 function renderSkillTree() {
     updateMetaCurrencyDisplays();
+
+    skillTreeBranches.className = "skill-tree-branches skill-tree-map";
     skillTreeBranches.innerHTML = "";
-    for (const branch of SKILL_TREE) {
-        const branchElement = document.createElement("div");
-        branchElement.className = `skill-branch ${branch.className}`;
-        const totalLevels = branch.nodes.reduce((sum, node) => sum + getSkillLevel(node.id), 0);
-        const maxLevels = branch.nodes.reduce((sum, node) => sum + node.maxLevel, 0);
-        branchElement.innerHTML = `
-      <div class="skill-branch-header">
-        <div class="branch-icon">${branch.icon}</div>
-        <h2>${branch.label}</h2>
-        <p>${totalLevels} / ${maxLevels} niveaux achetés</p>
-      </div>
-      <div class="skill-branch-track"></div>
-    `;
-        const track = branchElement.querySelector(".skill-branch-track");
-        for (const node of branch.nodes) {
-            const currentLevel = getSkillLevel(node.id);
-            const maxed = currentLevel >= node.maxLevel;
-            const available = canBuySkill(node);
-            const requirementsMet = areRequirementsMet(node);
-            const cost = getSkillCost(node);
-            const nodeElement = document.createElement("div");
-            let stateClass = "locked";
-            if (maxed) stateClass = "maxed";
-            else if (available) stateClass = "available";
-            nodeElement.className = `skill-node ${branch.className} ${stateClass}`;
-            const buttonLabel = maxed ? "Max" : available ? `Acheter (${cost})` : requirementsMet ? `Coût ${cost}` : "Verrouillé";
-            const buttonClass = available ? `skill-node-button buy ${branch.className}` : "skill-node-button disabled";
-            let requirementText = "";
-            if (!requirementsMet && node.requires) {
-                requirementText = `<div class="skill-node-requires">Prérequis non remplis</div>`;
-            }
-            nodeElement.innerHTML = `
-        <div class="skill-node-title">${node.title}</div>
-        <div class="skill-node-desc">${node.desc}</div>
 
-        <div class="skill-node-meta">
-          <div class="skill-node-level">Niveau ${currentLevel}/${node.maxLevel}</div>
-          ${!maxed ? `<div class="skill-node-cost">${cost} pièces</div>` : `<div class="skill-node-cost">Complété</div>`}
+    const orderedBranches = ["damage", "speed", "defense"];
+    const origin = SKILL_TREE_LAYOUT.origin;
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "skill-map-svg");
+    svg.setAttribute("viewBox", `0 0 100 ${SKILL_TREE_MAP_HEIGHT}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+
+    skillTreeBranches.appendChild(svg);
+
+    const totalBought = SKILL_TREE.reduce((sum, branch) => {
+        return sum + branch.nodes.reduce((branchSum, node) => {
+            return branchSum + getSkillLevel(node.id);
+        }, 0);
+    }, 0);
+
+    const originElement = document.createElement("div");
+    originElement.className = "skill-map-origin";
+    originElement.style.left = `${origin.x}%`;
+
+    /* on aligne visuellement le CENTRE de la boule avec le point de convergence */
+    originElement.style.top = `${origin.y - 40}px`;
+
+    originElement.innerHTML = `
+        <div class="skill-map-origin-core">
+            <span>✦</span>
         </div>
+        <div class="skill-map-origin-value">${totalBought}</div>
+        <div class="skill-map-origin-title">NOYAU RUNIQUE</div>
+    `;
 
-        <button class="${buttonClass}" ${available ? "" : "disabled"}>${buttonLabel}</button>
-        ${requirementText}
-      `;
-            const button = nodeElement.querySelector("button");
-            if (available) {
-                button.addEventListener("click", () => buySkill(node.id));
-            }
-            track.appendChild(nodeElement);
+    skillTreeBranches.appendChild(originElement);
+
+    for (const branchId of orderedBranches) {
+        const branch = SKILL_TREE.find((entry) => entry.id === branchId);
+
+        if (!branch) {
+            continue;
         }
-        skillTreeBranches.appendChild(branchElement);
+
+        const layout = SKILL_TREE_LAYOUT.branches[branch.id];
+
+        if (!layout) {
+            continue;
+        }
+
+        const { totalLevels, maxLevels } = getBranchProgress(branch);
+
+        const branchLabel = document.createElement("div");
+        branchLabel.className = `skill-map-branch-label ${branch.className}`;
+        branchLabel.style.left = `${layout.label.x}%`;
+        branchLabel.style.top = `${layout.label.y}px`;
+        branchLabel.innerHTML = `
+            <span>${branch.label}</span>
+            <strong>${totalLevels} / ${maxLevels}</strong>
+        `;
+        skillTreeBranches.appendChild(branchLabel);
+
+        let previousPoint = origin;
+
+        branch.nodes.forEach((node, index) => {
+            const point = layout.nodes[index];
+            const activeLink = getBranchNodeActivation(branch, node, index);
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", buildSkillLinkPath(previousPoint, point, layout.bend));
+            path.setAttribute(
+                "class",
+                `skill-map-link ${branch.className} ${activeLink ? "active" : "inactive"}`
+            );
+
+            svg.appendChild(path);
+            previousPoint = point;
+        });
+
+        branch.nodes.forEach((node, index) => {
+            const point = layout.nodes[index];
+            const nodeState = getSkillNodeState(node);
+
+            let visualState = "locked";
+
+            if (nodeState.maxed) {
+                visualState = "maxed";
+            } else if (nodeState.available) {
+                visualState = "available";
+            } else if (nodeState.unlocked) {
+                visualState = "unlocked";
+            }
+
+            const cost = getSkillCost(node);
+
+            const buttonLabel = nodeState.maxed
+                ? "MAX"
+                : nodeState.available
+                ? `Acheter ${cost}`
+                : nodeState.requirementsMet
+                ? `${cost} pièces`
+                : "Verrouillé";
+
+            const buttonClass = nodeState.available
+                ? `skill-map-buy ${branch.className}`
+                : "skill-map-buy disabled";
+
+            const nodeElement = document.createElement("div");
+            nodeElement.className = `skill-map-node ${branch.className} ${visualState} card-${point.card}`;
+            nodeElement.style.left = `${point.x}%`;
+            nodeElement.style.top = `${point.y}px`;
+            nodeElement.style.setProperty("--card-offset-y", `${point.cardOffsetY || 0}px`);
+            nodeElement.tabIndex = 0;
+            nodeElement.title = `${node.title} — ${node.desc}`;
+
+            nodeElement.innerHTML = `
+                <div class="skill-map-node-core">
+                    <span>${node.nodeIcon || branch.icon}</span>
+                </div>
+
+                <div class="skill-map-node-level">${nodeState.currentLevel}/${node.maxLevel}</div>
+
+                <div class="skill-map-card ${branch.className} card-${point.card}">
+                    <div class="skill-map-card-title">${node.title}</div>
+                    <div class="skill-map-card-desc">${node.desc}</div>
+
+                    <button class="${buttonClass}" ${nodeState.available ? "" : "disabled"}>
+                        ${buttonLabel}
+                    </button>
+
+                    ${
+                        !nodeState.requirementsMet
+                            ? `<div class="skill-map-card-lock">Prérequis non remplis</div>`
+                            : ""
+                    }
+                </div>
+            `;
+
+            const button = nodeElement.querySelector("button");
+
+            if (nodeState.available) {
+                button.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    buySkill(node.id);
+                });
+            }
+
+            skillTreeBranches.appendChild(nodeElement);
+        });
     }
 }
 
