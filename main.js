@@ -2389,8 +2389,6 @@ function renderSkillTree() {
             nodeElement.style.left = `${point.x}%`;
             nodeElement.style.top = `${point.y}px`;
             nodeElement.style.setProperty("--card-offset-y", `${point.cardOffsetY || 0}px`);
-            nodeElement.tabIndex = 0;
-            nodeElement.title = `${node.title} — ${node.desc}`;
 
             nodeElement.innerHTML = `
                 <div class="skill-map-node-core">
@@ -2420,6 +2418,7 @@ function renderSkillTree() {
             if (nodeState.available) {
                 button.addEventListener("click", (event) => {
                     event.stopPropagation();
+                    event.currentTarget.blur();
                     buySkill(node.id);
                 });
             }

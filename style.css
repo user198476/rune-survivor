@@ -1187,6 +1187,26 @@ body {
   left: 32px;
 }
 
+/* ========================================================= */
+/* SKILL TREE - POPUP UNIQUEMENT AU SURVOL                   */
+/* ========================================================= */
+
+.skill-tree-branches.skill-tree-map .skill-map-node:not(:hover) > .skill-map-card {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  filter: blur(2px) !important;
+}
+
+.skill-tree-branches.skill-tree-map .skill-map-node:not(:hover) .skill-map-node-core {
+  transform: none !important;
+  filter: none !important;
+}
+
+.skill-tree-branches.skill-tree-map .skill-map-node:not(:hover) {
+  z-index: 4 !important;
+}
+
 .hidden {
   display: none !important;
 }
