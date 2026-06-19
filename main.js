@@ -68,6 +68,14 @@ let lastSavedBestScore = -1;
 const ENEMY_GRID_SIZE = 140;
 const MAX_PARTICLES = 450;
 const MAX_FLOATING_TEXTS = 90;
+const MAX_ACTIVE_ENEMIES = 80;
+const MAX_ACTIVE_PROJECTILES = 260;
+const HORDE_PRESSURE_RADIUS = 155;
+const HORDE_PRESSURE_START = 12;
+const HORDE_PRESSURE_TICK = 0.22;
+const HORDE_PRESSURE_BASE_DAMAGE = 4;
+const HORDE_PRESSURE_DAMAGE_PER_EXTRA_ENEMY = 1.15;
+const HORDE_PRESSURE_HEAL_LOCK = 0.45;
 let enemyGrid = new Map();
 const enemySpriteCache = new Map();
 const LIFE_STEAL_MAX_HEAL_PER_SECOND_RATIO = 0.10;
@@ -333,6 +341,8 @@ function resetGame() {
         lifeStealBuffer: 0,
         lifeStealPopupBuffer: 0,
         healLockTimer: 0,
+        hordeDamageTimer: 0,
+        hordeWarningTimer: 0,
         xpGainMultiplier: 1,
         spikeInvulnerabilityTimer: 0,
         fireRate: 0.55,
@@ -551,6 +561,10 @@ function lerpAngle(from, to, speed, dt) {
 }
 
 function spawnEnemy() {
+    if (enemies.length >= MAX_ACTIVE_ENEMIES) {
+        return false;
+    }
+
     const side = Math.floor(Math.random() * 4);
     let x;
     let y;
@@ -612,6 +626,7 @@ function spawnEnemy() {
     }
     enemy.attackCooldown = 0;
     enemies.push(enemy);
+    return true;
 }
 
 function findNearestEnemy() {
@@ -651,6 +666,9 @@ function shootAt(target) {
             life: 1.8,
             bouncesLeft: player.projectileBounces
         });
+    }
+    if (projectiles.length > MAX_ACTIVE_PROJECTILES) {
+        projectiles.splice(0, projectiles.length - MAX_ACTIVE_PROJECTILES);
     }
     createParticles(player.x, player.y, 8, "#59dfff", 2.5);
 }
@@ -1092,6 +1110,135 @@ function chooseUpgrade(index) {
     updateHud();
 }
 
+function getEnemyDistanceSqToPlayer(enemy) {
+    const dx = enemy.x - player.x;
+    const dy = enemy.y - player.y;
+    return dx * dx + dy * dy;
+}
+
+function trimEnemyOverflow() {
+    if (enemies.length <= MAX_ACTIVE_ENEMIES) {
+        return;
+    }
+
+    enemies = enemies.filter((enemy) => enemy && !enemy.dead);
+
+    if (enemies.length <= MAX_ACTIVE_ENEMIES) {
+        return;
+    }
+
+    enemies.sort((a, b) => {
+        return getEnemyDistanceSqToPlayer(a) - getEnemyDistanceSqToPlayer(b);
+    });
+
+    enemies.length = MAX_ACTIVE_ENEMIES;
+}
+
+function countEnemiesNearPlayer(radius) {
+    const radiusSq = radius * radius;
+    const cellRadius = Math.ceil(radius / ENEMY_GRID_SIZE) + 1;
+
+    const playerCellX = getEnemyGridCell(player.x);
+    const playerCellY = getEnemyGridCell(player.y);
+
+    let count = 0;
+
+    for (let offsetY = -cellRadius; offsetY <= cellRadius; offsetY++) {
+        for (let offsetX = -cellRadius; offsetX <= cellRadius; offsetX++) {
+            const key = getEnemyGridKey(playerCellX + offsetX, playerCellY + offsetY);
+            const bucket = enemyGrid.get(key);
+
+            if (!bucket) {
+                continue;
+            }
+
+            for (const enemyIndex of bucket) {
+                const enemy = enemies[enemyIndex];
+
+                if (!enemy || enemy.dead) {
+                    continue;
+                }
+
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+
+                if (dx * dx + dy * dy <= radiusSq) {
+                    count++;
+                }
+            }
+        }
+    }
+
+    return count;
+}
+
+function updateHordePressure(dt) {
+    const nearbyEnemies = countEnemiesNearPlayer(HORDE_PRESSURE_RADIUS);
+
+    if (nearbyEnemies <= HORDE_PRESSURE_START) {
+        return;
+    }
+
+    const extraEnemies = nearbyEnemies - HORDE_PRESSURE_START;
+
+    player.healLockTimer = Math.max(
+        player.healLockTimer || 0,
+        HORDE_PRESSURE_HEAL_LOCK
+    );
+
+    if (player.hordeDamageTimer > 0) {
+        return;
+    }
+
+    const damage =
+        HORDE_PRESSURE_BASE_DAMAGE +
+        extraEnemies * HORDE_PRESSURE_DAMAGE_PER_EXTRA_ENEMY;
+
+    damagePlayerByHordePressure(damage, nearbyEnemies);
+
+    player.hordeDamageTimer = HORDE_PRESSURE_TICK;
+}
+
+function damagePlayerByHordePressure(amount, nearbyEnemies) {
+    if (state !== "playing") {
+        return;
+    }
+
+    if (blockDamageWithShield(null)) {
+        return;
+    }
+
+    player.hp = Math.max(0, player.hp - amount);
+
+    player.hitFlashTimer = 0.12;
+    player.healLockTimer = Math.max(
+        player.healLockTimer || 0,
+        HORDE_PRESSURE_HEAL_LOCK
+    );
+
+    damageFlash = Math.max(damageFlash, 0.24);
+    screenShake = 1.8;
+    screenShakeTimer = 0.045;
+
+    if (player.hordeWarningTimer <= 0) {
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 42,
+            `SUBMERGÉ -${Math.ceil(amount)}`,
+            "#ff5f75"
+        );
+
+        player.hordeWarningTimer = 0.65;
+    }
+
+    if (player.hp <= 0) {
+        player.hp = 0;
+        endGame();
+    }
+
+    updateHud();
+}
+
 function update(dt) {
     gameTime += dt;
     updatePlayer(dt);
@@ -1099,7 +1246,9 @@ function update(dt) {
     updatePowerUps(dt);
     updateSpawns(dt);
     updateEnemies(dt);
+    trimEnemyOverflow();
     buildEnemyGrid();
+    updateHordePressure(dt);
     updateProjectiles(dt);
     updateLifeStealHealing(dt);
     updateGems(dt);
@@ -1164,16 +1313,26 @@ function updatePlayer(dt) {
 }
 
 function updateSpawns(dt) {
+    if (enemies.length >= MAX_ACTIVE_ENEMIES) {
+        spawnTimer = Math.max(spawnTimer, 0.35);
+        return;
+    }
+
     spawnTimer -= dt;
+
     const spawnInterval = Math.max(0.22, 1.05 - gameTime / 160);
+
     if (spawnTimer <= 0) {
         spawnEnemy();
-        if (gameTime > 35 && Math.random() > 0.72) {
+
+        if (enemies.length < MAX_ACTIVE_ENEMIES && gameTime > 35 && Math.random() > 0.72) {
             spawnEnemy();
         }
-        if (gameTime > 90 && Math.random() > 0.78) {
+
+        if (enemies.length < MAX_ACTIVE_ENEMIES && gameTime > 90 && Math.random() > 0.78) {
             spawnEnemy();
         }
+
         spawnTimer = spawnInterval;
     }
 }
@@ -1335,55 +1494,38 @@ function applyLifeSteal(damageDealt) {
     if (player.lifeSteal <= 0) {
         return;
     }
-
     if (damageDealt <= 0) {
         return;
     }
-
+    if (player.healLockTimer > 0) {
+        return;
+    }
     if (player.hp >= player.maxHp) {
         player.lifeStealBuffer = 0;
         return;
     }
-
     const effectiveLifeSteal = Math.min(0.15, player.lifeSteal);
     const healingGained = damageDealt * effectiveLifeSteal;
     const maxStoredHealing = player.maxHp * 0.45;
-
-    player.lifeStealBuffer = Math.min(
-        maxStoredHealing,
-        player.lifeStealBuffer + healingGained
-    );
+    player.lifeStealBuffer = Math.min(maxStoredHealing, player.lifeStealBuffer + healingGained);
 }
 
 function updateLifeStealHealing(dt) {
     if (player.lifeStealBuffer <= 0) {
         return;
     }
-
     if (player.hp >= player.maxHp) {
         player.lifeStealBuffer = 0;
         return;
     }
-
     if (player.healLockTimer > 0) {
         return;
     }
-
-    const maxHealPerSecond = Math.max(
-        LIFE_STEAL_MIN_HEAL_PER_SECOND,
-        player.maxHp * LIFE_STEAL_MAX_HEAL_PER_SECOND_RATIO
-    );
-
-    const healAmount = Math.min(
-        player.lifeStealBuffer,
-        maxHealPerSecond * dt,
-        player.maxHp - player.hp
-    );
-
+    const maxHealPerSecond = Math.max(LIFE_STEAL_MIN_HEAL_PER_SECOND, player.maxHp * LIFE_STEAL_MAX_HEAL_PER_SECOND_RATIO);
+    const healAmount = Math.min(player.lifeStealBuffer, maxHealPerSecond * dt, player.maxHp - player.hp);
     if (healAmount <= 0) {
         return;
     }
-
     player.lifeStealBuffer -= healAmount;
     healPlayer(healAmount);
 }
@@ -1392,37 +1534,22 @@ function healPlayer(amount) {
     if (amount <= 0) {
         return;
     }
-
     if (player.hp >= player.maxHp) {
         return;
     }
-
     const previousHp = player.hp;
-
     player.hp = Math.min(player.maxHp, player.hp + amount);
-
     const actualHeal = player.hp - previousHp;
-
     if (actualHeal <= 0) {
         return;
     }
-
     player.lifeStealPopupBuffer += actualHeal;
-
     if (player.lifeStealPopupBuffer >= 1) {
         const displayHeal = Math.floor(player.lifeStealPopupBuffer);
         player.lifeStealPopupBuffer -= displayHeal;
-
-        addFloatingText(
-            player.x,
-            player.y - player.radius - 34,
-            `+${displayHeal}`,
-            "#68ff96"
-        );
-
+        addFloatingText(player.x, player.y - player.radius - 34, `+${displayHeal}`, "#68ff96");
         createParticles(player.x, player.y, 8, "#68ff96", 1.1);
     }
-
     updateHud();
 }
 
@@ -1773,13 +1900,29 @@ function drawEnemies() {
         }
         const sprite = getEnemySprite(enemy);
         ctx.drawImage(sprite.canvas, enemy.x - sprite.size / 2, enemy.y - sprite.size / 2);
-        const hpWidth = enemy.radius * 2;
-        const hpHeight = 5;
-        const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-        ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth, hpHeight);
-        ctx.fillStyle = "#ff4066";
-        ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth * hpPercent, hpHeight);
+        const shouldDrawHpBar = enemies.length < 120 || enemy.hp < enemy.maxHp;
+
+        if (shouldDrawHpBar) {
+            const hpWidth = enemy.radius * 2;
+            const hpHeight = 5;
+            const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.fillRect(
+                enemy.x - hpWidth / 2,
+                enemy.y - enemy.radius - 14,
+                hpWidth,
+                hpHeight
+            );
+
+            ctx.fillStyle = "#ff4066";
+            ctx.fillRect(
+                enemy.x - hpWidth / 2,
+                enemy.y - enemy.radius - 14,
+                hpWidth * hpPercent,
+                hpHeight
+            );
+        }
     }
 }
 
@@ -2129,9 +2272,8 @@ function closeSkillTree() {
 }
 
 function clearInputKeys() {
-	keys.clear();
+    keys.clear();
 }
-
 window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     if (isPauseKey(event)) {
@@ -2154,30 +2296,25 @@ window.addEventListener("keydown", (event) => {
     }
 });
 window.addEventListener("keyup", (event) => {
-	keys.delete(event.key.toLowerCase());
-
-	if (event.key === " ") {
-		keys.delete(" ");
-	}
+    keys.delete(event.key.toLowerCase());
+    if (event.key === " ") {
+        keys.delete(" ");
+    }
 });
 window.addEventListener("blur", () => {
-	clearInputKeys();
-
-	if (state === "playing") {
-		pauseGame();
-	}
+    clearInputKeys();
+    if (state === "playing") {
+        pauseGame();
+    }
 });
-
 document.addEventListener("visibilitychange", () => {
-	clearInputKeys();
-
-	if (document.hidden && state === "playing") {
-		pauseGame();
-	}
+    clearInputKeys();
+    if (document.hidden && state === "playing") {
+        pauseGame();
+    }
 });
-
 window.addEventListener("mouseleave", () => {
-	clearInputKeys();
+    clearInputKeys();
 });
 playButton.addEventListener("click", startGame);
 restartButton.addEventListener("click", startGame);
