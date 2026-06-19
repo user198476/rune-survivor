@@ -1207,6 +1207,27 @@ body {
   z-index: 4 !important;
 }
 
+.clone-panel {
+  top: 166px;
+  border-color: rgba(184, 140, 255, 0.62);
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(184, 140, 255, 0.26),
+      transparent 60%
+    ),
+    rgba(24, 14, 42, 0.9);
+  box-shadow:
+    0 0 28px rgba(184, 140, 255, 0.24),
+    inset 0 0 18px rgba(184, 140, 255, 0.06);
+  color: #dec9ff;
+}
+
+.clone-panel strong {
+  color: white;
+  text-shadow: 0 0 10px rgba(184, 140, 255, 0.75);
+}
+
 .hidden {
   display: none !important;
 }

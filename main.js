@@ -35,6 +35,8 @@ const menuCoinsText = document.getElementById("menuCoinsText");
 const skillTreeCoinsText = document.getElementById("skillTreeCoinsText");
 const skillTreeOverlay = document.getElementById("skillTreeOverlay");
 const skillTreeBranches = document.getElementById("skillTreeBranches");
+const clonePanel = document.getElementById("clonePanel");
+const cloneTimerText = document.getElementById("cloneTimerText");
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const keys = new Set();
@@ -1731,6 +1733,12 @@ function updateHud() {
         shieldTimerText.textContent = `${Math.ceil(player.shieldTimer)}s`;
     } else {
         shieldPanel.classList.add("hidden");
+    }
+    if (player.cloneTimer > 0) {
+        clonePanel.classList.remove("hidden");
+        cloneTimerText.textContent = `${Math.ceil(player.cloneTimer)}s`;
+    } else {
+        clonePanel.classList.add("hidden");
     }
 }
 
