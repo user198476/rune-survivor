@@ -70,6 +70,10 @@ const MAX_PARTICLES = 450;
 const MAX_FLOATING_TEXTS = 90;
 let enemyGrid = new Map();
 const enemySpriteCache = new Map();
+const LIFE_STEAL_MAX_HEAL_PER_SECOND_RATIO = 0.10;
+const LIFE_STEAL_MIN_HEAL_PER_SECOND = 8;
+const HIT_HEAL_LOCK_DURATION = 0.22;
+const SPIKE_HEAL_LOCK_DURATION = 1.15;
 const upgrades = [{
     id: "damage",
     icon: "✦",
@@ -151,7 +155,7 @@ const upgrades = [{
     id: "lifeSteal",
     icon: "✚",
     title: "Rune vampirique",
-    description: "+5% de vol de vie. Les dégâts infligés te rendent des PV.",
+    description: "+3% de vol de vie. Maximum 15%.",
     canAppear() {
         return player.lifeSteal < 0.15;
     },
@@ -327,6 +331,8 @@ function resetGame() {
         shieldDurationBonus: 0,
         lifeSteal: 0,
         lifeStealBuffer: 0,
+        lifeStealPopupBuffer: 0,
+        healLockTimer: 0,
         xpGainMultiplier: 1,
         spikeInvulnerabilityTimer: 0,
         fireRate: 0.55,
@@ -704,6 +710,7 @@ function damagePlayer(amount, source) {
     player.hp = Math.max(0, player.hp - amount);
     player.invulnerabilityTimer = 0.45;
     player.hitFlashTimer = 0.18;
+    player.healLockTimer = Math.max(player.healLockTimer, HIT_HEAL_LOCK_DURATION);
     damageFlash = 0.45;
     screenShake = 2.2; // force
     screenShakeTimer = 0.06; // durée
@@ -793,7 +800,7 @@ function createSpikes() {
         x: GAME_WIDTH / 2,
         y: GAME_HEIGHT / 2
     };
-    const playerSafeZone = 50;
+    const playerSafeZone = 80;
     let added = 0;
     let attempts = 0;
     while (added < 12 && attempts < 300) {
@@ -809,12 +816,6 @@ function createSpikes() {
         const dxPlayer = x - player.x;
         const dyPlayer = y - player.y;
         if (dxPlayer * dxPlayer + dyPlayer * dyPlayer < playerSafeZone * playerSafeZone) {
-            continue;
-        }
-        if (distance({
-                x,
-                y
-            }, player) < playerSafeZone) {
             continue;
         }
         if (isTooCloseToSpike(result, x, y, 95)) {
@@ -880,6 +881,7 @@ function damagePlayerFromSpike(spike) {
     player.hitFlashTimer = 0.22;
     player.invulnerabilityTimer = Math.max(player.invulnerabilityTimer, 0.25);
     player.spikeInvulnerabilityTimer = 1;
+    player.healLockTimer = Math.max(player.healLockTimer, SPIKE_HEAL_LOCK_DURATION);
     damageFlash = 0.55;
     screenShake = 2.8;
     screenShakeTimer = 0.07;
@@ -1097,6 +1099,7 @@ function update(dt) {
     updateEnemies(dt);
     buildEnemyGrid();
     updateProjectiles(dt);
+    updateLifeStealHealing(dt);
     updateGems(dt);
     updateParticles(dt);
     updateFloatingTexts(dt);
@@ -1147,6 +1150,7 @@ function updatePlayer(dt) {
     player.hitFlashTimer = Math.max(0, player.hitFlashTimer - dt);
     player.shieldTimer = Math.max(0, player.shieldTimer - dt);
     player.shieldBlockCooldown = Math.max(0, player.shieldBlockCooldown - dt);
+    player.healLockTimer = Math.max(0, player.healLockTimer - dt);
     player.damageBoostTimer = Math.max(0, player.damageBoostTimer - dt);
     if (player.damageBoostTimer <= 0) {
         player.damageMultiplier = 1;
@@ -1329,15 +1333,55 @@ function applyLifeSteal(damageDealt) {
     if (player.lifeSteal <= 0) {
         return;
     }
+
     if (damageDealt <= 0) {
         return;
     }
+
+    if (player.hp >= player.maxHp) {
+        player.lifeStealBuffer = 0;
+        return;
+    }
+
     const effectiveLifeSteal = Math.min(0.15, player.lifeSteal);
-    player.lifeStealBuffer += damageDealt * effectiveLifeSteal;
-    const healAmount = Math.floor(player.lifeStealBuffer);
+    const healingGained = damageDealt * effectiveLifeSteal;
+    const maxStoredHealing = player.maxHp * 0.45;
+
+    player.lifeStealBuffer = Math.min(
+        maxStoredHealing,
+        player.lifeStealBuffer + healingGained
+    );
+}
+
+function updateLifeStealHealing(dt) {
+    if (player.lifeStealBuffer <= 0) {
+        return;
+    }
+
+    if (player.hp >= player.maxHp) {
+        player.lifeStealBuffer = 0;
+        return;
+    }
+
+    if (player.healLockTimer > 0) {
+        return;
+    }
+
+    const maxHealPerSecond = Math.max(
+        LIFE_STEAL_MIN_HEAL_PER_SECOND,
+        player.maxHp * LIFE_STEAL_MAX_HEAL_PER_SECOND_RATIO
+    );
+
+    const healAmount = Math.min(
+        player.lifeStealBuffer,
+        maxHealPerSecond * dt,
+        player.maxHp - player.hp
+    );
+
     if (healAmount <= 0) {
         return;
     }
+
     player.lifeStealBuffer -= healAmount;
     healPlayer(healAmount);
 }
@@ -1346,17 +1390,37 @@ function healPlayer(amount) {
     if (amount <= 0) {
         return;
     }
+
     if (player.hp >= player.maxHp) {
         return;
     }
+
     const previousHp = player.hp;
+
     player.hp = Math.min(player.maxHp, player.hp + amount);
-    const actualHeal = Math.floor(player.hp - previousHp);
+
+    const actualHeal = player.hp - previousHp;
+
     if (actualHeal <= 0) {
         return;
     }
-    addFloatingText(player.x, player.y - player.radius - 34, `+${actualHeal}`, "#68ff96");
-    createParticles(player.x, player.y, 8, "#68ff96", 1.1);
+
+    player.lifeStealPopupBuffer += actualHeal;
+
+    if (player.lifeStealPopupBuffer >= 1) {
+        const displayHeal = Math.floor(player.lifeStealPopupBuffer);
+        player.lifeStealPopupBuffer -= displayHeal;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 34,
+            `+${displayHeal}`,
+            "#68ff96"
+        );
+
+        createParticles(player.x, player.y, 8, "#68ff96", 1.1);
+    }
+
     updateHud();
 }
 
