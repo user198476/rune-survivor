@@ -82,6 +82,9 @@ const LIFE_STEAL_MAX_HEAL_PER_SECOND_RATIO = 0.10;
 const LIFE_STEAL_MIN_HEAL_PER_SECOND = 8;
 const HIT_HEAL_LOCK_DURATION = 0.22;
 const SPIKE_HEAL_LOCK_DURATION = 1.15;
+const ARCANE_CLONE_DURATION = 18;
+const ARCANE_CLONE_OFFSET = 58;
+const ARCANE_CLONE_DAMAGE_RATIO = 0.65;
 const upgrades = [{
     id: "damage",
     icon: "✦",
@@ -169,6 +172,17 @@ const upgrades = [{
     },
     apply() {
         player.lifeSteal = Math.min(0.15, Number((player.lifeSteal + 0.03).toFixed(2)));
+    }
+}, {
+    id: "arcaneClone",
+    icon: "✥",
+    title: "Rune d’écho",
+    description: "Invoque un clone à tes côtés pendant 18s. Il tire avec toi.",
+    canAppear() {
+        return player.cloneTimer <= 0;
+    },
+    apply() {
+        activateArcaneClone();
     }
 }];
 const META_STORAGE_KEYS = {
@@ -314,42 +328,80 @@ const SKILL_TREE = [{
     }]
 }];
 const SKILL_TREE_MAP_HEIGHT = 680;
-
 const SKILL_TREE_LAYOUT = {
     origin: {
         x: 50,
         y: 610
     },
-
     branches: {
         damage: {
-            label: { x: 10, y: 28 },
+            label: {
+                x: 10,
+                y: 28
+            },
             bend: -8,
-            nodes: [
-                { x: 40, y: 520, card: "left", cardOffsetY: 34 },
-                { x: 30, y: 392, card: "left", cardOffsetY: -8 },
-                { x: 24, y: 256, card: "right", cardOffsetY: -34 }
-            ]
+            nodes: [{
+                x: 40,
+                y: 520,
+                card: "left",
+                cardOffsetY: 34
+            }, {
+                x: 30,
+                y: 392,
+                card: "left",
+                cardOffsetY: -8
+            }, {
+                x: 24,
+                y: 256,
+                card: "right",
+                cardOffsetY: -34
+            }]
         },
-
         speed: {
-            label: { x: 50, y: 28 },
+            label: {
+                x: 50,
+                y: 28
+            },
             bend: 0,
-            nodes: [
-                { x: 50, y: 500, card: "right", cardOffsetY: 8 },
-                { x: 50, y: 360, card: "left", cardOffsetY: -10 },
-                { x: 50, y: 220, card: "right", cardOffsetY: -26 }
-            ]
+            nodes: [{
+                x: 50,
+                y: 500,
+                card: "right",
+                cardOffsetY: 8
+            }, {
+                x: 50,
+                y: 360,
+                card: "left",
+                cardOffsetY: -10
+            }, {
+                x: 50,
+                y: 220,
+                card: "right",
+                cardOffsetY: -26
+            }]
         },
-
         defense: {
-            label: { x: 82, y: 28 },
+            label: {
+                x: 82,
+                y: 28
+            },
             bend: 8,
-            nodes: [
-                { x: 60, y: 520, card: "right", cardOffsetY: 34 },
-                { x: 70, y: 392, card: "right", cardOffsetY: -8 },
-                { x: 76, y: 256, card: "left", cardOffsetY: -34 }
-            ]
+            nodes: [{
+                x: 60,
+                y: 520,
+                card: "right",
+                cardOffsetY: 34
+            }, {
+                x: 70,
+                y: 392,
+                card: "right",
+                cardOffsetY: -8
+            }, {
+                x: 76,
+                y: 256,
+                card: "left",
+                cardOffsetY: -34
+            }]
         }
     }
 };
@@ -384,6 +436,10 @@ function resetGame() {
         damage: 18,
         damageMultiplier: 1,
         damageBoostTimer: 0,
+        cloneTimer: 0,
+        cloneX: GAME_WIDTH / 2 + ARCANE_CLONE_OFFSET,
+        cloneY: GAME_HEIGHT / 2,
+        cloneSide: 1,
         shieldTimer: 0,
         shieldBlockCooldown: 0,
         shieldDurationBonus: 0,
@@ -614,7 +670,6 @@ function spawnEnemy() {
     if (enemies.length >= MAX_ACTIVE_ENEMIES) {
         return false;
     }
-
     const side = Math.floor(Math.random() * 4);
     let x;
     let y;
@@ -698,29 +753,76 @@ function findNearestEnemy() {
     return nearest;
 }
 
-function shootAt(target) {
-    const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
-    player.targetAimAngle = baseAngle;
+function getArcaneCloneTargetPosition() {
+    const sideAngle = player.aimAngle + Math.PI / 2;
+    const offset = ARCANE_CLONE_OFFSET * player.cloneSide;
+    const x = player.x + Math.cos(sideAngle) * offset;
+    const y = player.y + Math.sin(sideAngle) * offset;
+    return {
+        x: Math.max(player.radius, Math.min(GAME_WIDTH - player.radius, x)),
+        y: Math.max(player.radius, Math.min(GAME_HEIGHT - player.radius, y))
+    };
+}
+
+function activateArcaneClone() {
+    player.cloneTimer = ARCANE_CLONE_DURATION;
+    player.cloneSide = 1;
+    const targetPosition = getArcaneCloneTargetPosition();
+    player.cloneX = targetPosition.x;
+    player.cloneY = targetPosition.y;
+    addFloatingText(player.x, player.y - player.radius - 34, "CLONE D'ÉCHO", "#b88cff");
+    createParticles(player.x, player.y, 48, "#b88cff", 2.4);
+}
+
+function updateArcaneClone(dt) {
+    if (player.cloneTimer <= 0) {
+        return;
+    }
+    const wasActive = player.cloneTimer > 0;
+    player.cloneTimer = Math.max(0, player.cloneTimer - dt);
+    if (player.cloneTimer <= 0) {
+        if (wasActive) {
+            createParticles(player.cloneX, player.cloneY, 22, "#b88cff", 1.5);
+        }
+        return;
+    }
+    const targetPosition = getArcaneCloneTargetPosition();
+    const followStrength = 1 - Math.pow(0.001, dt);
+    player.cloneX += (targetPosition.x - player.cloneX) * followStrength;
+    player.cloneY += (targetPosition.y - player.cloneY) * followStrength;
+}
+
+function fireProjectileVolley(x, y, baseAngle, damageRatio = 1, particleColor = "#59dfff") {
     const count = player.projectileCount;
     const spread = count === 1 ? 0 : 0.18;
     for (let i = 0; i < count; i++) {
         const offset = (i - (count - 1) / 2) * spread;
         const angle = baseAngle + offset;
         projectiles.push({
-            x: player.x,
-            y: player.y,
+            x,
+            y,
             vx: Math.cos(angle) * player.projectileSpeed,
             vy: Math.sin(angle) * player.projectileSpeed,
             radius: player.projectileRadius,
-            damage: player.damage * player.damageMultiplier,
+            damage: player.damage * player.damageMultiplier * damageRatio,
             life: 1.8,
             bouncesLeft: player.projectileBounces
         });
     }
+    createParticles(x, y, 6, particleColor, 2.2);
+}
+
+function shootAt(target) {
+    const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
+    player.targetAimAngle = baseAngle;
+    fireProjectileVolley(player.x, player.y, baseAngle, 1, "#59dfff");
+    if (player.cloneTimer > 0) {
+        const cloneAngle = Math.atan2(target.y - player.cloneY, target.x - player.cloneX);
+        fireProjectileVolley(player.cloneX, player.cloneY, cloneAngle, ARCANE_CLONE_DAMAGE_RATIO, "#b88cff");
+    }
     if (projectiles.length > MAX_ACTIVE_PROJECTILES) {
         projectiles.splice(0, projectiles.length - MAX_ACTIVE_PROJECTILES);
     }
-    createParticles(player.x, player.y, 8, "#59dfff", 2.5);
 }
 
 function createParticles(x, y, count, color, speed = 1) {
@@ -1170,82 +1272,57 @@ function trimEnemyOverflow() {
     if (enemies.length <= MAX_ACTIVE_ENEMIES) {
         return;
     }
-
     enemies = enemies.filter((enemy) => enemy && !enemy.dead);
-
     if (enemies.length <= MAX_ACTIVE_ENEMIES) {
         return;
     }
-
     enemies.sort((a, b) => {
         return getEnemyDistanceSqToPlayer(a) - getEnemyDistanceSqToPlayer(b);
     });
-
     enemies.length = MAX_ACTIVE_ENEMIES;
 }
 
 function countEnemiesNearPlayer(radius) {
     const radiusSq = radius * radius;
     const cellRadius = Math.ceil(radius / ENEMY_GRID_SIZE) + 1;
-
     const playerCellX = getEnemyGridCell(player.x);
     const playerCellY = getEnemyGridCell(player.y);
-
     let count = 0;
-
     for (let offsetY = -cellRadius; offsetY <= cellRadius; offsetY++) {
         for (let offsetX = -cellRadius; offsetX <= cellRadius; offsetX++) {
             const key = getEnemyGridKey(playerCellX + offsetX, playerCellY + offsetY);
             const bucket = enemyGrid.get(key);
-
             if (!bucket) {
                 continue;
             }
-
             for (const enemyIndex of bucket) {
                 const enemy = enemies[enemyIndex];
-
                 if (!enemy || enemy.dead) {
                     continue;
                 }
-
                 const dx = enemy.x - player.x;
                 const dy = enemy.y - player.y;
-
                 if (dx * dx + dy * dy <= radiusSq) {
                     count++;
                 }
             }
         }
     }
-
     return count;
 }
 
 function updateHordePressure(dt) {
     const nearbyEnemies = countEnemiesNearPlayer(HORDE_PRESSURE_RADIUS);
-
     if (nearbyEnemies <= HORDE_PRESSURE_START) {
         return;
     }
-
     const extraEnemies = nearbyEnemies - HORDE_PRESSURE_START;
-
-    player.healLockTimer = Math.max(
-        player.healLockTimer || 0,
-        HORDE_PRESSURE_HEAL_LOCK
-    );
-
+    player.healLockTimer = Math.max(player.healLockTimer || 0, HORDE_PRESSURE_HEAL_LOCK);
     if (player.hordeDamageTimer > 0) {
         return;
     }
-
-    const damage =
-        HORDE_PRESSURE_BASE_DAMAGE +
-        extraEnemies * HORDE_PRESSURE_DAMAGE_PER_EXTRA_ENEMY;
-
+    const damage = HORDE_PRESSURE_BASE_DAMAGE + extraEnemies * HORDE_PRESSURE_DAMAGE_PER_EXTRA_ENEMY;
     damagePlayerByHordePressure(damage, nearbyEnemies);
-
     player.hordeDamageTimer = HORDE_PRESSURE_TICK;
 }
 
@@ -1253,39 +1330,23 @@ function damagePlayerByHordePressure(amount, nearbyEnemies) {
     if (state !== "playing") {
         return;
     }
-
     if (blockDamageWithShield(null)) {
         return;
     }
-
     player.hp = Math.max(0, player.hp - amount);
-
     player.hitFlashTimer = 0.12;
-    player.healLockTimer = Math.max(
-        player.healLockTimer || 0,
-        HORDE_PRESSURE_HEAL_LOCK
-    );
-
+    player.healLockTimer = Math.max(player.healLockTimer || 0, HORDE_PRESSURE_HEAL_LOCK);
     damageFlash = Math.max(damageFlash, 0.24);
     screenShake = 1.8;
     screenShakeTimer = 0.045;
-
     if (player.hordeWarningTimer <= 0) {
-        addFloatingText(
-            player.x,
-            player.y - player.radius - 42,
-            `SUBMERGÉ -${Math.ceil(amount)}`,
-            "#ff5f75"
-        );
-
+        addFloatingText(player.x, player.y - player.radius - 42, `SUBMERGÉ -${Math.ceil(amount)}`, "#ff5f75");
         player.hordeWarningTimer = 0.65;
     }
-
     if (player.hp <= 0) {
         player.hp = 0;
         endGame();
     }
-
     updateHud();
 }
 
@@ -1342,6 +1403,7 @@ function updatePlayer(dt) {
         player.targetAimAngle = Math.atan2(target.y - player.y, target.x - player.x);
     }
     player.aimAngle = lerpAngle(player.aimAngle, player.targetAimAngle, player.aimTurnSpeed, dt);
+    updateArcaneClone(dt);
     if (player.fireCooldown <= 0 && target) {
         shootAt(target);
         player.fireCooldown = player.fireRate;
@@ -1367,22 +1429,16 @@ function updateSpawns(dt) {
         spawnTimer = Math.max(spawnTimer, 0.35);
         return;
     }
-
     spawnTimer -= dt;
-
     const spawnInterval = Math.max(0.22, 1.05 - gameTime / 160);
-
     if (spawnTimer <= 0) {
         spawnEnemy();
-
         if (enemies.length < MAX_ACTIVE_ENEMIES && gameTime > 35 && Math.random() > 0.72) {
             spawnEnemy();
         }
-
         if (enemies.length < MAX_ACTIVE_ENEMIES && gameTime > 90 && Math.random() > 0.78) {
             spawnEnemy();
         }
-
         spawnTimer = spawnInterval;
     }
 }
@@ -1712,6 +1768,7 @@ function render() {
     drawPowerUps();
     drawProjectiles();
     drawEnemies();
+    drawArcaneClone();
     drawPlayer();
     drawParticles();
     drawFloatingTexts();
@@ -1878,6 +1935,64 @@ function drawPlayer() {
     ctx.restore();
 }
 
+function drawArcaneClone() {
+    if (player.cloneTimer <= 0) {
+        return;
+    }
+    const fade = Math.min(1, player.cloneTimer / 0.75);
+    ctx.save();
+    ctx.globalAlpha = 0.28 * fade;
+    ctx.strokeStyle = "#b88cff";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 8]);
+    ctx.beginPath();
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo(player.cloneX, player.cloneY);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.globalAlpha = 0.72 * fade;
+    ctx.translate(player.cloneX, player.cloneY);
+    ctx.rotate(player.aimAngle);
+    ctx.scale(0.86, 0.86);
+    ctx.fillStyle = "rgba(66, 42, 120, 0.92)";
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius + 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#b88cff";
+    ctx.shadowColor = "#b88cff";
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#f7f0ff";
+    ctx.beginPath();
+    ctx.arc(7, -3, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(28, 18, 62, 0.96)";
+    ctx.beginPath();
+    ctx.moveTo(-10, -10);
+    ctx.lineTo(-27, 0);
+    ctx.lineTo(-10, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#e4d5ff";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(8, 12);
+    ctx.lineTo(31, 0);
+    ctx.stroke();
+    ctx.fillStyle = "#cfa7ff";
+    ctx.shadowColor = "#b88cff";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(35, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
 function getEnemySprite(enemy) {
     const key = `${enemy.type}_${enemy.color}_${enemy.radius}`;
     let sprite = enemySpriteCache.get(key);
@@ -1951,27 +2066,14 @@ function drawEnemies() {
         const sprite = getEnemySprite(enemy);
         ctx.drawImage(sprite.canvas, enemy.x - sprite.size / 2, enemy.y - sprite.size / 2);
         const shouldDrawHpBar = enemies.length < 120 || enemy.hp < enemy.maxHp;
-
         if (shouldDrawHpBar) {
             const hpWidth = enemy.radius * 2;
             const hpHeight = 5;
             const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
-
             ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-            ctx.fillRect(
-                enemy.x - hpWidth / 2,
-                enemy.y - enemy.radius - 14,
-                hpWidth,
-                hpHeight
-            );
-
+            ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth, hpHeight);
             ctx.fillStyle = "#ff4066";
-            ctx.fillRect(
-                enemy.x - hpWidth / 2,
-                enemy.y - enemy.radius - 14,
-                hpWidth * hpPercent,
-                hpHeight
-            );
+            ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth * hpPercent, hpHeight);
         }
     }
 }
@@ -2212,7 +2314,6 @@ function clampPlayerStats() {
 function getBranchProgress(branch) {
     const totalLevels = branch.nodes.reduce((sum, node) => sum + getSkillLevel(node.id), 0);
     const maxLevels = branch.nodes.reduce((sum, node) => sum + node.maxLevel, 0);
-
     return {
         totalLevels,
         maxLevels
@@ -2226,7 +2327,6 @@ function getSkillNodeState(node) {
     const affordable = metaCoins >= getSkillCost(node);
     const available = !maxed && requirementsMet && affordable;
     const unlocked = requirementsMet;
-
     return {
         currentLevel,
         maxed,
@@ -2239,34 +2339,27 @@ function getSkillNodeState(node) {
 
 function getBranchNodeActivation(branch, node, index) {
     const state = getSkillNodeState(node);
-
     if (state.currentLevel > 0 || state.maxed) {
         return true;
     }
-
     if (index === 0 && state.requirementsMet) {
         return true;
     }
-
     if (index > 0) {
         const previousNode = branch.nodes[index - 1];
         if (getSkillLevel(previousNode.id) > 0 && state.requirementsMet) {
             return true;
         }
     }
-
     return false;
 }
 
 function buildSkillLinkPath(from, to, bend = 0) {
     const dy = from.y - to.y;
-
     const c1x = from.x + bend;
     const c1y = from.y - dy * 0.32;
-
     const c2x = to.x + bend;
     const c2y = to.y + dy * 0.32;
-
     return `
         M ${from.x} ${from.y}
         C ${c1x} ${c1y},
@@ -2277,33 +2370,25 @@ function buildSkillLinkPath(from, to, bend = 0) {
 
 function renderSkillTree() {
     updateMetaCurrencyDisplays();
-
     skillTreeBranches.className = "skill-tree-branches skill-tree-map";
     skillTreeBranches.innerHTML = "";
-
     const orderedBranches = ["damage", "speed", "defense"];
     const origin = SKILL_TREE_LAYOUT.origin;
-
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "skill-map-svg");
     svg.setAttribute("viewBox", `0 0 100 ${SKILL_TREE_MAP_HEIGHT}`);
     svg.setAttribute("preserveAspectRatio", "none");
-
     skillTreeBranches.appendChild(svg);
-
     const totalBought = SKILL_TREE.reduce((sum, branch) => {
         return sum + branch.nodes.reduce((branchSum, node) => {
             return branchSum + getSkillLevel(node.id);
         }, 0);
     }, 0);
-
     const originElement = document.createElement("div");
     originElement.className = "skill-map-origin";
     originElement.style.left = `${origin.x}%`;
-
     /* on aligne visuellement le CENTRE de la boule avec le point de convergence */
     originElement.style.top = `${origin.y - 40}px`;
-
     originElement.innerHTML = `
         <div class="skill-map-origin-core">
             <span>✦</span>
@@ -2311,24 +2396,20 @@ function renderSkillTree() {
         <div class="skill-map-origin-value">${totalBought}</div>
         <div class="skill-map-origin-title">NOYAU RUNIQUE</div>
     `;
-
     skillTreeBranches.appendChild(originElement);
-
     for (const branchId of orderedBranches) {
         const branch = SKILL_TREE.find((entry) => entry.id === branchId);
-
         if (!branch) {
             continue;
         }
-
         const layout = SKILL_TREE_LAYOUT.branches[branch.id];
-
         if (!layout) {
             continue;
         }
-
-        const { totalLevels, maxLevels } = getBranchProgress(branch);
-
+        const {
+            totalLevels,
+            maxLevels
+        } = getBranchProgress(branch);
         const branchLabel = document.createElement("div");
         branchLabel.className = `skill-map-branch-label ${branch.className}`;
         branchLabel.style.left = `${layout.label.x}%`;
@@ -2338,30 +2419,20 @@ function renderSkillTree() {
             <strong>${totalLevels} / ${maxLevels}</strong>
         `;
         skillTreeBranches.appendChild(branchLabel);
-
         let previousPoint = origin;
-
         branch.nodes.forEach((node, index) => {
             const point = layout.nodes[index];
             const activeLink = getBranchNodeActivation(branch, node, index);
-
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute("d", buildSkillLinkPath(previousPoint, point, layout.bend));
-            path.setAttribute(
-                "class",
-                `skill-map-link ${branch.className} ${activeLink ? "active" : "inactive"}`
-            );
-
+            path.setAttribute("class", `skill-map-link ${branch.className} ${activeLink ? "active" : "inactive"}`);
             svg.appendChild(path);
             previousPoint = point;
         });
-
         branch.nodes.forEach((node, index) => {
             const point = layout.nodes[index];
             const nodeState = getSkillNodeState(node);
-
             let visualState = "locked";
-
             if (nodeState.maxed) {
                 visualState = "maxed";
             } else if (nodeState.available) {
@@ -2369,27 +2440,14 @@ function renderSkillTree() {
             } else if (nodeState.unlocked) {
                 visualState = "unlocked";
             }
-
             const cost = getSkillCost(node);
-
-            const buttonLabel = nodeState.maxed
-                ? "MAX"
-                : nodeState.available
-                ? `Acheter ${cost}`
-                : nodeState.requirementsMet
-                ? `${cost} pièces`
-                : "Verrouillé";
-
-            const buttonClass = nodeState.available
-                ? `skill-map-buy ${branch.className}`
-                : "skill-map-buy disabled";
-
+            const buttonLabel = nodeState.maxed ? "MAX" : nodeState.available ? `Acheter ${cost}` : nodeState.requirementsMet ? `${cost} pièces` : "Verrouillé";
+            const buttonClass = nodeState.available ? `skill-map-buy ${branch.className}` : "skill-map-buy disabled";
             const nodeElement = document.createElement("div");
             nodeElement.className = `skill-map-node ${branch.className} ${visualState} card-${point.card}`;
             nodeElement.style.left = `${point.x}%`;
             nodeElement.style.top = `${point.y}px`;
             nodeElement.style.setProperty("--card-offset-y", `${point.cardOffsetY || 0}px`);
-
             nodeElement.innerHTML = `
                 <div class="skill-map-node-core">
                     <span>${node.nodeIcon || branch.icon}</span>
@@ -2412,9 +2470,7 @@ function renderSkillTree() {
                     }
                 </div>
             `;
-
             const button = nodeElement.querySelector("button");
-
             if (nodeState.available) {
                 button.addEventListener("click", (event) => {
                     event.stopPropagation();
@@ -2422,7 +2478,6 @@ function renderSkillTree() {
                     buySkill(node.id);
                 });
             }
-
             skillTreeBranches.appendChild(nodeElement);
         });
     }
