@@ -808,7 +808,8 @@ function fireProjectileVolley(x, y, baseAngle, damageRatio = 1, particleColor = 
             radius: player.projectileRadius,
             damage: player.damage * player.damageMultiplier * damageRatio,
             life: 1.8,
-            bouncesLeft: player.projectileBounces
+            bouncesLeft: player.projectileBounces,
+            color: particleColor
         });
     }
     createParticles(x, y, 6, particleColor, 2.2);
@@ -1494,7 +1495,7 @@ function handleProjectileBounce(projectile) {
     }
     if (bounced) {
         projectile.bouncesLeft -= 1;
-        createParticles(projectile.x, projectile.y, 10, "#ffd86b", 1.2);
+        createParticles(projectile.x, projectile.y, 10, projectile.color || "#ffd86b", 1.2);
     }
     return bounced;
 }
@@ -1570,7 +1571,7 @@ function updateProjectiles(dt) {
                     applyLifeSteal(damageDealt);
                 }
                 addFloatingText(enemy.x, enemy.y - enemy.radius, Math.floor(projectile.damage), "#ffe6ff");
-                createParticles(projectile.x, projectile.y, 12, "#75e8ff", 1.3);
+                createParticles(projectile.x, projectile.y, 12, projectile.color || "#75e8ff", 1.3);
                 projectiles.splice(i, 1);
                 projectileRemoved = true;
                 if (enemy.hp <= 0 && !enemy.dead) {
@@ -2088,13 +2089,30 @@ function drawEnemies() {
 
 function drawProjectiles() {
     for (const projectile of projectiles) {
+        const color = projectile.color || "#73ecff";
+
         ctx.save();
-        ctx.fillStyle = "#73ecff";
-        ctx.shadowColor = "#73ecff";
+
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
         ctx.shadowBlur = 22;
+
         ctx.beginPath();
         ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
         ctx.fill();
+
+        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(
+            projectile.x - projectile.radius * 0.25,
+            projectile.y - projectile.radius * 0.25,
+            projectile.radius * 0.42,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+
         ctx.restore();
     }
 }
