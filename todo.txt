@@ -37,3 +37,10 @@ choix entre 3 récompenses spéciales
 +1 rune rare
 +10 secondes de clone
 +soin complet
+
+
+- le boss 2 ne tire pas de laser du tout, on voit juste le texte "Laser" a corriger donc, pour rappel on veux des longs lazer sur le joueur tres dur a esquiver et qui font tres mal
+
+- le boss 3 pareil, on voit le texte "RUPTURE" mais pas les zones au sol, il arrive que je perde des points de vie mais on sait pas pourquoi (peut etre les zone smais invisible)
+
+FAIRE UN MONSTRE QUI NOUS FUIT TOUJOURS (L'INVERSE DES SUIVEURS ACTUELLEMENT et COULEUR ORANGE)

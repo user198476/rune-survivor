@@ -457,23 +457,29 @@ let bossIntroTimer = 0;
 let bossRewardTimer = 0;
 let triggeredBossIds = new Set();
 const BOSS_PULL_COOLDOWN = 4.4;
-const BOSS_PULL_FORCE = 2850;
-const BOSS_PULL_DURATION = 0.85;
-const BOSS_PULL_CONTACT_DAMAGE = 42;
+const BOSS_PULL_FORCE = 2400;
+const BOSS_PULL_DURATION = 1;
+const BOSS_PULL_CONTACT_DAMAGE = 45;
 const BOSS_PULL_CONTACT_RADIUS_BONUS = 18;
-const BOSS_PULL_CONTACT_COOLDOWN = 0.65;
+const BOSS_PULL_CONTACT_COOLDOWN = 0.7;
 
-const BOSS_LASER_COOLDOWN = 4.8;
-const BOSS_LASER_WARNING_DURATION = 1.05;
-const BOSS_LASER_ACTIVE_DURATION = 0.35;
-const BOSS_LASER_DAMAGE = 42;
-const BOSS_LASER_WIDTH = 34;
+const BOSS_SLIME_AURA_RADIUS = 135;
+const BOSS_SLIME_AURA_DAMAGE = 18;
+const BOSS_SLIME_AURA_TICK = 0.42;
+const BOSS_SLIME_AURA_PULL_MULTIPLIER = 1.65;
 
-const BOSS_ZONE_COOLDOWN = 4.2;
-const BOSS_ZONE_WARNING_DURATION = 1.0;
-const BOSS_ZONE_ACTIVE_DURATION = 2.2;
-const BOSS_ZONE_DAMAGE = 18;
-const BOSS_ZONE_RADIUS = 68;
+const BOSS_LASER_COOLDOWN = 4.2;
+const BOSS_LASER_WARNING_DURATION = 0.9;
+const BOSS_LASER_ACTIVE_DURATION = 0.75;
+const BOSS_LASER_DAMAGE = 60;
+const BOSS_LASER_WIDTH = 46;
+const BOSS_LASER_LENGTH = 1700;
+
+const BOSS_ZONE_COOLDOWN = 3.8;
+const BOSS_ZONE_WARNING_DURATION = 1.05;
+const BOSS_ZONE_ACTIVE_DURATION = 2.4;
+const BOSS_ZONE_DAMAGE = 24;
+const BOSS_ZONE_RADIUS = 82;
 
 let bossDangerZones = [];
 let bossLasers = [];
@@ -901,6 +907,7 @@ function startBossFight() {
 
     const bossDefinition = currentBossDefinition;
 
+    // boss object (objet boss)
     const boss = {
         isBoss: true,
         bossId: bossDefinition.id,
@@ -920,6 +927,7 @@ function startBossFight() {
 
         attackCooldown: 1,
         spellCooldown: 2.2,
+        auraDamageTimer: 0,
         laserCooldown: 2.8,
         zoneCooldown: 3.2,
         pullCooldown: 2.5,
@@ -1058,6 +1066,7 @@ function updateBossAbilities(dt) {
     updateBossPull(dt);
     updateBossLasers(dt);
     updateBossDangerZones(dt);
+    updateRoyalSlimeAura(dt);
 
     if (currentBoss.bossId === "royal_slime") {
         updateRoyalSlimeAbilities(dt);
@@ -1168,27 +1177,45 @@ function updateBloodBatAbilities(dt) {
 
     currentBoss.laserCooldown = BOSS_LASER_COOLDOWN;
 
-    const angle = Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x);
-
     bossLasers.push({
         x: currentBoss.x,
         y: currentBoss.y,
-        angle,
+        angle: Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x),
         warning: BOSS_LASER_WARNING_DURATION,
         active: BOSS_LASER_ACTIVE_DURATION,
         damageTick: 0,
-        color: currentBoss.color
+        color: currentBoss.color,
+        locked: false
     });
 
-    addFloatingText(currentBoss.x, currentBoss.y - currentBoss.radius - 28, "LASER", currentBoss.color);
+    addFloatingText(
+        currentBoss.x,
+        currentBoss.y - currentBoss.radius - 28,
+        "LASER",
+        currentBoss.color
+    );
 }
 
 function updateBossLasers(dt) {
     for (let i = bossLasers.length - 1; i >= 0; i--) {
         const laser = bossLasers[i];
 
-        if (laser.warning > 0) {
+        if (!laser.locked && laser.warning > 0) {
+            // Le laser suit le joueur pendant l'avertissement.
+            laser.x = currentBoss ? currentBoss.x : laser.x;
+            laser.y = currentBoss ? currentBoss.y : laser.y;
+            laser.angle = Math.atan2(player.y - laser.y, player.x - laser.x);
+
             laser.warning -= dt;
+
+            if (laser.warning <= 0) {
+                laser.warning = 0;
+                laser.locked = true;
+
+                screenShake = 5.5;
+                screenShakeTimer = 0.12;
+            }
+
             continue;
         }
 
@@ -1196,10 +1223,17 @@ function updateBossLasers(dt) {
         laser.damageTick -= dt;
 
         if (laser.damageTick <= 0) {
-            laser.damageTick = 0.18;
+            laser.damageTick = 0.22;
 
             if (isPlayerInsideLaser(laser)) {
                 damagePlayer(BOSS_LASER_DAMAGE, null);
+
+                addFloatingText(
+                    player.x,
+                    player.y - player.radius - 24,
+                    "LASER",
+                    "#ff5f75"
+                );
             }
         }
 
@@ -1213,17 +1247,66 @@ function isPlayerInsideLaser(laser) {
     const px = player.x - laser.x;
     const py = player.y - laser.y;
 
-    const forward = px * Math.cos(laser.angle) + py * Math.sin(laser.angle);
+    const cos = Math.cos(laser.angle);
+    const sin = Math.sin(laser.angle);
 
-    if (forward < 0 || forward > 1500) {
+    const forward = px * cos + py * sin;
+
+    if (forward < 0 || forward > BOSS_LASER_LENGTH) {
         return false;
     }
 
-    const perpendicular = Math.abs(
-        px * Math.sin(laser.angle) - py * Math.cos(laser.angle)
+    const perpendicular = Math.abs(px * sin - py * cos);
+
+    return perpendicular <= BOSS_LASER_WIDTH / 2 + player.radius * 0.65;
+}
+
+function updateRoyalSlimeAura(dt) {
+    if (
+        bossState !== "active" ||
+        !currentBoss ||
+        currentBoss.dead ||
+        currentBoss.bossId !== "royal_slime"
+    ) {
+        return;
+    }
+
+    currentBoss.auraDamageTimer = Math.max(
+        0,
+        (currentBoss.auraDamageTimer || 0) - dt
     );
 
-    return perpendicular <= BOSS_LASER_WIDTH;
+    const dx = player.x - currentBoss.x;
+    const dy = player.y - currentBoss.y;
+    const distanceSq = dx * dx + dy * dy;
+
+    const hitRadius = BOSS_SLIME_AURA_RADIUS + player.radius;
+
+    if (distanceSq > hitRadius * hitRadius) {
+        return;
+    }
+
+    if (currentBoss.auraDamageTimer > 0) {
+        return;
+    }
+
+    currentBoss.auraDamageTimer = BOSS_SLIME_AURA_TICK;
+
+    const damageMultiplier = bossPullTimer > 0
+        ? BOSS_SLIME_AURA_PULL_MULTIPLIER
+        : 1;
+
+    damagePlayer(
+        BOSS_SLIME_AURA_DAMAGE * damageMultiplier,
+        currentBoss
+    );
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 30,
+        "AURA CORROSIVE",
+        "#b88cff"
+    );
 }
 
 function updateRuneBruteAbilities(dt) {
@@ -1249,13 +1332,14 @@ function updateRuneBruteAbilities(dt) {
 
 function createBossDangerZone(x, y) {
     bossDangerZones.push({
-        x: Math.max(70, Math.min(GAME_WIDTH - 70, x)),
-        y: Math.max(80, Math.min(GAME_HEIGHT - 70, y)),
+        x: Math.max(BOSS_ZONE_RADIUS + 10, Math.min(GAME_WIDTH - BOSS_ZONE_RADIUS - 10, x)),
+        y: Math.max(BOSS_ZONE_RADIUS + 10, Math.min(GAME_HEIGHT - BOSS_ZONE_RADIUS - 10, y)),
         radius: BOSS_ZONE_RADIUS,
         warning: BOSS_ZONE_WARNING_DURATION,
+        maxWarning: BOSS_ZONE_WARNING_DURATION,
         active: BOSS_ZONE_ACTIVE_DURATION,
         damageTick: 0,
-        color: currentBoss ? currentBoss.color : "#ff365d"
+        color: currentBoss ? currentBoss.color : "#aaf737"
     });
 }
 
@@ -1265,6 +1349,16 @@ function updateBossDangerZones(dt) {
 
         if (zone.warning > 0) {
             zone.warning -= dt;
+
+            if (zone.warning <= 0) {
+                zone.warning = 0;
+
+                screenShake = 3.8;
+                screenShakeTimer = 0.08;
+
+                createParticles(zone.x, zone.y, 36, zone.color, 1.8);
+            }
+
             continue;
         }
 
@@ -1280,6 +1374,13 @@ function updateBossDangerZones(dt) {
 
             if (dx * dx + dy * dy <= hitRadius * hitRadius) {
                 damagePlayer(BOSS_ZONE_DAMAGE, null);
+
+                addFloatingText(
+                    player.x,
+                    player.y - player.radius - 26,
+                    "RUPTURE",
+                    "#ff5f75"
+                );
             }
         }
 
@@ -2490,37 +2591,66 @@ function drawBossDangerZones() {
         ctx.save();
 
         if (zone.warning > 0) {
-            const pulse = 0.45 + Math.sin(performance.now() / 80) * 0.25;
+            const progress = 1 - zone.warning / zone.maxWarning;
+            const pulse = 0.55 + Math.sin(performance.now() / 70) * 0.22;
+            const currentRadius = zone.radius * (0.55 + progress * 0.45);
 
-            ctx.globalAlpha = 0.28 + pulse * 0.25;
-            ctx.strokeStyle = zone.color;
-            ctx.lineWidth = 4;
+            ctx.globalAlpha = 0.22 + pulse * 0.24;
+            ctx.fillStyle = zone.color;
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.globalAlpha = 0.9;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
             ctx.setLineDash([10, 8]);
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.9;
+            ctx.strokeStyle = zone.color;
+            ctx.lineWidth = 5;
+            ctx.shadowColor = zone.color;
+            ctx.shadowBlur = 24;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, currentRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.textAlign = "center";
+            ctx.font = "900 18px Arial";
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowColor = zone.color;
+            ctx.shadowBlur = 12;
+            ctx.fillText("!", zone.x, zone.y + 6);
+        } else {
+            const pulse = 0.65 + Math.sin(performance.now() / 90) * 0.18;
+
+            ctx.globalAlpha = 0.38 + pulse * 0.16;
+            ctx.fillStyle = zone.color;
+            ctx.shadowColor = zone.color;
+            ctx.shadowBlur = 28;
+
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.globalAlpha = 0.95;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
 
             ctx.beginPath();
             ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
             ctx.stroke();
 
-            ctx.globalAlpha = 0.13;
-            ctx.fillStyle = zone.color;
-
-            ctx.beginPath();
-            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
-            ctx.fill();
-        } else {
-            ctx.globalAlpha = 0.28;
-            ctx.fillStyle = zone.color;
-
-            ctx.beginPath();
-            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.globalAlpha = 0.75;
+            ctx.globalAlpha = 0.5;
             ctx.strokeStyle = zone.color;
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 9;
 
             ctx.beginPath();
-            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+            ctx.arc(zone.x, zone.y, zone.radius + 4, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -2536,39 +2666,97 @@ function drawBossLasers() {
         ctx.rotate(laser.angle);
 
         if (laser.warning > 0) {
-            ctx.globalAlpha = 0.42;
+            const progress = 1 - laser.warning / BOSS_LASER_WARNING_DURATION;
+            const warningWidth = 10 + progress * BOSS_LASER_WIDTH;
+
+            ctx.globalAlpha = 0.25 + progress * 0.35;
             ctx.strokeStyle = laser.color;
-            ctx.lineWidth = 5;
-            ctx.setLineDash([18, 12]);
-
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(1500, 0);
-            ctx.stroke();
-        } else {
-            ctx.globalAlpha = 0.9;
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = BOSS_LASER_WIDTH * 0.35;
+            ctx.lineWidth = warningWidth;
+            ctx.setLineDash([26, 16]);
             ctx.shadowColor = laser.color;
-            ctx.shadowBlur = 28;
+            ctx.shadowBlur = 22;
 
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(1500, 0);
+            ctx.lineTo(BOSS_LASER_LENGTH, 0);
             ctx.stroke();
 
-            ctx.globalAlpha = 0.55;
+            ctx.globalAlpha = 0.9;
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(0, 0, 8 + progress * 8, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.globalAlpha = 0.95;
             ctx.strokeStyle = laser.color;
             ctx.lineWidth = BOSS_LASER_WIDTH;
+            ctx.shadowColor = laser.color;
+            ctx.shadowBlur = 38;
 
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(1500, 0);
+            ctx.lineTo(BOSS_LASER_LENGTH, 0);
+            ctx.stroke();
+
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = Math.max(8, BOSS_LASER_WIDTH * 0.32);
+            ctx.shadowColor = "#ffffff";
+            ctx.shadowBlur = 18;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(BOSS_LASER_LENGTH, 0);
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.45;
+            ctx.strokeStyle = laser.color;
+            ctx.lineWidth = BOSS_LASER_WIDTH * 1.7;
+            ctx.shadowBlur = 0;
+
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(BOSS_LASER_LENGTH, 0);
             ctx.stroke();
         }
 
         ctx.restore();
     }
+}
+
+function drawRoyalSlimeAura() {
+    if (
+        bossState !== "active" ||
+        !currentBoss ||
+        currentBoss.dead ||
+        currentBoss.bossId !== "royal_slime"
+    ) {
+        return;
+    }
+
+    const pulse = 0.55 + Math.sin(performance.now() / 130) * 0.18;
+    const auraRadius = BOSS_SLIME_AURA_RADIUS + pulse * 10;
+
+    ctx.save();
+
+    ctx.globalAlpha = 0.16;
+    ctx.fillStyle = "#8b5cff";
+    ctx.beginPath();
+    ctx.arc(currentBoss.x, currentBoss.y, auraRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = bossPullTimer > 0 ? 0.85 : 0.52;
+    ctx.strokeStyle = bossPullTimer > 0 ? "#ff5fef" : "#b88cff";
+    ctx.lineWidth = bossPullTimer > 0 ? 5 : 3;
+    ctx.setLineDash(bossPullTimer > 0 ? [14, 8] : [8, 10]);
+    ctx.shadowColor = "#b88cff";
+    ctx.shadowBlur = bossPullTimer > 0 ? 28 : 16;
+
+    ctx.beginPath();
+    ctx.arc(currentBoss.x, currentBoss.y, auraRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
 }
 
 function render() {
@@ -2579,15 +2767,24 @@ function render() {
     }
     drawBackground();
     drawSpikes();
+
+    drawRoyalSlimeAura();
+    drawBossDangerZones();
+
     drawGems();
     drawPowerUps();
     drawProjectiles();
+
+    drawBossLasers();
+
     drawEnemies();
     drawArcaneClone();
     drawPlayer();
     drawParticles();
     drawFloatingTexts();
+
     ctx.restore();
+
     drawDamageOverlay();
     drawBossInterface();
 }
