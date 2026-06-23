@@ -407,6 +407,55 @@ const SKILL_TREE_LAYOUT = {
         }
     }
 };
+const BOSS_INTRO_DURATION = 3.2;
+const BOSS_REWARD_DELAY = 8;
+const BOSS_WAVES = [
+    {
+        id: "royal_slime",
+        time: 90, // 1:30
+        name: "Slime royal",
+        type: "slime",
+        color: "#8b5cff",
+        radius: 56,
+        hp: 1800,
+        speed: 82,
+        damage: 18,
+        rewardXp: 260,
+        rewardGemCount: 22
+    },
+    {
+        id: "blood_bat",
+        time: 180, // 3:00
+        name: "Reine chauve-souris",
+        type: "bat",
+        color: "#ff4d8d",
+        radius: 48,
+        hp: 2600,
+        speed: 126,
+        damage: 22,
+        rewardXp: 420,
+        rewardGemCount: 28
+    },
+    {
+        id: "rune_brute",
+        time: 300, // 5:00
+        name: "Brute runique",
+        type: "brute",
+        color: "#aaf737",
+        radius: 64,
+        hp: 4200,
+        speed: 76,
+        damage: 32,
+        rewardXp: 650,
+        rewardGemCount: 34
+    }
+];
+let bossState = "none"; 
+let currentBoss = null;
+let currentBossDefinition = null;
+let bossIntroTimer = 0;
+let bossRewardTimer = 0;
+let triggeredBossIds = new Set();
 
 function resetGame() {
     state = "menu";
@@ -420,6 +469,13 @@ function resetGame() {
     newBestThisRun = false;
     lastSavedCurrentScore = -1;
     lastSavedBestScore = bestScore;
+    bossState = "none";
+    currentBoss = null;
+    currentBossDefinition = null;
+    bossIntroTimer = 0;
+    bossRewardTimer = 0;
+    triggeredBossIds = new Set();
+
     // objet player (player object)
     player = {
         x: GAME_WIDTH / 2,
@@ -734,6 +790,215 @@ function spawnEnemy() {
     enemy.attackCooldown = 0;
     enemies.push(enemy);
     return true;
+}
+
+function getNextScheduledBoss() {
+    if (bossState !== "none") {
+        return null;
+    }
+
+    return BOSS_WAVES.find((bossDefinition) => {
+        return gameTime >= bossDefinition.time && !triggeredBossIds.has(bossDefinition.id);
+    }) || null;
+}
+
+function tryStartScheduledBoss() {
+    const bossDefinition = getNextScheduledBoss();
+
+    if (!bossDefinition) {
+        return false;
+    }
+
+    startBossIntro(bossDefinition);
+    return true;
+}
+
+function startBossIntro(bossDefinition) {
+    triggeredBossIds.add(bossDefinition.id);
+
+    bossState = "intro";
+    currentBossDefinition = bossDefinition;
+    currentBoss = null;
+    bossIntroTimer = BOSS_INTRO_DURATION;
+
+    prepareArenaForBoss();
+
+    screenShake = 4;
+    screenShakeTimer = 0.22;
+
+    addFloatingText(
+        GAME_WIDTH / 2,
+        GAME_HEIGHT / 2 - 80,
+        `${bossDefinition.name} approche`,
+        bossDefinition.color
+    );
+}
+
+function prepareArenaForBoss() {
+    enemies = [];
+    projectiles = [];
+    powerUps = [];
+    spikes = [];
+    spikeCanvas = null;
+    enemyGrid.clear();
+
+    player.x = GAME_WIDTH / 2;
+    player.y = GAME_HEIGHT - 135;
+    player.knockbackX = 0;
+    player.knockbackY = 0;
+    player.fireCooldown = 0.65;
+    player.invulnerabilityTimer = Math.max(player.invulnerabilityTimer, 2.2);
+
+    spawnTimer = 1.2;
+}
+
+function updateBossIntro(dt) {
+    if (bossState !== "intro") {
+        return;
+    }
+
+    bossIntroTimer -= dt;
+
+    if (bossIntroTimer <= 0) {
+        startBossFight();
+    }
+}
+
+function startBossFight() {
+    if (!currentBossDefinition) {
+        bossState = "none";
+        return;
+    }
+
+    const bossDefinition = currentBossDefinition;
+
+    const boss = {
+        isBoss: true,
+        bossId: bossDefinition.id,
+        bossName: bossDefinition.name,
+
+        type: bossDefinition.type,
+        x: GAME_WIDTH / 2,
+        y: 110,
+
+        radius: bossDefinition.radius,
+        hp: bossDefinition.hp,
+        maxHp: bossDefinition.hp,
+        speed: bossDefinition.speed,
+        damage: bossDefinition.damage,
+        xp: 0,
+        color: bossDefinition.color,
+
+        attackCooldown: 1,
+        rewardXp: bossDefinition.rewardXp,
+        rewardGemCount: bossDefinition.rewardGemCount
+    };
+
+    currentBoss = boss;
+    enemies.push(boss);
+
+    bossState = "active";
+
+    screenShake = 5;
+    screenShakeTimer = 0.28;
+
+    createParticles(boss.x, boss.y, 80, boss.color, 2.6);
+}
+
+function checkBossDeath() {
+    if (bossState !== "active") {
+        return;
+    }
+
+    if (!currentBoss) {
+        return;
+    }
+
+    if (currentBoss.dead || currentBoss.hp <= 0) {
+        defeatBoss();
+    }
+}
+
+function defeatBoss() {
+    if (!currentBoss) {
+        return;
+    }
+
+    const boss = currentBoss;
+
+    bossState = "reward";
+    bossRewardTimer = BOSS_REWARD_DELAY;
+
+    const deathX = boss.x;
+    const deathY = boss.y;
+    const bossColor = boss.color || "#ffffff";
+
+    enemies = [];
+    projectiles = [];
+    enemyGrid.clear();
+
+    screenShake = 7;
+    screenShakeTimer = 0.35;
+
+    createParticles(deathX, deathY, 120, bossColor, 3.2);
+    addFloatingText(deathX, deathY - 80, "BOSS VAINCU", "#ffd86b");
+
+    dropBossRewardXp(boss, deathX, deathY);
+
+    currentBoss = null;
+}
+
+function dropBossRewardXp(boss, x, y) {
+    const count = boss.rewardGemCount || 24;
+    const gemValue = Math.max(1, Math.ceil((boss.rewardXp || 250) / count));
+
+    for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count;
+        const distanceFromBoss = randomBetween(20, 115);
+
+        const gemX = Math.max(30, Math.min(GAME_WIDTH - 30, x + Math.cos(angle) * distanceFromBoss));
+        const gemY = Math.max(30, Math.min(GAME_HEIGHT - 30, y + Math.sin(angle) * distanceFromBoss));
+
+        dropGem(gemX, gemY, gemValue);
+
+        const gem = gems[gems.length - 1];
+
+        if (gem) {
+            const burstSpeed = randomBetween(90, 230);
+            gem.vx = Math.cos(angle) * burstSpeed;
+            gem.vy = Math.sin(angle) * burstSpeed;
+            gem.radius = 10;
+        }
+    }
+}
+
+function updateBossReward(dt) {
+    if (bossState !== "reward") {
+        return;
+    }
+
+    bossRewardTimer -= dt;
+
+    if (gems.length === 0 || bossRewardTimer <= 0) {
+        finishBossRewardPhase();
+    }
+}
+
+function finishBossRewardPhase() {
+    bossState = "none";
+    currentBossDefinition = null;
+    bossRewardTimer = 0;
+
+    spawnTimer = 1.2;
+    powerUpSpawnTimer = Math.max(powerUpSpawnTimer, 6);
+    shieldSpawnTimer = Math.max(shieldSpawnTimer, 8);
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 42,
+        "LES VAGUES REPRENNENT",
+        "#d9d2ff"
+    );
 }
 
 function findNearestEnemy() {
@@ -1355,15 +1620,51 @@ function damagePlayerByHordePressure(amount, nearbyEnemies) {
 
 function update(dt) {
     gameTime += dt;
+
+    if (bossState === "intro") {
+        updateBossIntro(dt);
+        updateParticles(dt);
+        updateFloatingTexts(dt);
+        updateHud();
+        return;
+    }
+
+    if (bossState === "none" && tryStartScheduledBoss()) {
+        updateParticles(dt);
+        updateFloatingTexts(dt);
+        updateHud();
+        return;
+    }
+
     updatePlayer(dt);
     updateSpikes();
-    updatePowerUps(dt);
-    updateSpawns(dt);
+
+    if (bossState === "reward") {
+        updateLifeStealHealing(dt);
+        updateGems(dt);
+        updateBossReward(dt);
+        updateParticles(dt);
+        updateFloatingTexts(dt);
+        updateHud();
+        return;
+    }
+
+    if (bossState === "none") {
+        updatePowerUps(dt);
+        updateSpawns(dt);
+    }
+
     updateEnemies(dt);
     trimEnemyOverflow();
     buildEnemyGrid();
-    updateHordePressure(dt);
+
+    if (bossState === "none") {
+        updateHordePressure(dt);
+    }
+
     updateProjectiles(dt);
+    checkBossDeath();
+
     updateLifeStealHealing(dt);
     updateGems(dt);
     updateParticles(dt);
@@ -1765,6 +2066,136 @@ function endGame() {
     gameOverOverlay.classList.remove("hidden");
 }
 
+function drawBossInterface() {
+    if (bossState === "intro" && currentBossDefinition) {
+        drawBossIntroBanner();
+    }
+
+    if (bossState === "active" && currentBoss && !currentBoss.dead) {
+        drawBossHealthBar();
+    }
+
+    if (bossState === "reward" && currentBossDefinition) {
+        drawBossRewardBanner();
+    }
+}
+
+function drawBossIntroBanner() {
+    const progress = 1 - bossIntroTimer / BOSS_INTRO_DURATION;
+    const pulse = 0.5 + Math.sin(performance.now() / 90) * 0.5;
+
+    ctx.save();
+
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = "rgba(4, 4, 12, 0.74)";
+    ctx.fillRect(0, GAME_HEIGHT / 2 - 78, GAME_WIDTH, 156);
+
+    ctx.strokeStyle = currentBossDefinition.color;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = currentBossDefinition.color;
+    ctx.shadowBlur = 18 + pulse * 10;
+
+    ctx.beginPath();
+    ctx.moveTo(160, GAME_HEIGHT / 2 - 78);
+    ctx.lineTo(GAME_WIDTH - 160, GAME_HEIGHT / 2 - 78);
+    ctx.moveTo(160, GAME_HEIGHT / 2 + 78);
+    ctx.lineTo(GAME_WIDTH - 160, GAME_HEIGHT / 2 + 78);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 42px Arial";
+    ctx.fillText("UN BOSS APPROCHE", GAME_WIDTH / 2, GAME_HEIGHT / 2 - 16);
+
+    ctx.fillStyle = currentBossDefinition.color;
+    ctx.font = "900 28px Arial";
+    ctx.fillText(currentBossDefinition.name.toUpperCase(), GAME_WIDTH / 2, GAME_HEIGHT / 2 + 34);
+
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = currentBossDefinition.color;
+    ctx.fillRect(0, GAME_HEIGHT / 2 + 74, GAME_WIDTH * progress, 4);
+
+    ctx.restore();
+}
+
+function drawBossRewardBanner() {
+    ctx.save();
+
+    ctx.globalAlpha = 0.86;
+    ctx.fillStyle = "rgba(4, 4, 12, 0.52)";
+    ctx.fillRect(0, 96, GAME_WIDTH, 76);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd86b";
+    ctx.font = "900 30px Arial";
+    ctx.fillText("BOSS VAINCU", GAME_WIDTH / 2, 132);
+
+    ctx.fillStyle = "#d9d2ff";
+    ctx.font = "700 16px Arial";
+    ctx.fillText(
+        gems.length > 0
+            ? "Ramasse les cristaux d’XP avant la reprise des vagues"
+            : "Les vagues reprennent...",
+        GAME_WIDTH / 2,
+        156
+    );
+
+    ctx.restore();
+}
+
+function drawBossHealthBar() {
+    const boss = currentBoss;
+    const ratio = Math.max(0, boss.hp / boss.maxHp);
+
+    const barWidth = 760;
+    const barHeight = 18;
+    const x = GAME_WIDTH / 2 - barWidth / 2;
+    const y = 46;
+
+    ctx.save();
+
+    ctx.textAlign = "center";
+    ctx.font = "900 22px Arial";
+    ctx.fillStyle = "#f4f0ff";
+    ctx.shadowColor = boss.color;
+    ctx.shadowBlur = 16;
+    ctx.fillText(boss.bossName.toUpperCase(), GAME_WIDTH / 2, 31);
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.72)";
+    ctx.fillRect(x - 4, y - 4, barWidth + 8, barHeight + 8);
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.32)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - 4, y - 4, barWidth + 8, barHeight + 8);
+
+    ctx.fillStyle = "rgba(80, 12, 24, 0.92)";
+    ctx.fillRect(x, y, barWidth, barHeight);
+
+    const gradient = ctx.createLinearGradient(x, y, x + barWidth, y);
+    gradient.addColorStop(0, "#7c1024");
+    gradient.addColorStop(0.5, "#d9213f");
+    gradient.addColorStop(1, "#ff6f52");
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, barWidth * ratio, barHeight);
+
+    ctx.globalAlpha = 0.34;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x, y, barWidth * ratio, 4);
+
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "center";
+    ctx.font = "700 13px Arial";
+    ctx.fillStyle = "#e8d8d8";
+    ctx.fillText(`${Math.ceil(boss.hp)} / ${Math.ceil(boss.maxHp)}`, GAME_WIDTH / 2, y + 38);
+
+    ctx.restore();
+}
+
 function render() {
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     ctx.save();
@@ -1783,6 +2214,7 @@ function render() {
     drawFloatingTexts();
     ctx.restore();
     drawDamageOverlay();
+    drawBossInterface();
 }
 
 function drawBackground() {
@@ -2072,6 +2504,23 @@ function drawEnemies() {
         if (!enemy || enemy.dead) {
             continue;
         }
+
+        if (enemy.isBoss) {
+            ctx.save();
+
+            ctx.globalAlpha = 0.22;
+            ctx.strokeStyle = enemy.color;
+            ctx.lineWidth = 4;
+            ctx.shadowColor = enemy.color;
+            ctx.shadowBlur = 24;
+
+            ctx.beginPath();
+            ctx.arc(enemy.x, enemy.y, enemy.radius + 18 + Math.sin(performance.now() / 160) * 4, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
         const sprite = getEnemySprite(enemy);
         ctx.drawImage(sprite.canvas, enemy.x - sprite.size / 2, enemy.y - sprite.size / 2);
         const shouldDrawHpBar = enemies.length < 120 || enemy.hp < enemy.maxHp;
