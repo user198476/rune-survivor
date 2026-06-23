@@ -492,9 +492,10 @@ const BOSS_MISSILE_COUNT = 4;
 const BOSS_MISSILE_SPEED = 360;
 const BOSS_MISSILE_TURN_SPEED = 7.5;
 const BOSS_MISSILE_LOCK_DISTANCE = 150; // distance ou on arrete de target le joeur et donc creer fenetre evitemment
+const BOSS_MISSILE_TRACK_DURATION = 1.25;
 const BOSS_MISSILE_RADIUS = 13;
 const BOSS_MISSILE_DAMAGE = 34;
-const BOSS_MISSILE_LIFE = 5.5;
+const BOSS_MISSILE_LIFE = 9;
 
 let bossDangerZones = [];
 let bossLasers = [];
@@ -1252,6 +1253,7 @@ function spawnBossMissileWave() {
             damage: BOSS_MISSILE_DAMAGE,
             life: BOSS_MISSILE_LIFE,
             locked: false,
+            trackTimer: BOSS_MISSILE_TRACK_DURATION,
             color: "#ff4d8d"
         });
     }
@@ -1276,8 +1278,21 @@ function updateBossMissiles(dt) {
         const distanceToPlayer = Math.sqrt(dx * dx + dy * dy) || 1;
 
         if (!missile.locked) {
-            if (distanceToPlayer <= BOSS_MISSILE_LOCK_DISTANCE) {
+            missile.trackTimer -= dt;
+
+            const shouldStopTracking =
+                missile.trackTimer <= 0 ||
+                distanceToPlayer <= BOSS_MISSILE_LOCK_DISTANCE;
+
+            if (shouldStopTracking) {
                 missile.locked = true;
+
+                const currentSpeed = Math.sqrt(
+                    missile.vx * missile.vx + missile.vy * missile.vy
+                ) || 1;
+
+                missile.vx = (missile.vx / currentSpeed) * BOSS_MISSILE_SPEED;
+                missile.vy = (missile.vy / currentSpeed) * BOSS_MISSILE_SPEED;
             } else {
                 const targetVx = (dx / distanceToPlayer) * BOSS_MISSILE_SPEED;
                 const targetVy = (dy / distanceToPlayer) * BOSS_MISSILE_SPEED;
@@ -1287,7 +1302,9 @@ function updateBossMissiles(dt) {
                 missile.vx += (targetVx - missile.vx) * turn;
                 missile.vy += (targetVy - missile.vy) * turn;
 
-                const speed = Math.sqrt(missile.vx * missile.vx + missile.vy * missile.vy) || 1;
+                const speed = Math.sqrt(
+                    missile.vx * missile.vx + missile.vy * missile.vy
+                ) || 1;
 
                 missile.vx = (missile.vx / speed) * BOSS_MISSILE_SPEED;
                 missile.vy = (missile.vy / speed) * BOSS_MISSILE_SPEED;
@@ -1308,18 +1325,25 @@ function updateBossMissiles(dt) {
             screenShakeTimer = 0.12;
 
             createParticles(missile.x, missile.y, 36, missile.color, 2.5);
-            addFloatingText(player.x, player.y - player.radius - 26, "MISSILE", "#ff5f75");
+            addFloatingText(
+                player.x,
+                player.y - player.radius - 26,
+                "MISSILE",
+                "#ff5f75"
+            );
 
             bossMissiles.splice(i, 1);
             continue;
         }
 
-        if (
-            missile.x < -80 ||
-            missile.x > GAME_WIDTH + 80 ||
-            missile.y < -80 ||
-            missile.y > GAME_HEIGHT + 80
-        ) {
+        const touchesBorder =
+            missile.x - missile.radius <= 0 ||
+            missile.x + missile.radius >= GAME_WIDTH ||
+            missile.y - missile.radius <= 0 ||
+            missile.y + missile.radius >= GAME_HEIGHT;
+
+        if (touchesBorder) {
+            createParticles(missile.x, missile.y, 18, missile.color, 1.5);
             bossMissiles.splice(i, 1);
         }
     }
