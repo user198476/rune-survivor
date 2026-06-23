@@ -1,2 +1,39 @@
-- Retirer les barres de vies si pas de dégâts prit
-- Verifier si le système de horde fonctionne bien et coombien d'ennemi autour avant d'afficher "SUBMERGÉ" car j'ai pas vu le texte, et les dégâts sont un peu faible sur une horde
+1. Boss toutes les X minutes (en cours)
+à 2:00 → Boss Slime royal
+à 4:00 → Boss Chauve-souris
+à 6:00 → Boss Brute runique
+
+TODO:
+______________________________________
+
+2. Runes rares / légendaires
+Rune légendaire : Orbe gardien
+→ une boule tourne autour du joueur et touche les ennemis
+
+Rune légendaire : Pluie astrale
+→ toutes les 8s, des projectiles tombent du ciel
+
+Rune légendaire : Triple écho
+→ le clone devient 2 clones pendant 12s
+
+3. Armes alternatives
+Bâton runique      → tir normal actuel
+Dagues spectrales  → tirs très rapides mais faibles
+Orbe tournoyante   → dégâts autour du joueur
+Laser ancien       → rayon continu vers l’ennemi proche
+Marteau astral     → onde de choc lente mais puissante
+
+4. Élite ennemie aléatoire
+Élite rouge   → plus de dégâts
+Élite bleu    → plus rapide
+Élite vert    → régénère
+Élite doré    → donne beaucoup d’XP
+Élite violet  → explose à la mort
+
+5. Coffres runiques
+choix entre 3 récompenses spéciales
++1 niveau gratuit
++500 pièces
++1 rune rare
++10 secondes de clone
++soin complet
