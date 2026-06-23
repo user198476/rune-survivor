@@ -419,7 +419,7 @@ const BOSS_WAVES = [
         radius: 56,
         hp: 2500,
         speed: 82,
-        damage: 22,
+        damage: 30,
         rewardXp: 260,
         rewardGemCount: 22
     },
@@ -432,7 +432,7 @@ const BOSS_WAVES = [
         radius: 48,
         hp: 4800,
         speed: 126,
-        damage: 27,
+        damage: 45,
         rewardXp: 420,
         rewardGemCount: 28
     },
@@ -445,7 +445,7 @@ const BOSS_WAVES = [
         radius: 64,
         hp: 7600,
         speed: 76,
-        damage: 34,
+        damage: 70,
         rewardXp: 650,
         rewardGemCount: 34
     }
@@ -456,9 +456,12 @@ let currentBossDefinition = null;
 let bossIntroTimer = 0;
 let bossRewardTimer = 0;
 let triggeredBossIds = new Set();
-const BOSS_PULL_COOLDOWN = 3.5;
-const BOSS_PULL_FORCE = 1600;
-const BOSS_PULL_DURATION = 0.6;
+const BOSS_PULL_COOLDOWN = 4.4;
+const BOSS_PULL_FORCE = 2850;
+const BOSS_PULL_DURATION = 0.85;
+const BOSS_PULL_CONTACT_DAMAGE = 42;
+const BOSS_PULL_CONTACT_RADIUS_BONUS = 18;
+const BOSS_PULL_CONTACT_COOLDOWN = 0.65;
 
 const BOSS_LASER_COOLDOWN = 4.8;
 const BOSS_LASER_WARNING_DURATION = 1.05;
@@ -920,6 +923,7 @@ function startBossFight() {
         laserCooldown: 2.8,
         zoneCooldown: 3.2,
         pullCooldown: 2.5,
+        pullContactCooldown: 0,
 
         rewardXp: bossDefinition.rewardXp,
         rewardGemCount: bossDefinition.rewardGemCount
@@ -1078,12 +1082,30 @@ function updateRoyalSlimeAbilities(dt) {
     currentBoss.pullCooldown = BOSS_PULL_COOLDOWN;
     bossPullTimer = BOSS_PULL_DURATION;
 
-    addFloatingText(currentBoss.x, currentBoss.y - currentBoss.radius - 28, "ATTRACTION", currentBoss.color);
-    createParticles(currentBoss.x, currentBoss.y, 45, currentBoss.color, 2.2);
+    addFloatingText(
+        currentBoss.x,
+        currentBoss.y - currentBoss.radius - 28,
+        "ASPIRATION MORTELLE",
+        currentBoss.color
+    );
+
+    createParticles(currentBoss.x, currentBoss.y, 70, currentBoss.color, 2.8);
+
+    screenShake = 3.2;
+    screenShakeTimer = 0.18;
 }
 
 function updateBossPull(dt) {
-    if (bossPullTimer <= 0 || !currentBoss) {
+    if (!currentBoss || currentBoss.dead) {
+        return;
+    }
+
+    currentBoss.pullContactCooldown = Math.max(
+        0,
+        (currentBoss.pullContactCooldown || 0) - dt
+    );
+
+    if (bossPullTimer <= 0) {
         return;
     }
 
@@ -1093,8 +1115,48 @@ function updateBossPull(dt) {
     const dy = currentBoss.y - player.y;
     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-    player.knockbackX += (dx / dist) * BOSS_PULL_FORCE * dt;
-    player.knockbackY += (dy / dist) * BOSS_PULL_FORCE * dt;
+    const dirX = dx / dist;
+    const dirY = dy / dist;
+
+    // Plus tu es loin, plus l'aspiration est forte.
+    const distanceBoost = Math.min(1.45, 0.75 + dist / 520);
+    const pullForce = BOSS_PULL_FORCE * distanceBoost;
+
+    player.knockbackX += dirX * pullForce * dt;
+    player.knockbackY += dirY * pullForce * dt;
+
+    // Contact punitif pendant l'attraction.
+    const contactRadius =
+        currentBoss.radius +
+        player.radius +
+        BOSS_PULL_CONTACT_RADIUS_BONUS;
+
+    if (
+        dist <= contactRadius &&
+        currentBoss.pullContactCooldown <= 0
+    ) {
+        currentBoss.pullContactCooldown = BOSS_PULL_CONTACT_COOLDOWN;
+
+        damagePlayer(BOSS_PULL_CONTACT_DAMAGE, currentBoss);
+
+        // Petit effet de "claque" pour que le contact se sente vraiment.
+        const pushDir = normalize(player.x - currentBoss.x, player.y - currentBoss.y);
+
+        player.knockbackX += pushDir.x * 520;
+        player.knockbackY += pushDir.y * 520;
+
+        screenShake = 5.5;
+        screenShakeTimer = 0.14;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 24,
+            "ÉCRASEMENT",
+            "#ff5f75"
+        );
+
+        createParticles(player.x, player.y, 34, "#ff365d", 2.2);
+    }
 }
 
 function updateBloodBatAbilities(dt) {
