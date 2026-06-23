@@ -467,6 +467,8 @@ const BOSS_SLIME_AURA_RADIUS = 135;
 const BOSS_SLIME_AURA_DAMAGE = 18;
 const BOSS_SLIME_AURA_TICK = 0.42;
 const BOSS_SLIME_AURA_PULL_MULTIPLIER = 1.65;
+const BOSS_SLIME_AURA_SLOW_MULTIPLIER = 0.48;
+const BOSS_SLIME_AURA_SLOW_DURATION = 0.55;
 
 const BOSS_LASER_COOLDOWN = 4.2;
 const BOSS_LASER_WARNING_DURATION = 0.9;
@@ -551,7 +553,9 @@ function resetGame() {
         invulnerabilityTimer: 0,
         hitFlashTimer: 0,
         knockbackX: 0,
-        knockbackY: 0
+        knockbackY: 0,
+        slowTimer: 0,
+        slowMultiplier: 1
     };
     applyPermanentBonusesToPlayer();
     enemies = [];
@@ -872,6 +876,8 @@ function prepareArenaForBoss() {
     spikes = [];
     spikeCanvas = null;
     enemyGrid.clear();
+
+    disablePickableBuffsForBoss();
 
     player.x = GAME_WIDTH / 2;
     player.y = GAME_HEIGHT - 135;
@@ -1285,6 +1291,16 @@ function updateRoyalSlimeAura(dt) {
     if (distanceSq > hitRadius * hitRadius) {
         return;
     }
+
+    player.slowTimer = Math.max(
+    player.slowTimer || 0,
+        BOSS_SLIME_AURA_SLOW_DURATION
+    );
+
+    player.slowMultiplier = Math.min(
+        player.slowMultiplier || 1,
+        BOSS_SLIME_AURA_SLOW_MULTIPLIER
+    );
 
     if (currentBoss.auraDamageTimer > 0) {
         return;
@@ -1777,6 +1793,11 @@ function spawnShieldPowerUp() {
 }
 
 function updatePowerUps(dt) {
+    if (!arePickablePowerUpsAllowed()) {
+        powerUps = [];
+        return;
+    }
+
     if (!powerUps) {
         powerUps = [];
     }
@@ -1827,6 +1848,9 @@ function updatePowerUps(dt) {
 }
 
 function activateDamageBoost() {
+    if (!arePickablePowerUpsAllowed()) {
+        return false;
+    }
     if (player.damageBoostTimer > 0) {
         return false;
     }
@@ -1841,6 +1865,9 @@ function activateDamageBoost() {
 }
 
 function activateShield() {
+    if (!arePickablePowerUpsAllowed()) {
+        return false;
+    }
     if (player.shieldTimer > 0) {
         return false;
     }
@@ -2078,13 +2105,18 @@ function updateVisualEffects(dt) {
 function updatePlayer(dt) {
     let dx = 0;
     let dy = 0;
+
     if (keys.has("arrowup") || keys.has("w") || keys.has("z")) dy -= 1;
     if (keys.has("arrowdown") || keys.has("s")) dy += 1;
     if (keys.has("arrowleft") || keys.has("a") || keys.has("q")) dx -= 1;
     if (keys.has("arrowright") || keys.has("d")) dx += 1;
+
     const dir = normalize(dx, dy);
-    player.x += dir.x * player.speed * dt;
-    player.y += dir.y * player.speed * dt;
+    const movementMultiplier = player.slowTimer > 0 ? player.slowMultiplier : 1;
+    const currentMoveSpeed = player.speed * movementMultiplier;
+
+    player.x += dir.x * currentMoveSpeed * dt;
+    player.y += dir.y * currentMoveSpeed * dt;
     player.x += player.knockbackX * dt;
     player.y += player.knockbackY * dt;
     player.knockbackX *= Math.pow(0.02, dt);
@@ -2109,6 +2141,10 @@ function updatePlayer(dt) {
     player.shieldBlockCooldown = Math.max(0, player.shieldBlockCooldown - dt);
     player.healLockTimer = Math.max(0, player.healLockTimer - dt);
     player.damageBoostTimer = Math.max(0, player.damageBoostTimer - dt);
+    player.slowTimer = Math.max(0, player.slowTimer - dt);
+    if (player.slowTimer <= 0) {
+        player.slowMultiplier = 1;
+    }
     if (player.damageBoostTimer <= 0) {
         player.damageMultiplier = 1;
         if (spikes.length > 0) {
@@ -2757,6 +2793,26 @@ function drawRoyalSlimeAura() {
     ctx.stroke();
 
     ctx.restore();
+}
+
+function disablePickableBuffsForBoss() {
+    powerUps = [];
+
+    player.damageBoostTimer = 0;
+    player.damageMultiplier = 1;
+
+    player.shieldTimer = 0;
+    player.shieldBlockCooldown = 0;
+
+    spikes = [];
+    spikeCanvas = null;
+
+    buffPanel.classList.add("hidden");
+    shieldPanel.classList.add("hidden");
+}
+
+function arePickablePowerUpsAllowed() {
+    return bossState === "none";
 }
 
 function render() {
