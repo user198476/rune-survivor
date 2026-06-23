@@ -477,15 +477,29 @@ const BOSS_LASER_DAMAGE = 60;
 const BOSS_LASER_WIDTH = 46;
 const BOSS_LASER_LENGTH = 1700;
 
-const BOSS_ZONE_COOLDOWN = 3.8;
-const BOSS_ZONE_WARNING_DURATION = 1.05;
-const BOSS_ZONE_ACTIVE_DURATION = 2.4;
-const BOSS_ZONE_DAMAGE = 24;
-const BOSS_ZONE_RADIUS = 82;
+const BOSS_ZONE_COOLDOWN = 3.2;
+const BOSS_ZONE_WARNING_DURATION = 0.95;
+const BOSS_ZONE_ACTIVE_DURATION = 2.6;
+const BOSS_ZONE_DAMAGE = 38;
+const BOSS_ZONE_DAMAGE_TICK = 0.34;
+const BOSS_ZONE_RADIUS = 86;
+const BOSS_ZONE_COUNT = 10;
+const BOSS_ZONE_SPREAD_X = 430;
+const BOSS_ZONE_SPREAD_Y = 280;
+
+const BOSS_MISSILE_COOLDOWN = 3.2;
+const BOSS_MISSILE_COUNT = 4;
+const BOSS_MISSILE_SPEED = 360;
+const BOSS_MISSILE_TURN_SPEED = 7.5;
+const BOSS_MISSILE_LOCK_DISTANCE = 150; // distance ou on arrete de target le joeur et donc creer fenetre evitemment
+const BOSS_MISSILE_RADIUS = 13;
+const BOSS_MISSILE_DAMAGE = 34;
+const BOSS_MISSILE_LIFE = 5.5;
 
 let bossDangerZones = [];
 let bossLasers = [];
 let bossPullTimer = 0;
+let bossMissiles = [];
 
 function resetGame() {
     state = "menu";
@@ -508,6 +522,7 @@ function resetGame() {
     bossDangerZones = [];
     bossLasers = [];
     bossPullTimer = 0;
+    bossMissiles = [];
 
     // objet player (player object)
     player = {
@@ -891,6 +906,7 @@ function prepareArenaForBoss() {
     bossDangerZones = [];
     bossLasers = [];
     bossPullTimer = 0;
+    bossMissiles = [];
 }
 
 function updateBossIntro(dt) {
@@ -935,6 +951,7 @@ function startBossFight() {
         spellCooldown: 2.2,
         auraDamageTimer: 0,
         laserCooldown: 2.8,
+        missileCooldown: 1.6,
         zoneCooldown: 3.2,
         pullCooldown: 2.5,
         pullContactCooldown: 0,
@@ -999,6 +1016,7 @@ function defeatBoss() {
     bossDangerZones = [];
     bossLasers = [];
     bossPullTimer = 0;
+    bossMissiles = [];
 }
 
 function dropBossRewardXp(boss, x, y) {
@@ -1071,6 +1089,7 @@ function updateBossAbilities(dt) {
 
     updateBossPull(dt);
     updateBossLasers(dt);
+    updateBossMissiles(dt);
     updateBossDangerZones(dt);
     updateRoyalSlimeAura(dt);
 
@@ -1176,30 +1195,134 @@ function updateBossPull(dt) {
 
 function updateBloodBatAbilities(dt) {
     currentBoss.laserCooldown -= dt;
+    currentBoss.missileCooldown -= dt;
 
-    if (currentBoss.laserCooldown > 0) {
+    if (currentBoss.laserCooldown <= 0) {
+        currentBoss.laserCooldown = BOSS_LASER_COOLDOWN;
+
+        bossLasers.push({
+            x: currentBoss.x,
+            y: currentBoss.y,
+            angle: Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x),
+            warning: BOSS_LASER_WARNING_DURATION,
+            active: BOSS_LASER_ACTIVE_DURATION,
+            damageTick: 0,
+            color: currentBoss.color,
+            locked: false
+        });
+
+        addFloatingText(
+            currentBoss.x,
+            currentBoss.y - currentBoss.radius - 28,
+            "LASER",
+            currentBoss.color
+        );
+    }
+
+    if (currentBoss.missileCooldown <= 0) {
+        currentBoss.missileCooldown = BOSS_MISSILE_COOLDOWN;
+        spawnBossMissileWave();
+
+        addFloatingText(
+            currentBoss.x,
+            currentBoss.y - currentBoss.radius - 54,
+            "MISSILES",
+            "#ff9bd3"
+        );
+    }
+}
+
+function spawnBossMissileWave() {
+    if (!currentBoss) {
         return;
     }
 
-    currentBoss.laserCooldown = BOSS_LASER_COOLDOWN;
+    const baseAngle = Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x);
 
-    bossLasers.push({
-        x: currentBoss.x,
-        y: currentBoss.y,
-        angle: Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x),
-        warning: BOSS_LASER_WARNING_DURATION,
-        active: BOSS_LASER_ACTIVE_DURATION,
-        damageTick: 0,
-        color: currentBoss.color,
-        locked: false
-    });
+    for (let i = 0; i < BOSS_MISSILE_COUNT; i++) {
+        const spread = (i - (BOSS_MISSILE_COUNT - 1) / 2) * 0.22;
+        const angle = baseAngle + spread;
 
-    addFloatingText(
-        currentBoss.x,
-        currentBoss.y - currentBoss.radius - 28,
-        "LASER",
-        currentBoss.color
-    );
+        bossMissiles.push({
+            x: currentBoss.x,
+            y: currentBoss.y,
+            vx: Math.cos(angle) * BOSS_MISSILE_SPEED,
+            vy: Math.sin(angle) * BOSS_MISSILE_SPEED,
+            radius: BOSS_MISSILE_RADIUS,
+            damage: BOSS_MISSILE_DAMAGE,
+            life: BOSS_MISSILE_LIFE,
+            locked: false,
+            color: "#ff4d8d"
+        });
+    }
+
+    createParticles(currentBoss.x, currentBoss.y, 36, "#ff4d8d", 2.4);
+}
+
+function updateBossMissiles(dt) {
+    for (let i = bossMissiles.length - 1; i >= 0; i--) {
+        const missile = bossMissiles[i];
+
+        missile.life -= dt;
+
+        if (missile.life <= 0) {
+            createParticles(missile.x, missile.y, 14, missile.color, 1.2);
+            bossMissiles.splice(i, 1);
+            continue;
+        }
+
+        const dx = player.x - missile.x;
+        const dy = player.y - missile.y;
+        const distanceToPlayer = Math.sqrt(dx * dx + dy * dy) || 1;
+
+        if (!missile.locked) {
+            if (distanceToPlayer <= BOSS_MISSILE_LOCK_DISTANCE) {
+                missile.locked = true;
+            } else {
+                const targetVx = (dx / distanceToPlayer) * BOSS_MISSILE_SPEED;
+                const targetVy = (dy / distanceToPlayer) * BOSS_MISSILE_SPEED;
+
+                const turn = Math.min(1, BOSS_MISSILE_TURN_SPEED * dt);
+
+                missile.vx += (targetVx - missile.vx) * turn;
+                missile.vy += (targetVy - missile.vy) * turn;
+
+                const speed = Math.sqrt(missile.vx * missile.vx + missile.vy * missile.vy) || 1;
+
+                missile.vx = (missile.vx / speed) * BOSS_MISSILE_SPEED;
+                missile.vy = (missile.vy / speed) * BOSS_MISSILE_SPEED;
+            }
+        }
+
+        missile.x += missile.vx * dt;
+        missile.y += missile.vy * dt;
+
+        const hitRadius = missile.radius + player.radius;
+        const hitDx = player.x - missile.x;
+        const hitDy = player.y - missile.y;
+
+        if (hitDx * hitDx + hitDy * hitDy <= hitRadius * hitRadius) {
+            damagePlayer(missile.damage, null);
+
+            screenShake = 4.5;
+            screenShakeTimer = 0.12;
+
+            createParticles(missile.x, missile.y, 36, missile.color, 2.5);
+            addFloatingText(player.x, player.y - player.radius - 26, "MISSILE", "#ff5f75");
+
+            bossMissiles.splice(i, 1);
+            continue;
+        }
+
+        if (
+            missile.x < -80 ||
+            missile.x > GAME_WIDTH + 80 ||
+            missile.y < -80 ||
+            missile.y > GAME_HEIGHT + 80
+        ) {
+            bossMissiles.splice(i, 1);
+        }
+    }
 }
 
 function updateBossLasers(dt) {
@@ -1334,16 +1457,42 @@ function updateRuneBruteAbilities(dt) {
 
     currentBoss.zoneCooldown = BOSS_ZONE_COOLDOWN;
 
+    // Une zone toujours ciblée sur la position actuelle du joueur.
     createBossDangerZone(player.x, player.y);
 
-    for (let i = 0; i < 2; i++) {
+    // Plusieurs zones autour du joueur pour fermer les sorties.
+    for (let i = 1; i < BOSS_ZONE_COUNT; i++) {
+        const angle = (Math.PI * 2 * i) / (BOSS_ZONE_COUNT - 1);
+        const distance = randomBetween(95, 230);
+
+        const offsetX =
+            Math.cos(angle) * distance +
+            randomBetween(-BOSS_ZONE_SPREAD_X * 0.22, BOSS_ZONE_SPREAD_X * 0.22);
+
+        const offsetY =
+            Math.sin(angle) * distance +
+            randomBetween(-BOSS_ZONE_SPREAD_Y * 0.22, BOSS_ZONE_SPREAD_Y * 0.22);
+
         createBossDangerZone(
-            player.x + randomBetween(-160, 160),
-            player.y + randomBetween(-110, 110)
+            player.x + offsetX,
+            player.y + offsetY
         );
     }
 
-    addFloatingText(currentBoss.x, currentBoss.y - currentBoss.radius - 28, "RUPTURE", currentBoss.color);
+    // Une chance de créer une zone directement entre le boss et le joueur.
+    if (Math.random() < 0.65) {
+        createBossDangerZone(
+            (player.x + currentBoss.x) / 2,
+            (player.y + currentBoss.y) / 2
+        );
+    }
+
+    addFloatingText(
+        currentBoss.x,
+        currentBoss.y - currentBoss.radius - 28,
+        "RUPTURE",
+        currentBoss.color
+    );
 }
 
 function createBossDangerZone(x, y) {
@@ -1360,6 +1509,9 @@ function createBossDangerZone(x, y) {
 }
 
 function updateBossDangerZones(dt) {
+    let totalZoneDamage = 0;
+    let overlapCount = 0;
+
     for (let i = bossDangerZones.length - 1; i >= 0; i--) {
         const zone = bossDangerZones[i];
 
@@ -1381,28 +1533,29 @@ function updateBossDangerZones(dt) {
         zone.active -= dt;
         zone.damageTick -= dt;
 
+        const dx = player.x - zone.x;
+        const dy = player.y - zone.y;
+        const hitRadius = zone.radius + player.radius;
+
+        if (
+            zone.damageTick <= 0 &&
+            dx * dx + dy * dy <= hitRadius * hitRadius
+        ) {
+            totalZoneDamage += BOSS_ZONE_DAMAGE;
+            overlapCount += 1;
+        }
+
         if (zone.damageTick <= 0) {
-            zone.damageTick = 0.35;
-
-            const dx = player.x - zone.x;
-            const dy = player.y - zone.y;
-            const hitRadius = zone.radius + player.radius;
-
-            if (dx * dx + dy * dy <= hitRadius * hitRadius) {
-                damagePlayer(BOSS_ZONE_DAMAGE, null);
-
-                addFloatingText(
-                    player.x,
-                    player.y - player.radius - 26,
-                    "RUPTURE",
-                    "#ff5f75"
-                );
-            }
+            zone.damageTick = BOSS_ZONE_DAMAGE_TICK;
         }
 
         if (zone.active <= 0) {
             bossDangerZones.splice(i, 1);
         }
+    }
+
+    if (totalZoneDamage > 0) {
+        damagePlayerByBossZone(totalZoneDamage, overlapCount);
     }
 }
 
@@ -1572,6 +1725,45 @@ function damagePlayer(amount, source) {
         player.hp = 0;
         endGame();
     }
+    updateHud();
+}
+
+function damagePlayerByBossZone(amount, overlapCount) {
+    if (state !== "playing") {
+        return;
+    }
+
+    if (player.hp <= 0) {
+        return;
+    }
+
+    player.hp = Math.max(0, player.hp - amount);
+
+    player.hitFlashTimer = 0.18;
+    player.healLockTimer = Math.max(player.healLockTimer || 0, 0.55);
+
+    damageFlash = Math.max(damageFlash, 0.42);
+    screenShake = Math.max(screenShake, 2.8 + overlapCount * 1.1);
+    screenShakeTimer = Math.max(screenShakeTimer, 0.09);
+
+    const label = overlapCount > 1
+        ? `RUPTURE x${overlapCount}`
+        : "RUPTURE";
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 26,
+        `${label} -${Math.ceil(amount)}`,
+        "#ff5f75"
+    );
+
+    createParticles(player.x, player.y, 20 + overlapCount * 8, "#ff365d", 1.9);
+
+    if (player.hp <= 0) {
+        player.hp = 0;
+        endGame();
+    }
+
     updateHud();
 }
 
@@ -2305,8 +2497,12 @@ function updateProjectiles(dt) {
                     enemy.dead = true;
                     enemiesNeedCleanup = true;
                     player.kills += 1;
-                    dropGem(enemy.x, enemy.y, enemy.xp);
-                    createParticles(enemy.x, enemy.y, 22, enemy.color, 1.7);
+
+                    if (!enemy.isBoss && enemy.xp > 0) {
+                        dropGem(enemy.x, enemy.y, enemy.xp);
+                    }
+
+                    createParticles(enemy.x, enemy.y, enemy.isBoss ? 48 : 22, enemy.color, enemy.isBoss ? 2.4 : 1.7);
                 }
                 return true;
             }
@@ -2831,6 +3027,7 @@ function render() {
     drawPowerUps();
     drawProjectiles();
 
+    drawBossMissiles();
     drawBossLasers();
 
     drawEnemies();
@@ -2843,6 +3040,54 @@ function render() {
 
     drawDamageOverlay();
     drawBossInterface();
+}
+
+function drawBossMissiles() {
+    for (const missile of bossMissiles) {
+        const angle = Math.atan2(missile.vy, missile.vx);
+
+        ctx.save();
+
+        ctx.translate(missile.x, missile.y);
+        ctx.rotate(angle);
+
+        ctx.globalAlpha = missile.locked ? 0.95 : 0.78;
+
+        ctx.shadowColor = missile.color;
+        ctx.shadowBlur = missile.locked ? 16 : 24;
+
+        ctx.fillStyle = missile.locked ? "#ffb3d7" : missile.color;
+
+        ctx.beginPath();
+        ctx.moveTo(18, 0);
+        ctx.lineTo(-12, -10);
+        ctx.lineTo(-7, 0);
+        ctx.lineTo(-12, 10);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = missile.color;
+
+        ctx.beginPath();
+        ctx.arc(-18, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        ctx.save();
+
+        ctx.globalAlpha = missile.locked ? 0.16 : 0.24;
+        ctx.strokeStyle = missile.color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 7]);
+
+        ctx.beginPath();
+        ctx.arc(missile.x, missile.y, BOSS_MISSILE_LOCK_DISTANCE, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+    }
 }
 
 function drawBackground() {
