@@ -108,7 +108,7 @@ function resetGame() {
         xp: 0,
         xpToNext: 25,
         kills: 0,
-        damage: 18,
+        damage: 20,
         damageMultiplier: 1,
         damageBoostTimer: 0,
         cloneTimer: 0,
