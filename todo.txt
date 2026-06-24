@@ -39,8 +39,9 @@ choix entre 3 récompenses spéciales
 +soin complet
 
 
-- le boss 2 ne tire pas de laser du tout, on voit juste le texte "Laser" a corriger donc, pour rappel on veux des longs lazer sur le joueur tres dur a esquiver et qui font tres mal
+- FAIRE UN MONSTRE QUI NOUS FUIT TOUJOURS (L'INVERSE DES SUIVEURS ACTUELLEMENT et COULEUR ORANGE)
+- Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
 
-- le boss 3 pareil, on voit le texte "RUPTURE" mais pas les zones au sol, il arrive que je perde des points de vie mais on sait pas pourquoi (peut etre les zone smais invisible)
+Gros tri des fichiers, on separe pour faciliter la maintenabilitée dans le temps, boss, ameliorations, monstres, core, draw, etc etc 
 
-FAIRE UN MONSTRE QUI NOUS FUIT TOUJOURS (L'INVERSE DES SUIVEURS ACTUELLEMENT et COULEUR ORANGE)
+- Faire un bouton de reset de partie (vide localStorage) en gros reset complet sauf le score
