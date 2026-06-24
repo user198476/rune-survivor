@@ -42,6 +42,4 @@ choix entre 3 récompenses spéciales
 - FAIRE UN MONSTRE QUI NOUS FUIT TOUJOURS (L'INVERSE DES SUIVEURS ACTUELLEMENT et COULEUR ORANGE)
 - Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
 
-Gros tri des fichiers, on separe pour faciliter la maintenabilitée dans le temps, boss, ameliorations, monstres, core, draw, etc etc 
-
 - Faire un bouton de reset de partie (vide localStorage) en gros reset complet sauf le score

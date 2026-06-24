@@ -12,6 +12,10 @@ function gameLoop(timestamp) {
 function update(dt) {
     gameTime += dt;
 
+    if (bossState === "none") {
+        waveTime += dt;
+    }
+
     if (bossState === "intro") {
         updateBossIntro(dt);
         updateParticles(dt);
@@ -41,6 +45,7 @@ function update(dt) {
     }
 
     if (bossState === "none") {
+        updatePostBossRamp(dt);
         updatePowerUps(dt);
         updateSpawns(dt);
     }
@@ -67,6 +72,7 @@ function update(dt) {
 function resetGame() {
     state = "menu";
     gameTime = 0;
+    waveTime = 0;
     spawnTimer = 0;
     screenShake = 0;
     screenShakeTimer = 0;
@@ -148,6 +154,7 @@ function resetGame() {
     powerUpSpawnTimer = 6;
     shieldSpawnTimer = 12;
     runRewardGranted = false;
+    postBossRampTimer = 0;
     levelUpOverlay.classList.add("hidden");
     pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");

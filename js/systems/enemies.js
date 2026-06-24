@@ -18,10 +18,10 @@ function spawnEnemy() {
         x = -40;
         y = randomBetween(0, GAME_HEIGHT);
     }
-    const difficulty = 1 + gameTime / 80;
+    const difficulty = 1 + waveTime / 80;
     const typeRoll = Math.random();
     let enemy;
-    if (gameTime > 60 && typeRoll > 0.82) {
+    if (waveTime > 60 && typeRoll > 0.82) {
         enemy = {
             type: "brute",
             x,
@@ -34,7 +34,7 @@ function spawnEnemy() {
             xp: 12,
             color: "#aaf737"
         };
-    } else if (gameTime > 25 && typeRoll > 0.65) {
+    } else if (waveTime > 25 && typeRoll > 0.65) {
         enemy = {
             type: "bat",
             x,
@@ -71,17 +71,40 @@ function updateSpawns(dt) {
         spawnTimer = Math.max(spawnTimer, 0.35);
         return;
     }
+
     spawnTimer -= dt;
-    const spawnInterval = Math.max(0.22, 1.05 - gameTime / 160);
-    if (spawnTimer <= 0) {
+
+    const baseSpawnInterval = Math.max(0.22, 1.05 - waveTime / 160);
+    const spawnInterval = getCurrentSpawnInterval(baseSpawnInterval);
+
+    if (spawnTimer > 0) {
+        return;
+    }
+
+    spawnTimer = spawnInterval;
+
+    let desiredSpawnCount = 1;
+
+    if (waveTime > 35 && Math.random() > 0.72) {
+        desiredSpawnCount += 1;
+    }
+
+    if (waveTime > 90 && Math.random() > 0.78) {
+        desiredSpawnCount += 1;
+    }
+
+    const spawnCount = getMaxSpawnsThisTick(desiredSpawnCount);
+
+    for (let i = 0; i < spawnCount; i++) {
+        if (enemies.length >= MAX_ACTIVE_ENEMIES) {
+            break;
+        }
+
+        if (!canSpawnDuringPostBossRamp()) {
+            break;
+        }
+
         spawnEnemy();
-        if (enemies.length < MAX_ACTIVE_ENEMIES && gameTime > 35 && Math.random() > 0.72) {
-            spawnEnemy();
-        }
-        if (enemies.length < MAX_ACTIVE_ENEMIES && gameTime > 90 && Math.random() > 0.78) {
-            spawnEnemy();
-        }
-        spawnTimer = spawnInterval;
     }
 }
 
@@ -169,4 +192,53 @@ function getEnemyGridCell(value) {
 
 function getEnemyGridKey(cellX, cellY) {
     return `${cellX};${cellY}`;
+}
+
+function updatePostBossRamp(dt) {
+    postBossRampTimer = Math.max(0, postBossRampTimer - dt);
+}
+
+function getPostBossRampRatio() {
+    if (postBossRampTimer <= 0) {
+        return 1;
+    }
+
+    return 1 - postBossRampTimer / POST_BOSS_RAMP_DURATION;
+}
+
+function canSpawnDuringPostBossRamp() {
+    return enemies.length < MAX_ACTIVE_ENEMIES;
+}
+
+function isPostBossRampActive() {
+    return postBossRampTimer > 0;
+}
+
+function getPostBossRampRatio() {
+    if (postBossRampTimer <= 0) {
+        return 1;
+    }
+
+    return 1 - postBossRampTimer / POST_BOSS_RAMP_DURATION;
+}
+
+function getCurrentSpawnInterval(baseInterval) {
+    if (!isPostBossRampActive()) {
+        return baseInterval;
+    }
+
+    const ratio = getPostBossRampRatio();
+
+    return Math.max(
+        baseInterval,
+        POST_BOSS_MIN_SPAWN_INTERVAL * (1 - ratio) + baseInterval * ratio
+    );
+}
+
+function getMaxSpawnsThisTick(normalCount) {
+    if (!isPostBossRampActive()) {
+        return normalCount;
+    }
+
+    return POST_BOSS_MAX_SPAWNS_PER_TICK;
 }

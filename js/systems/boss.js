@@ -4,7 +4,7 @@ function getNextScheduledBoss() {
     }
 
     return BOSS_WAVES.find((bossDefinition) => {
-        return gameTime >= bossDefinition.time && !triggeredBossIds.has(bossDefinition.id);
+        return waveTime >= bossDefinition.time && !triggeredBossIds.has(bossDefinition.id);
     }) || null;
 }
 
@@ -226,7 +226,9 @@ function finishBossRewardPhase() {
     currentBossDefinition = null;
     bossRewardTimer = 0;
 
-    spawnTimer = 1.2;
+    spawnTimer = 0.35;
+    postBossRampTimer = POST_BOSS_RAMP_DURATION;
+    
     powerUpSpawnTimer = Math.max(powerUpSpawnTimer, 6);
     shieldSpawnTimer = Math.max(shieldSpawnTimer, 8);
 

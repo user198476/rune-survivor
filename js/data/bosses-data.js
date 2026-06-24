@@ -9,7 +9,7 @@ const BOSS_WAVES = [
         type: "slime",
         color: "#8b5cff",
         radius: 56,
-        hp: 2500,
+        hp: 3600,
         speed: 82,
         damage: 30,
         rewardXp: 260,
@@ -22,7 +22,7 @@ const BOSS_WAVES = [
         type: "bat",
         color: "#ff4d8d",
         radius: 48,
-        hp: 4800,
+        hp: 7100,
         speed: 126,
         damage: 45,
         rewardXp: 420,
@@ -35,7 +35,7 @@ const BOSS_WAVES = [
         type: "brute",
         color: "#aaf737",
         radius: 64,
-        hp: 7600,
+        hp: 13200,
         speed: 76,
         damage: 70,
         rewardXp: 650,
@@ -82,3 +82,7 @@ const BOSS_MISSILE_TRACK_DURATION = 1.25;
 const BOSS_MISSILE_RADIUS = 13;
 const BOSS_MISSILE_DAMAGE = 34;
 const BOSS_MISSILE_LIFE = 9;
+
+const POST_BOSS_RAMP_DURATION = 12;
+const POST_BOSS_MIN_SPAWN_INTERVAL = 0.55;
+const POST_BOSS_MAX_SPAWNS_PER_TICK = 1;
