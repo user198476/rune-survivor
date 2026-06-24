@@ -1263,6 +1263,69 @@ body {
   box-shadow: 0 0 22px rgba(255, 54, 93, 0.24);
 }
 
+.skill-tier-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(147, 96, 255, 0.32);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top, rgba(147, 96, 255, 0.18), transparent 58%),
+    rgba(12, 10, 28, 0.72);
+  box-shadow: 0 0 22px rgba(147, 96, 255, 0.12);
+}
+
+.skill-tier-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(180, 150, 255, 0.45);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
+    rgba(22, 17, 46, 0.96);
+  color: #f0eaff;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(147, 96, 255, 0.15);
+}
+
+.skill-tier-button:hover:not(:disabled) {
+  filter: brightness(1.18);
+  transform: translateY(-1px);
+  border-color: rgba(210, 190, 255, 0.85);
+}
+
+.skill-tier-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.skill-tier-display {
+  min-width: 150px;
+  text-align: center;
+}
+
+.skill-tier-display span {
+  display: block;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(147, 96, 255, 0.55);
+}
+
+.skill-tier-display small {
+  display: block;
+  margin-top: 2px;
+  color: #bfb5ff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .hidden {
   display: none !important;
 }

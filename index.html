@@ -101,8 +101,21 @@
               <p>Utilise tes pièces gagnées en run pour acheter des bonus permanents.</p>
             </div>
             <div class="skill-tree-header-right">
-              <div class="skill-tree-wallet"> Pièces <strong id="skillTreeCoinsText">0</strong>
+              <div class="skill-tier-controls">
+                <button id="skillTierPreviousButton" class="skill-tier-button">‹</button>
+
+                <div class="skill-tier-display">
+                  <span id="skillTierLabel">Palier de base</span>
+                  <small id="skillTierStatus">Progression actuelle</small>
+                </div>
+
+                <button id="skillTierNextButton" class="skill-tier-button">›</button>
               </div>
+
+              <div class="skill-tree-wallet">
+                Pièces <strong id="skillTreeCoinsText">0</strong>
+              </div>
+
               <button id="closeSkillTreeButton" class="skill-tree-close-button">✕</button>
             </div>
           </div>

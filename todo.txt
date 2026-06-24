@@ -41,5 +41,4 @@ choix entre 3 récompenses spéciales
 
 - (A MOITIE FIX) Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
 
-- Faire un bouton de reset de partie (vide localStorage) en gros reset complet sauf le score
 - FAIRE UN MONSTRE QUI NOUS FUIT TOUJOURS (L'INVERSE DES SUIVEURS ACTUELLEMENT et COULEUR ORANGE)

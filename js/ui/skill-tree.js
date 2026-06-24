@@ -1,4 +1,6 @@
 function renderSkillTree() {
+    clampSelectedSkillTier();
+    updateSkillTierHeader();
     updateMetaCurrencyDisplays();
     skillTreeBranches.className = "skill-tree-branches skill-tree-map";
     skillTreeBranches.innerHTML = "";
@@ -70,7 +72,7 @@ function renderSkillTree() {
             } else if (nodeState.unlocked) {
                 visualState = "unlocked";
             }
-            const cost = getSkillCost(node);
+            const cost = getSkillCost(node, selectedSkillTier);
             const buttonLabel = nodeState.maxed ? "MAX" : nodeState.available ? `Acheter ${cost}` : nodeState.requirementsMet ? `${cost} pièces` : "Verrouillé";
             const buttonClass = nodeState.available ? `skill-map-buy ${branch.className}` : "skill-map-buy disabled";
             const nodeElement = document.createElement("div");
@@ -198,4 +200,45 @@ function closeSkillTree() {
     if (skillTreeReturnState === "gameover") {
         gameOverOverlay.classList.remove("hidden");
     }
+}
+
+function updateSkillTierHeader() {
+    if (!skillTierLabel || !skillTierStatus) {
+        return;
+    }
+
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+    const isCompleted = isSkillTierCompleted(selectedSkillTier);
+
+    skillTierLabel.textContent = getSkillTierName(selectedSkillTier);
+
+    if (!isSkillTierUnlocked(selectedSkillTier)) {
+        skillTierStatus.textContent = "Verrouillé";
+    } else if (isCompleted) {
+        skillTierStatus.textContent = "Terminé";
+    } else if (selectedSkillTier === highestUnlockedTier) {
+        skillTierStatus.textContent = "Palier actuel";
+    } else {
+        skillTierStatus.textContent = "Palier débloqué";
+    }
+
+    if (skillTierPreviousButton) {
+        skillTierPreviousButton.disabled = selectedSkillTier <= 0;
+    }
+
+    if (skillTierNextButton) {
+        skillTierNextButton.disabled = selectedSkillTier >= highestUnlockedTier;
+    }
+}
+
+function selectPreviousSkillTier() {
+    selectedSkillTier = Math.max(0, selectedSkillTier - 1);
+    renderSkillTree();
+}
+
+function selectNextSkillTier() {
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    selectedSkillTier = Math.min(highestUnlockedTier, selectedSkillTier + 1);
+    renderSkillTree();
 }

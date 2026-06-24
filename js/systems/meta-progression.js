@@ -1,14 +1,19 @@
 function loadMetaProgression() {
-    try {
-        metaCoins = Math.max(0, Number(localStorage.getItem(META_STORAGE_KEYS.coins)) || 0);
-    } catch (error) {
-        metaCoins = 0;
-    }
-    try {
-        metaSkills = JSON.parse(localStorage.getItem(META_STORAGE_KEYS.skills) || "{}");
-    } catch (error) {
+    metaCoins = parseStoredScore(safeLocalStorageGet(META_STORAGE_KEYS.coins));
+
+    const skillsRaw = safeLocalStorageGet(META_STORAGE_KEYS.skills);
+
+    if (skillsRaw) {
+        try {
+            metaSkills = JSON.parse(skillsRaw) || {};
+        } catch (error) {
+            metaSkills = {};
+        }
+    } else {
         metaSkills = {};
     }
+
+    normalizeMetaSkillKeys();
 }
 
 function saveMetaProgression() {
@@ -20,33 +25,41 @@ function saveMetaProgression() {
     }
 }
 
-function getSkillLevel(skillId) {
-    return metaSkills[skillId] || 0;
+function getSkillLevel(skillId, tier = selectedSkillTier) {
+    return metaSkills[getSkillKey(skillId, tier)] || 0;
 }
 
-function getSkillCost(node) {
-    const currentLevel = getSkillLevel(node.id);
-    return node.baseCost + node.costStep * currentLevel;
+function getSkillCost(node, tier = selectedSkillTier) {
+    const level = getSkillLevel(node.id, tier);
+    const baseCost = node.baseCost + node.costStep * level;
+
+    return Math.floor(baseCost * getTierCostMultiplier(tier));
 }
 
-function areRequirementsMet(node) {
+function areRequirementsMet(node, tier = selectedSkillTier) {
     if (!node.requires || node.requires.length === 0) {
         return true;
     }
+
     return node.requires.every((requirement) => {
-        return getSkillLevel(requirement.id) >= requirement.level;
+        return getSkillLevel(requirement.id, tier) >= requirement.level;
     });
 }
 
-function canBuySkill(node) {
-    const currentLevel = getSkillLevel(node.id);
-    if (currentLevel >= node.maxLevel) {
+function canBuySkill(node, tier = selectedSkillTier) {
+    if (!isSkillTierUnlocked(tier)) {
         return false;
     }
-    if (!areRequirementsMet(node)) {
+
+    if (getSkillLevel(node.id, tier) >= node.maxLevel) {
         return false;
     }
-    return metaCoins >= getSkillCost(node);
+
+    if (!areRequirementsMet(node, tier)) {
+        return false;
+    }
+
+    return metaCoins >= getSkillCost(node, tier);
 }
 
 function getPermanentBonuses() {
@@ -61,15 +74,29 @@ function getPermanentBonuses() {
         magnetFlat: 0,
         xpGainPercent: 0
     };
-    for (const branch of SKILL_TREE) {
-        for (const node of branch.nodes) {
-            const level = getSkillLevel(node.id);
-            if (level <= 0) {
-                continue;
+
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    for (let tier = 0; tier <= highestUnlockedTier; tier++) {
+        const effectMultiplier = getTierEffectMultiplier(tier);
+
+        for (const branch of SKILL_TREE) {
+            for (const node of branch.nodes) {
+                const level = getSkillLevel(node.id, tier);
+
+                if (level <= 0) {
+                    continue;
+                }
+
+                if (!Object.prototype.hasOwnProperty.call(bonuses, node.effectType)) {
+                    continue;
+                }
+
+                bonuses[node.effectType] += node.effectValue * level * effectMultiplier;
             }
-            bonuses[node.effectType] += node.effectValue * level;
         }
     }
+
     return bonuses;
 }
 
@@ -93,16 +120,31 @@ function clampPlayerStats() {
 
 function buySkill(skillId) {
     const node = findSkillNodeById(skillId);
+
     if (!node) {
         return;
     }
-    if (!canBuySkill(node)) {
+
+    if (!canBuySkill(node, selectedSkillTier)) {
         return;
     }
-    metaCoins -= getSkillCost(node);
-    metaSkills[skillId] = getSkillLevel(skillId) + 1;
+
+    metaCoins -= getSkillCost(node, selectedSkillTier);
+
+    const skillKey = getSkillKey(skillId, selectedSkillTier);
+    metaSkills[skillKey] = getSkillLevel(skillId, selectedSkillTier) + 1;
+
     saveMetaProgression();
     updateMetaCurrencyDisplays();
+
+    if (isSkillTierCompleted(selectedSkillTier)) {
+        selectedSkillTier = Math.min(
+            selectedSkillTier + 1,
+            getHighestUnlockedSkillTier()
+        );
+    }
+
+    clampSelectedSkillTier();
     renderSkillTree();
 }
 
@@ -115,21 +157,6 @@ function findSkillNodeById(skillId) {
         }
     }
     return null;
-}
-
-function buySkill(skillId) {
-    const node = findSkillNodeById(skillId);
-    if (!node) {
-        return;
-    }
-    if (!canBuySkill(node)) {
-        return;
-    }
-    metaCoins -= getSkillCost(node);
-    metaSkills[skillId] = getSkillLevel(skillId) + 1;
-    saveMetaProgression();
-    updateMetaCurrencyDisplays();
-    renderSkillTree();
 }
 
 function resetProgressionButKeepScores() {
@@ -188,4 +215,95 @@ function resetProgressionButKeepScores() {
     renderSkillTree();
 
     alert("Progression réinitialisée. Le meilleur score a été conservé.");
+}
+
+function getSkillKey(skillId, tier = selectedSkillTier) {
+    return `${tier}:${skillId}`;
+}
+
+function getLegacySkillKey(skillId) {
+    return skillId;
+}
+
+function normalizeMetaSkillKeys() {
+    if (!metaSkills || typeof metaSkills !== "object") {
+        metaSkills = {};
+        return;
+    }
+
+    let changed = false;
+
+    for (const branch of SKILL_TREE) {
+        for (const node of branch.nodes) {
+            const legacyKey = getLegacySkillKey(node.id);
+            const tierZeroKey = getSkillKey(node.id, 0);
+
+            if (
+                Object.prototype.hasOwnProperty.call(metaSkills, legacyKey) &&
+                !Object.prototype.hasOwnProperty.call(metaSkills, tierZeroKey)
+            ) {
+                metaSkills[tierZeroKey] = metaSkills[legacyKey];
+                delete metaSkills[legacyKey];
+                changed = true;
+            }
+        }
+    }
+
+    if (changed) {
+        saveMetaProgression();
+    }
+}
+
+function getTierCostMultiplier(tier = selectedSkillTier) {
+    return Math.pow(SKILL_TIER_COST_MULTIPLIER, tier);
+}
+
+function getTierEffectMultiplier(tier = selectedSkillTier) {
+    return 1 + tier * SKILL_TIER_EFFECT_BONUS;
+}
+
+function getSkillTierName(tier = selectedSkillTier) {
+    if (tier === 0) {
+        return "Palier de base";
+    }
+
+    return `Palier +${tier}`;
+}
+
+function isSkillTierCompleted(tier) {
+    for (const branch of SKILL_TREE) {
+        for (const node of branch.nodes) {
+            if (getSkillLevel(node.id, tier) < node.maxLevel) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+function getHighestUnlockedSkillTier() {
+    let tier = 0;
+
+    while (
+        tier < MAX_VISIBLE_SKILL_TIER &&
+        isSkillTierCompleted(tier)
+    ) {
+        tier++;
+    }
+
+    return tier;
+}
+
+function isSkillTierUnlocked(tier) {
+    return tier <= getHighestUnlockedSkillTier();
+}
+
+function clampSelectedSkillTier() {
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    selectedSkillTier = Math.max(
+        0,
+        Math.min(selectedSkillTier, highestUnlockedTier)
+    );
 }

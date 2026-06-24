@@ -27,3 +27,9 @@ let enemyGrid = new Map();
 const enemySpriteCache = new Map();
 
 let postBossRampTimer = 0;
+
+let metaCoins = 0;
+let metaSkills = {};
+let selectedSkillTier = 0;
+let runRewardGranted = false;
+let skillTreeReturnState = "menu";

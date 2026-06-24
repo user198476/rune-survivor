@@ -38,3 +38,7 @@ const skillTreeBranches = document.getElementById("skillTreeBranches");
 const clonePanel = document.getElementById("clonePanel");
 const cloneTimerText = document.getElementById("cloneTimerText");
 const resetProgressionButton = document.getElementById("resetProgressionButton");
+const skillTierPreviousButton = document.getElementById("skillTierPreviousButton");
+const skillTierNextButton = document.getElementById("skillTierNextButton");
+const skillTierLabel = document.getElementById("skillTierLabel");
+const skillTierStatus = document.getElementById("skillTierStatus");
