@@ -37,3 +37,4 @@ const skillTreeOverlay = document.getElementById("skillTreeOverlay");
 const skillTreeBranches = document.getElementById("skillTreeBranches");
 const clonePanel = document.getElementById("clonePanel");
 const cloneTimerText = document.getElementById("cloneTimerText");
+const resetProgressionButton = document.getElementById("resetProgressionButton");

@@ -131,3 +131,61 @@ function buySkill(skillId) {
     updateMetaCurrencyDisplays();
     renderSkillTree();
 }
+
+function resetProgressionButKeepScores() {
+    const confirmed = window.confirm(
+        "Réinitialiser toute la progression ?\n\nLes pièces, l'arbre de compétences et la run sauvegardée seront supprimés.\nLe meilleur score sera conservé."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const protectedScoreKeys = new Set([
+        ...BEST_SCORE_STORAGE_KEYS,
+        BEST_SCORE_STATS_KEY
+    ]);
+
+    const keysToDelete = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        if (!key) {
+            continue;
+        }
+
+        const isRuneSurvivorKey =
+            key.startsWith("runeSurvivor") ||
+            key.startsWith("RuneSurvivor");
+
+        if (!isRuneSurvivorKey) {
+            continue;
+        }
+
+        if (protectedScoreKeys.has(key)) {
+            continue;
+        }
+
+        keysToDelete.push(key);
+    }
+
+    for (const key of keysToDelete) {
+        localStorage.removeItem(key);
+    }
+
+    metaCoins = 0;
+    metaSkills = {};
+
+    saveMetaProgression();
+    loadMetaProgression();
+
+    if (player) {
+        resetGame();
+    }
+
+    updateMetaCurrencyDisplays();
+    renderSkillTree();
+
+    alert("Progression réinitialisée. Le meilleur score a été conservé.");
+}

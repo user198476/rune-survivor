@@ -7,6 +7,7 @@ function bindMenuButtons() {
     pauseSkillTreeButton.addEventListener("click", () => openSkillTree("paused"));
     gameOverSkillTreeButton.addEventListener("click", () => openSkillTree("gameover"));
     closeSkillTreeButton.addEventListener("click", closeSkillTree);
+    resetProgressionButton.addEventListener("click", resetProgressionButKeepScores);
 
     window.addEventListener("beforeunload", () => {
         if (!player) {

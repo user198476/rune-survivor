@@ -1228,6 +1228,41 @@ body {
   text-shadow: 0 0 10px rgba(184, 140, 255, 0.75);
 }
 
+.main-menu-box {
+  position: relative;
+}
+
+.reset-progression-button {
+  position: absolute;
+  left: 22px;
+  bottom: 18px;
+
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 95, 117, 0.45);
+  border-radius: 999px;
+
+  background: rgba(34, 10, 18, 0.72);
+  color: #ffb3c0;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+
+  cursor: pointer;
+  opacity: 0.72;
+
+  box-shadow: 0 0 14px rgba(255, 54, 93, 0.12);
+  transition: opacity 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.reset-progression-button:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: rgba(255, 95, 117, 0.9);
+  box-shadow: 0 0 22px rgba(255, 54, 93, 0.24);
+}
+
 .hidden {
   display: none !important;
 }
