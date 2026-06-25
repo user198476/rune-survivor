@@ -132,6 +132,51 @@ function updateSpawns(dt) {
     }
 }
 
+function isPlayerSubmerged() {
+    let nearbyEnemyCount = 0;
+    const radiusSq = SUBMERGED_DAMAGE_RADIUS * SUBMERGED_DAMAGE_RADIUS;
+
+    for (const enemy of enemies) {
+        if (
+            !enemy ||
+            enemy.dead ||
+            enemy.isBoss ||
+            enemy.type === "hordeBomb"
+        ) {
+            continue;
+        }
+
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+
+        if (dx * dx + dy * dy <= radiusSq) {
+            nearbyEnemyCount++;
+
+            if (nearbyEnemyCount >= SUBMERGED_DAMAGE_MIN_ENEMIES) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function getSubmergedContactDamage(baseDamage, enemy) {
+    if (
+        !enemy ||
+        enemy.isBoss ||
+        enemy.type === "hordeBomb"
+    ) {
+        return baseDamage;
+    }
+
+    if (!isPlayerSubmerged()) {
+        return baseDamage;
+    }
+
+    return baseDamage * SUBMERGED_DAMAGE_MULTIPLIER;
+}
+
 function updateEnemies(dt) {
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
@@ -164,7 +209,8 @@ function updateEnemies(dt) {
 
         if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
             if (enemy.attackCooldown <= 0) {
-                damagePlayer(enemy.damage, enemy);
+                const contactDamage = getSubmergedContactDamage(enemy.damage, enemy);
+                damagePlayer(contactDamage, enemy);
                 enemy.attackCooldown = 0.65;
             }
         }
