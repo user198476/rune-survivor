@@ -141,6 +141,11 @@ function updateEnemies(dt) {
         }
 
         enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
+        
+        if (enemy.type === "hordeBomb") {
+            updateHordeBombEnemy(enemy, dt);
+            continue;
+        }
 
         if (enemy.type === "cowardShooter") {
             updateCowardShooterEnemy(enemy, dt);
@@ -379,4 +384,228 @@ function updateEnemyProjectiles(dt) {
 
 function canSpawnCowardShooter() {
     return triggeredBossIds.has("royal_slime");
+}
+
+function canSpawnHordeBomb() {
+    return triggeredBossIds.has("royal_slime") && bossState === "none";
+}
+
+function updateHordeBombSpawn(dt) {
+    if (!canSpawnHordeBomb()) {
+        hordeBombSpawnTimer = HORDE_BOMB_SPAWN_INTERVAL;
+        return;
+    }
+
+    const normalEnemyCount = enemies.filter((enemy) => {
+        return enemy &&
+            !enemy.dead &&
+            !enemy.isBoss &&
+            enemy.type !== "hordeBomb";
+    }).length;
+
+    if (normalEnemyCount < HORDE_BOMB_MIN_ENEMIES_TO_SPAWN) {
+        hordeBombSpawnTimer = Math.min(hordeBombSpawnTimer, 4);
+        return;
+    }
+
+    hordeBombSpawnTimer -= dt;
+
+    if (hordeBombSpawnTimer <= 0) {
+        spawnHordeBomb();
+        hordeBombSpawnTimer = HORDE_BOMB_SPAWN_INTERVAL;
+    }
+}
+
+function spawnHordeBomb() {
+    const target = findBestHordeBombTarget();
+
+    if (!target) {
+        return false;
+    }
+
+    const side = Math.floor(Math.random() * 4);
+    let x;
+    let y;
+
+    if (side === 0) {
+        x = randomBetween(0, GAME_WIDTH);
+        y = -50;
+    } else if (side === 1) {
+        x = GAME_WIDTH + 50;
+        y = randomBetween(0, GAME_HEIGHT);
+    } else if (side === 2) {
+        x = randomBetween(0, GAME_WIDTH);
+        y = GAME_HEIGHT + 50;
+    } else {
+        x = -50;
+        y = randomBetween(0, GAME_HEIGHT);
+    }
+
+    enemies.push({
+        type: "hordeBomb",
+        x,
+        y,
+        targetX: target.x,
+        targetY: target.y,
+        radius: HORDE_BOMB_RADIUS,
+        hp: HORDE_BOMB_HP,
+        maxHp: HORDE_BOMB_HP,
+        speed: HORDE_BOMB_SPEED,
+        damage: 0,
+        xp: 0,
+        color: "#9ca3af",
+        attackCooldown: 0,
+        retargetTimer: 0,
+        life: HORDE_BOMB_MAX_LIFE
+    });
+
+    return true;
+}
+
+function findBestHordeBombTarget() {
+    let bestEnemy = null;
+    let bestScore = 0;
+
+    for (const enemy of enemies) {
+        if (
+            !enemy ||
+            enemy.dead ||
+            enemy.isBoss ||
+            enemy.type === "hordeBomb"
+        ) {
+            continue;
+        }
+
+        let score = 0;
+
+        for (const other of enemies) {
+            if (
+                !other ||
+                other.dead ||
+                other.isBoss ||
+                other.type === "hordeBomb"
+            ) {
+                continue;
+            }
+
+            const dx = other.x - enemy.x;
+            const dy = other.y - enemy.y;
+
+            if (dx * dx + dy * dy <= HORDE_BOMB_TARGET_SEARCH_RADIUS * HORDE_BOMB_TARGET_SEARCH_RADIUS) {
+                score++;
+            }
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestEnemy = enemy;
+        }
+    }
+
+    if (!bestEnemy) {
+        return null;
+    }
+
+    return {
+        x: bestEnemy.x,
+        y: bestEnemy.y,
+        score: bestScore
+    };
+}
+
+function updateHordeBombEnemy(enemy, dt) {
+    enemy.life -= dt;
+    enemy.retargetTimer -= dt;
+
+    if (enemy.retargetTimer <= 0) {
+        const target = findBestHordeBombTarget();
+
+        if (target) {
+            enemy.targetX = target.x;
+            enemy.targetY = target.y;
+        }
+
+        enemy.retargetTimer = 0.35;
+    }
+
+    const dx = enemy.targetX - enemy.x;
+    const dy = enemy.targetY - enemy.y;
+    const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+    enemy.x += (dx / distance) * enemy.speed * dt;
+    enemy.y += (dy / distance) * enemy.speed * dt;
+
+    if (
+        distance <= HORDE_BOMB_DETONATE_DISTANCE ||
+        enemy.life <= 0
+    ) {
+        explodeHordeBomb(enemy);
+        enemy.dead = true;
+    }
+}
+
+function explodeHordeBomb(bomb) {
+    createParticles(bomb.x, bomb.y, 46, "#cbd5e1", 2.2);
+
+    screenShake = Math.max(screenShake, 7);
+    screenShakeTimer = Math.max(screenShakeTimer, 0.22);
+
+    for (const enemy of enemies) {
+        if (
+            !enemy ||
+            enemy.dead ||
+            enemy.isBoss ||
+            enemy.type === "hordeBomb"
+        ) {
+            continue;
+        }
+
+        const dx = enemy.x - bomb.x;
+        const dy = enemy.y - bomb.y;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+        if (distance > HORDE_BOMB_EXPLOSION_RADIUS) {
+            continue;
+        }
+
+        const ratio = 1 - distance / HORDE_BOMB_EXPLOSION_RADIUS;
+        const force = HORDE_BOMB_KNOCKBACK_FORCE * ratio;
+
+        enemy.x += (dx / distance) * force;
+        enemy.y += (dy / distance) * force;
+
+        enemy.x = Math.max(enemy.radius, Math.min(GAME_WIDTH - enemy.radius, enemy.x));
+        enemy.y = Math.max(enemy.radius, Math.min(GAME_HEIGHT - enemy.radius, enemy.y));
+    }
+
+    const playerDx = player.x - bomb.x;
+    const playerDy = player.y - bomb.y;
+    const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy) || 1;
+
+    if (playerDistance <= HORDE_BOMB_EXPLOSION_RADIUS) {
+        damagePlayerByHordeBomb();
+    }
+
+    addFloatingText(bomb.x, bomb.y - 28, "BOUM", "#cbd5e1");
+}
+
+function damagePlayerByHordeBomb() {
+    const damage = Math.ceil(player.maxHp * HORDE_BOMB_PLAYER_DAMAGE_RATIO);
+
+    player.hp = Math.max(0, player.hp - damage);
+    player.hitFlashTimer = 0.16;
+    player.invulnerabilityTimer = Math.max(player.invulnerabilityTimer, 0.35);
+
+    damageFlash = Math.max(damageFlash, 0.32);
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 22,
+        `-${damage}`,
+        "#cbd5e1"
+    );
+
+    if (player.hp <= 0) {
+        endGame();
+    }
 }

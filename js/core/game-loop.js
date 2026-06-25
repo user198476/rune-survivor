@@ -48,6 +48,7 @@ function update(dt) {
         updatePostBossRamp(dt);
         updatePowerUps(dt);
         updateSpawns(dt);
+        updateHordeBombSpawn(dt);
     }
 
     updateEnemies(dt);
@@ -157,6 +158,7 @@ function resetGame() {
     shieldSpawnTimer = 12;
     runRewardGranted = false;
     postBossRampTimer = 0;
+    hordeBombSpawnTimer = HORDE_BOMB_SPAWN_INTERVAL;
     levelUpOverlay.classList.add("hidden");
     pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");

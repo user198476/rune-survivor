@@ -230,6 +230,7 @@ function finishBossRewardPhase() {
 
     spawnTimer = 0.35;
     postBossRampTimer = POST_BOSS_RAMP_DURATION;
+    hordeBombSpawnTimer = 4;
     
     powerUpSpawnTimer = Math.max(powerUpSpawnTimer, 6);
     shieldSpawnTimer = Math.max(shieldSpawnTimer, 8);

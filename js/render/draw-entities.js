@@ -331,6 +331,46 @@ function createEnemySprite(enemy) {
         bctx.fill();
 
         bctx.restore();
+    } else if (enemy.type === "hordeBomb") {
+        bctx.save();
+        bctx.translate(cx, cy);
+
+        bctx.shadowColor = "#cbd5e1";
+        bctx.shadowBlur = 18;
+
+        bctx.fillStyle = "#9ca3af";
+        bctx.beginPath();
+        bctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
+        bctx.fill();
+
+        bctx.strokeStyle = "#d1d5db";
+        bctx.lineWidth = 4;
+
+        for (let i = 0; i < 10; i++) {
+            const angle = (Math.PI * 2 * i) / 10;
+            const inner = enemy.radius - 2;
+            const outer = enemy.radius + 10;
+
+            bctx.beginPath();
+            bctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+            bctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+            bctx.stroke();
+        }
+
+        bctx.shadowBlur = 0;
+
+        bctx.fillStyle = "#111827";
+        bctx.beginPath();
+        bctx.arc(-6, -4, 3, 0, Math.PI * 2);
+        bctx.arc(6, -4, 3, 0, Math.PI * 2);
+        bctx.fill();
+
+        bctx.fillStyle = "#f8fafc";
+        bctx.beginPath();
+        bctx.arc(0, 5, 4, 0, Math.PI * 2);
+        bctx.fill();
+
+        bctx.restore();
     } else {
         bctx.beginPath();
         bctx.arc(cx, cy, enemy.radius, 0, Math.PI * 2);
