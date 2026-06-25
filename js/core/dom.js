@@ -44,3 +44,4 @@ const skillTierPreviousButton = document.getElementById("skillTierPreviousButton
 const skillTierNextButton = document.getElementById("skillTierNextButton");
 const skillTierLabel = document.getElementById("skillTierLabel");
 const skillTierStatus = document.getElementById("skillTierStatus");
+const gameVersionText = document.getElementById("gameVersionText");

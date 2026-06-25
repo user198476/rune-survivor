@@ -1543,6 +1543,27 @@ body {
   text-shadow: 0 0 12px rgba(115, 236, 255, 0.35);
 }
 
+.game-version-text {
+  position: absolute;
+  right: 24px;
+  bottom: 18px;
+
+  padding: 7px 11px;
+  border: 1px solid rgba(115, 236, 255, 0.18);
+  border-radius: 999px;
+
+  background: rgba(5, 8, 22, 0.55);
+  color: rgba(220, 245, 255, 0.72);
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 10px rgba(115, 236, 255, 0.25);
+}
+
 .hidden {
   display: none !important;
 }

@@ -1,3 +1,33 @@
+function loadGameVersion() {
+    if (!gameVersionText) {
+        return;
+    }
+
+    fetch("version.txt", {
+        cache: "no-store"
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("version.txt introuvable");
+            }
+
+            return response.text();
+        })
+        .then((version) => {
+            const cleanVersion = version.trim();
+
+            if (!cleanVersion) {
+                gameVersionText.textContent = "Version inconnue";
+                return;
+            }
+
+            gameVersionText.textContent = `Version ${cleanVersion}`;
+        })
+        .catch(() => {
+            gameVersionText.textContent = "Version inconnue";
+        });
+}
+
 function bindMenuButtons() {
     playButton.addEventListener("click", startGame);
     restartButton.addEventListener("click", startGame);
@@ -24,6 +54,7 @@ function bindMenuButtons() {
 function bootGame() {
     loadMetaProgression();
     updateMetaCurrencyDisplays();
+    loadGameVersion();
     resetGame();
 
     bindInputEvents();
