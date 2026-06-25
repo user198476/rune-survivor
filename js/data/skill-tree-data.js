@@ -140,7 +140,7 @@ const SKILL_TREE_MAP_HEIGHT = 680;
 const SKILL_TREE_LAYOUT = {
     origin: {
         x: 50,
-        y: 610
+        y: 568
     },
     branches: {
         damage: {
@@ -151,17 +151,17 @@ const SKILL_TREE_LAYOUT = {
             bend: -8,
             nodes: [{
                 x: 40,
-                y: 520,
+                y: 478,
                 card: "left",
                 cardOffsetY: 34
             }, {
                 x: 30,
-                y: 392,
+                y: 350,
                 card: "left",
                 cardOffsetY: -8
             }, {
                 x: 24,
-                y: 256,
+                y: 214,
                 card: "right",
                 cardOffsetY: -34
             }]
@@ -174,17 +174,17 @@ const SKILL_TREE_LAYOUT = {
             bend: 0,
             nodes: [{
                 x: 50,
-                y: 500,
+                y: 458,
                 card: "right",
                 cardOffsetY: 8
             }, {
                 x: 50,
-                y: 360,
+                y: 318,
                 card: "left",
                 cardOffsetY: -10
             }, {
                 x: 50,
-                y: 220,
+                y: 178,
                 card: "right",
                 cardOffsetY: -26
             }]
@@ -197,17 +197,17 @@ const SKILL_TREE_LAYOUT = {
             bend: 8,
             nodes: [{
                 x: 60,
-                y: 520,
+                y: 478,
                 card: "right",
                 cardOffsetY: 34
             }, {
                 x: 70,
-                y: 392,
+                y: 350,
                 card: "right",
                 cardOffsetY: -8
             }, {
                 x: 76,
-                y: 256,
+                y: 214,
                 card: "left",
                 cardOffsetY: -34
             }]
