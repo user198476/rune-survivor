@@ -96,9 +96,17 @@
       <div id="skillTreeOverlay" class="overlay hidden">
         <div class="skill-tree-box">
           <div class="skill-tree-header">
-            <div>
+            <div class="skill-tree-title-block">
               <h1>Arbre de compétences</h1>
               <p>Utilise tes pièces gagnées en run pour acheter des bonus permanents.</p>
+
+              <div class="skill-stats-popover-wrapper">
+                <button id="skillTreeStatsToggleButton" class="skill-stats-toggle-button">
+                  Stats permanentes cumulées
+                </button>
+
+                <div id="skillTreeTotalStats" class="skill-total-stats skill-total-stats-popover hidden"></div>
+              </div>
             </div>
             <div class="skill-tree-header-right">
               <div class="skill-tier-controls">

@@ -42,3 +42,5 @@ choix entre 3 récompenses spéciales
 - (A MOITIE FIX) Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
 
 - FAIRE UN MONSTRE QUI NOUS FUIT TOUJOURS (L'INVERSE DES SUIVEURS ACTUELLEMENT et COULEUR ORANGE)
+
+- Afficher stats total cumulées du joueur dans l'arbre de compétences à gauche

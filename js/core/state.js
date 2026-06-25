@@ -31,5 +31,6 @@ let postBossRampTimer = 0;
 let metaCoins = 0;
 let metaSkills = {};
 let selectedSkillTier = 0;
+let skillStatsPopoverOpen = false;
 let runRewardGranted = false;
 let skillTreeReturnState = "menu";

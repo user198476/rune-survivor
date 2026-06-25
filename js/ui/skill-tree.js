@@ -2,6 +2,8 @@ function renderSkillTree() {
     clampSelectedSkillTier();
     updateSkillTierHeader();
     updateMetaCurrencyDisplays();
+    renderSkillTotalStats();
+    updateSkillStatsPopoverVisibility();
     skillTreeBranches.className = "skill-tree-branches skill-tree-map";
     skillTreeBranches.innerHTML = "";
     const orderedBranches = ["damage", "speed", "defense"];
@@ -183,6 +185,8 @@ function openSkillTree(fromState = state) {
     if (fromState === "gameover") {
         gameOverOverlay.classList.add("hidden");
     }
+    closeSkillStatsPopover();
+    
     skillTreeOverlay.classList.remove("hidden");
     state = "skilltree";
     renderSkillTree();
@@ -241,4 +245,132 @@ function selectNextSkillTier() {
 
     selectedSkillTier = Math.min(highestUnlockedTier, selectedSkillTier + 1);
     renderSkillTree();
+}
+
+function formatPermanentPercent(value) {
+    return `${Math.round(value * 100)}%`;
+}
+
+function formatPermanentDecimal(value, decimals = 1) {
+    return Number(value).toFixed(decimals).replace(".", ",");
+}
+
+function getTotalBoughtSkillLevels() {
+    let total = 0;
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    for (let tier = 0; tier <= highestUnlockedTier; tier++) {
+        for (const branch of SKILL_TREE) {
+            for (const node of branch.nodes) {
+                total += getSkillLevel(node.id, tier);
+            }
+        }
+    }
+
+    return total;
+}
+
+function getTotalMaxSkillLevelsForCompletedTiers() {
+    let total = 0;
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    for (let tier = 0; tier <= highestUnlockedTier; tier++) {
+        for (const branch of SKILL_TREE) {
+            for (const node of branch.nodes) {
+                total += node.maxLevel;
+            }
+        }
+    }
+
+    return total;
+}
+
+function renderSkillTotalStats() {
+    if (!skillTreeTotalStats) {
+        return;
+    }
+
+    const bonuses = getPermanentBonuses();
+
+    const effectiveFireRateReduction = Math.min(0.65, bonuses.fireRateReduction);
+    const effectiveLifeSteal = Math.min(0.15, bonuses.lifeStealPercent);
+
+    const totalBought = getTotalBoughtSkillLevels();
+    const totalPossible = getTotalMaxSkillLevelsForCompletedTiers();
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    skillTreeTotalStats.innerHTML = `
+        <div class="skill-total-stats-title">Stats permanentes cumulées</div>
+
+        <div class="skill-total-stats-summary">
+            <span>Niveaux achetés : <strong>${totalBought}</strong></span>
+            <span>Palier max : <strong>${getSkillTierName(highestUnlockedTier)}</strong></span>
+        </div>
+
+        <div class="skill-total-stats-grid">
+            <div>
+                <span>Dégâts</span>
+                <strong>+${formatPermanentPercent(bonuses.damagePercent)}</strong>
+            </div>
+
+            <div>
+                <span>Cadence</span>
+                <strong>-${formatPermanentPercent(effectiveFireRateReduction)}</strong>
+            </div>
+
+            <div>
+                <span>Vitesse projectiles</span>
+                <strong>+${formatPermanentPercent(bonuses.projectileSpeedPercent)}</strong>
+            </div>
+
+            <div>
+                <span>PV max</span>
+                <strong>+${Math.round(bonuses.maxHpFlat)}</strong>
+            </div>
+
+            <div>
+                <span>Vol de vie</span>
+                <strong>+${formatPermanentPercent(effectiveLifeSteal)}</strong>
+            </div>
+
+            <div>
+                <span>Bouclier</span>
+                <strong>+${formatPermanentDecimal(bonuses.shieldDurationFlat)}s</strong>
+            </div>
+
+            <div>
+                <span>Vitesse</span>
+                <strong>+${formatPermanentPercent(bonuses.moveSpeedPercent)}</strong>
+            </div>
+
+            <div>
+                <span>Aspiration XP</span>
+                <strong>+${Math.round(bonuses.magnetFlat)}</strong>
+            </div>
+
+            <div>
+                <span>Gain XP</span>
+                <strong>+${formatPermanentPercent(bonuses.xpGainPercent)}</strong>
+            </div>
+        </div>
+    `;
+}
+
+function updateSkillStatsPopoverVisibility() {
+    if (!skillTreeTotalStats || !skillTreeStatsToggleButton) {
+        return;
+    }
+
+    skillTreeTotalStats.classList.toggle("hidden", !skillStatsPopoverOpen);
+    skillTreeStatsToggleButton.classList.toggle("active", skillStatsPopoverOpen);
+}
+
+function toggleSkillStatsPopover() {
+    skillStatsPopoverOpen = !skillStatsPopoverOpen;
+    updateSkillStatsPopoverVisibility();
+}
+
+function closeSkillStatsPopover() {
+    skillStatsPopoverOpen = false;
+    updateSkillStatsPopoverVisibility();
 }

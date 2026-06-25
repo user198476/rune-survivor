@@ -10,6 +10,7 @@ function bindMenuButtons() {
     skillTierPreviousButton.addEventListener("click", selectPreviousSkillTier);
     skillTierNextButton.addEventListener("click", selectNextSkillTier); 
     resetProgressionButton.addEventListener("click", resetProgressionButKeepScores);
+    skillTreeStatsToggleButton.addEventListener("click", toggleSkillStatsPopover);
 
     window.addEventListener("beforeunload", () => {
         if (!player) {
