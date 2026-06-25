@@ -25,7 +25,7 @@ function spawnEnemy() {
     const typeRoll = Math.random();
     let enemy;
 
-    if (waveTime > COWARD_SHOOTER_MIN_WAVE_TIME && typeRoll > 0.55 && typeRoll < 0.55 + COWARD_SHOOTER_SPAWN_CHANCE) {
+    if (canSpawnCowardShooter() && typeRoll > 0.55 && typeRoll < 0.55 + COWARD_SHOOTER_SPAWN_CHANCE) {
         enemy = {
             type: "cowardShooter",
             x,
@@ -375,4 +375,8 @@ function updateEnemyProjectiles(dt) {
             enemyProjectiles.splice(i, 1);
         }
     }
+}
+
+function canSpawnCowardShooter() {
+    return triggeredBossIds.has("royal_slime");
 }
