@@ -18,6 +18,7 @@ function render() {
     drawBossLasers();
 
     drawEnemies();
+    drawEnemyProjectiles();
     drawArcaneClone();
     drawPlayer();
     drawParticles();

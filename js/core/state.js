@@ -10,6 +10,7 @@ let player;
 
 let enemies = [];
 let projectiles = [];
+let enemyProjectiles = [];
 let gems = [];
 let powerUps = [];
 let spikes = [];

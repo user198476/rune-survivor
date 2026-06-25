@@ -292,6 +292,45 @@ function createEnemySprite(enemy) {
         bctx.arc(cx - 8, cy - 5, 3, 0, Math.PI * 2);
         bctx.arc(cx + 8, cy - 5, 3, 0, Math.PI * 2);
         bctx.fill();
+    } else if (enemy.type === "cowardShooter") {
+        bctx.save();
+        bctx.translate(cx, cy);
+
+        bctx.shadowColor = "#ff9b2f";
+        bctx.shadowBlur = 18;
+
+        bctx.fillStyle = "#ff9b2f";
+        bctx.beginPath();
+        bctx.moveTo(0, -26);
+        bctx.lineTo(22, 0);
+        bctx.lineTo(0, 26);
+        bctx.lineTo(-22, 0);
+        bctx.closePath();
+        bctx.fill();
+
+        bctx.lineWidth = 3;
+        bctx.strokeStyle = "#ff6a00";
+        bctx.stroke();
+
+        bctx.shadowBlur = 0;
+
+        bctx.fillStyle = "#151327";
+        bctx.beginPath();
+        bctx.moveTo(0, -12);
+        bctx.lineTo(10, 0);
+        bctx.lineTo(0, 12);
+        bctx.lineTo(-10, 0);
+        bctx.closePath();
+        bctx.fill();
+
+        bctx.fillStyle = "#fff2cc";
+        bctx.shadowColor = "#fff2cc";
+        bctx.shadowBlur = 10;
+        bctx.beginPath();
+        bctx.arc(0, 0, 4, 0, Math.PI * 2);
+        bctx.fill();
+
+        bctx.restore();
     } else {
         bctx.beginPath();
         bctx.arc(cx, cy, enemy.radius, 0, Math.PI * 2);
@@ -308,4 +347,31 @@ function createEnemySprite(enemy) {
         canvas: buffer,
         size
     };
+}
+
+function drawEnemyProjectiles() {
+    for (const projectile of enemyProjectiles) {
+        ctx.save();
+
+        ctx.shadowColor = projectile.color;
+        ctx.shadowBlur = 16;
+
+        ctx.fillStyle = projectile.color;
+        ctx.beginPath();
+        ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.beginPath();
+        ctx.arc(
+            projectile.x - projectile.radius * 0.25,
+            projectile.y - projectile.radius * 0.25,
+            projectile.radius * 0.35,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+
+        ctx.restore();
+    }
 }

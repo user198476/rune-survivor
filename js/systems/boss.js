@@ -43,6 +43,7 @@ function startBossIntro(bossDefinition) {
 function prepareArenaForBoss() {
     enemies = [];
     projectiles = [];
+    enemyProjectiles = [];
     powerUps = [];
     spikes = [];
     spikeCanvas = null;
@@ -157,6 +158,7 @@ function defeatBoss() {
 
     enemies = [];
     projectiles = [];
+    enemyProjectiles = [];
     enemyGrid.clear();
 
     screenShake = 7;

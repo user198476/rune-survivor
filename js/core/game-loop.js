@@ -51,6 +51,7 @@ function update(dt) {
     }
 
     updateEnemies(dt);
+    updateEnemyProjectiles(dt);
     trimEnemyOverflow();
     buildEnemyGrid();
     updateBossAbilities(dt);
@@ -108,7 +109,7 @@ function resetGame() {
         xp: 0,
         xpToNext: 25,
         kills: 0,
-        damage: 20,
+        damage: 18,
         damageMultiplier: 1,
         damageBoostTimer: 0,
         cloneTimer: 0,
@@ -144,6 +145,7 @@ function resetGame() {
     applyPermanentBonusesToPlayer();
     enemies = [];
     projectiles = [];
+    enemyProjectiles = [];
     gems = [];
     powerUps = [];
     spikes = [];

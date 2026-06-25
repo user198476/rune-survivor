@@ -2,9 +2,11 @@ function spawnEnemy() {
     if (enemies.length >= MAX_ACTIVE_ENEMIES) {
         return false;
     }
+
     const side = Math.floor(Math.random() * 4);
     let x;
     let y;
+
     if (side === 0) {
         x = randomBetween(0, GAME_WIDTH);
         y = -40;
@@ -18,10 +20,30 @@ function spawnEnemy() {
         x = -40;
         y = randomBetween(0, GAME_HEIGHT);
     }
+
     const difficulty = 1 + waveTime / 80;
     const typeRoll = Math.random();
     let enemy;
-    if (waveTime > 60 && typeRoll > 0.82) {
+
+    if (waveTime > COWARD_SHOOTER_MIN_WAVE_TIME && typeRoll > 0.55 && typeRoll < 0.55 + COWARD_SHOOTER_SPAWN_CHANCE) {
+        enemy = {
+            type: "cowardShooter",
+            x,
+            y,
+            radius: 18,
+            hp: 28 + difficulty * 8,
+            maxHp: 28 + difficulty * 8,
+            speed: (108 + difficulty * 4) * COWARD_SHOOTER_SPEED_MULTIPLIER,
+            damage: 10 + difficulty * 1.2,
+            xp: 8,
+            color: "#ff9b2f",
+            shootCooldown: randomBetween(
+                COWARD_SHOOTER_FIRE_COOLDOWN_MIN,
+                COWARD_SHOOTER_FIRE_COOLDOWN_MAX
+            ),
+            strafeDirection: Math.random() > 0.5 ? 1 : -1
+        };
+    } else if (waveTime > 60 && typeRoll > 0.82) {
         enemy = {
             type: "brute",
             x,
@@ -61,8 +83,10 @@ function spawnEnemy() {
             color: "#8b5cff"
         };
     }
+
     enemy.attackCooldown = 0;
     enemies.push(enemy);
+
     return true;
 }
 
@@ -111,18 +135,28 @@ function updateSpawns(dt) {
 function updateEnemies(dt) {
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
+
         if (!enemy || enemy.dead) {
             continue;
         }
+
         enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
-        const dx = player.x - enemy.x;
-        const dy = player.y - enemy.y;
-        const len = Math.sqrt(dx * dx + dy * dy) || 1;
-        enemy.x += (dx / len) * enemy.speed * dt;
-        enemy.y += (dy / len) * enemy.speed * dt;
+
+        if (enemy.type === "cowardShooter") {
+            updateCowardShooterEnemy(enemy, dt);
+        } else {
+            const dx = player.x - enemy.x;
+            const dy = player.y - enemy.y;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+
+            enemy.x += (dx / len) * enemy.speed * dt;
+            enemy.y += (dy / len) * enemy.speed * dt;
+        }
+
         const hitDx = player.x - enemy.x;
         const hitDy = player.y - enemy.y;
         const hitRadius = player.radius + enemy.radius;
+
         if (hitDx * hitDx + hitDy * hitDy < hitRadius * hitRadius) {
             if (enemy.attackCooldown <= 0) {
                 damagePlayer(enemy.damage, enemy);
@@ -241,4 +275,104 @@ function getMaxSpawnsThisTick(normalCount) {
     }
 
     return POST_BOSS_MAX_SPAWNS_PER_TICK;
+}
+
+function fireCowardShooterProjectile(enemy, dirX, dirY) {
+    enemyProjectiles.push({
+        x: enemy.x + dirX * (enemy.radius + 6),
+        y: enemy.y + dirY * (enemy.radius + 6),
+        vx: dirX * COWARD_SHOOTER_PROJECTILE_SPEED,
+        vy: dirY * COWARD_SHOOTER_PROJECTILE_SPEED,
+        radius: COWARD_SHOOTER_PROJECTILE_RADIUS,
+        damage: COWARD_SHOOTER_PROJECTILE_DAMAGE,
+        color: "#ff9b2f",
+        life: COWARD_SHOOTER_PROJECTILE_LIFETIME
+    });
+}
+
+function updateCowardShooterEnemy(enemy, dt) {
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const distanceToPlayer = Math.sqrt(dx * dx + dy * dy) || 1;
+
+    const dirX = dx / distanceToPlayer;
+    const dirY = dy / distanceToPlayer;
+
+    let moveX = 0;
+    let moveY = 0;
+
+    if (distanceToPlayer < COWARD_SHOOTER_TOO_CLOSE_DISTANCE) {
+        moveX = -dirX;
+        moveY = -dirY;
+    } else if (distanceToPlayer < COWARD_SHOOTER_PREFERRED_DISTANCE) {
+        moveX = -dirX * 0.75 + (-dirY * enemy.strafeDirection) * 0.35;
+        moveY = -dirY * 0.75 + (dirX * enemy.strafeDirection) * 0.35;
+    } else if (distanceToPlayer > COWARD_SHOOTER_LEASH_DISTANCE) {
+        moveX = dirX * 0.3;
+        moveY = dirY * 0.3;
+    } else {
+        moveX = -dirY * enemy.strafeDirection * 0.55;
+        moveY = dirX * enemy.strafeDirection * 0.55;
+    }
+
+    const moveLength = Math.sqrt(moveX * moveX + moveY * moveY) || 1;
+
+    enemy.x += (moveX / moveLength) * enemy.speed * dt;
+    enemy.y += (moveY / moveLength) * enemy.speed * dt;
+
+    enemy.x = Math.max(enemy.radius, Math.min(GAME_WIDTH - enemy.radius, enemy.x));
+    enemy.y = Math.max(enemy.radius, Math.min(GAME_HEIGHT - enemy.radius, enemy.y));
+
+    enemy.shootCooldown -= dt;
+
+    if (
+        enemy.shootCooldown <= 0 &&
+        distanceToPlayer <= COWARD_SHOOTER_LEASH_DISTANCE + 50
+    ) {
+        fireCowardShooterProjectile(enemy, dirX, dirY);
+
+        enemy.shootCooldown = randomBetween(
+            COWARD_SHOOTER_FIRE_COOLDOWN_MIN,
+            COWARD_SHOOTER_FIRE_COOLDOWN_MAX
+        );
+    }
+}
+
+function updateEnemyProjectiles(dt) {
+    for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+        const projectile = enemyProjectiles[i];
+
+        projectile.life -= dt;
+        projectile.x += projectile.vx * dt;
+        projectile.y += projectile.vy * dt;
+
+        if (
+            projectile.life <= 0 ||
+            projectile.x < -30 ||
+            projectile.x > GAME_WIDTH + 30 ||
+            projectile.y < -30 ||
+            projectile.y > GAME_HEIGHT + 30
+        ) {
+            enemyProjectiles.splice(i, 1);
+            continue;
+        }
+
+        const dx = player.x - projectile.x;
+        const dy = player.y - projectile.y;
+        const hitRadius = player.radius + projectile.radius;
+
+        if (dx * dx + dy * dy <= hitRadius * hitRadius) {
+            damagePlayer(projectile.damage, projectile);
+
+            createParticles(projectile.x, projectile.y, 12, projectile.color, 1.2);
+            addFloatingText(
+                player.x,
+                player.y - player.radius - 18,
+                "TIR",
+                "#ffb347"
+            );
+
+            enemyProjectiles.splice(i, 1);
+        }
+    }
 }
