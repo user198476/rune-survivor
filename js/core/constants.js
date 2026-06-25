@@ -30,7 +30,7 @@ const SPIKE_HEAL_LOCK_DURATION = 1.15;
 
 const SKILL_TIER_COST_MULTIPLIER = 2.8;
 const SKILL_TIER_EFFECT_BONUS = 0.25;
-const MAX_VISIBLE_SKILL_TIER = 10; // nombre de palier/tier max de l'arbre de compétence
+const MAX_VISIBLE_SKILL_TIER = 3; // nombre de palier/tier max de l'arbre de compétence
 
 const COWARD_SHOOTER_SPAWN_CHANCE = 0.18;
 const COWARD_SHOOTER_SPEED_MULTIPLIER = 1.45;

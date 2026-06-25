@@ -35,7 +35,7 @@ function spawnEnemy() {
             maxHp: 28 + difficulty * 8,
             speed: (108 + difficulty * 4) * COWARD_SHOOTER_SPEED_MULTIPLIER,
             damage: 10 + difficulty * 1.2,
-            xp: 8,
+            xp: 10,
             color: "#ff9b2f",
             shootCooldown: randomBetween(
                 COWARD_SHOOTER_FIRE_COOLDOWN_MIN,

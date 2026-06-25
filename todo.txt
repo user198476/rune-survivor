@@ -41,4 +41,4 @@ choix entre 3 récompenses spéciales
 
 - (A MOITIE FIX) Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
 
-- Faire un monstre bombe qui fonce dans la horde de monstre, explose (et ne fait pas de degats) mais spread tout les ennemis, monstre qui spawn toutes les 20 secs à partir du premier boss (apres le premier boss)
+- Faire un monstre bombe qui fonce dans la horde de monstre (target) et explose dedans (et ne fait pas de degats aux ennemies mais que au joueur pour 20% de dégâts) mais spread tout les ennemis, monstre qui spawn toutes les 20 secs à partir du premier boss (apres le premier boss)
