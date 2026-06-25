@@ -41,6 +41,19 @@ choix entre 3 récompenses spéciales
 
 - (A MOITIE FIX) Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
 
-- Faire un monstre bombe qui fonce dans la horde de monstre (target) et explose dedans (et ne fait pas de degats aux ennemies mais que au joueur pour 20% de dégâts) mais spread tout les ennemis, monstre qui spawn toutes les 20 secs à partir du premier boss (apres le premier boss)
+- Pour le boss 2 rajouter plusieurs laser dans plusieurs directions en plus de celui du joueur pour empecher de tourner autour en boucle
 
-- Quand le joueur est submergé, il prend les degats x3
+- Pour le boss 4, basé sur le mob coward + il se clones
+
+- Pour le concept de rune legendaire, 4eme card avec contour ultra legendaire et apparait tous les 5 niveaux
+
+- Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
+
+-----------------
+ARRET RUNE VIE:
+- On retire les runes de vol de vie et la branche de vol de vie du skill tree
+    et on spawn une trousse de soin comme pour le bouclier ou X2
+- Boss 1 on aspire moins le joueur
+- Boss 2 on fait plus de laser cible mais plusieurs autour du boss en fix et on garde les missiles
+- Boss 3 on durcie en rajoutant une méchanique pour pas longer les murs
+- On garde la rune vitale
