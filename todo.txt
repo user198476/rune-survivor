@@ -39,20 +39,8 @@ choix entre 3 récompenses spéciales
 +soin complet
 
 
-- (A MOITIE FIX) Pourquoi apres le premier boss y'a plein d'ennemies d'un coup, c'est méga dur par rapport à l'avant boss, problème ou normal ?
-
-- Pour le boss 2 rajouter plusieurs laser dans plusieurs directions en plus de celui du joueur pour empecher de tourner autour en boucle
-
 - Pour le boss 4, basé sur le mob coward + il se clones
 
 - Pour le concept de rune legendaire, 4eme card avec contour ultra legendaire et apparait tous les 5 niveaux
 
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
-
-
-Equilibrage a prevoir apres retrait rune vampirique:
-- Boss 1 on aspire moins le joueur
-- Boss 2 on ne fait plus de laser ciblé mais plusieurs autour du boss en fixe et on garde les missiles
-- Boss 3 on durcie en rajoutant une méchanique pour pas longer les murs
-
-

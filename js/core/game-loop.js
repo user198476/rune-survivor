@@ -143,7 +143,13 @@ function resetGame() {
         knockbackX: 0,
         knockbackY: 0,
         slowTimer: 0,
-        slowMultiplier: 1
+        slowMultiplier: 1,
+        guardianOrbUnlocked: false,
+        guardianOrbAngle: 0,
+        astralRainUnlocked: false,
+        astralRainTimer: ASTRAL_RAIN_INTERVAL,
+        tripleEchoTimer: 0,
+        tripleEchoClones: []
     };
     applyPermanentBonusesToPlayer();
     enemies = [];
@@ -155,6 +161,8 @@ function resetGame() {
     spikeCanvas = null;
     particles = [];
     floatingTexts = [];
+    astralStrikes = [];
+    currentUpgrades = [];
     enemyGrid.clear();
     powerUpSpawnTimer = 6;
     shieldSpawnTimer = 12;

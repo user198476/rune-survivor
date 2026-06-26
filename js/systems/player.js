@@ -26,6 +26,8 @@ function updatePlayer(dt) {
     }
     player.aimAngle = lerpAngle(player.aimAngle, player.targetAimAngle, player.aimTurnSpeed, dt);
     updateArcaneClone(dt);
+    updateTripleEchoClones(dt);
+    updateLegendaryRunes(dt);
     if (player.fireCooldown <= 0 && target) {
         shootAt(target);
         player.fireCooldown = player.fireRate;
@@ -266,4 +268,268 @@ function healPlayer(amount) {
         createParticles(player.x, player.y, 8, "#68ff96", 1.1);
     }
     updateHud();
+}
+
+function updateLegendaryRunes(dt) {
+    updateGuardianOrb(dt);
+    updateAstralRain(dt);
+}
+
+function activateTripleEcho() {
+    player.tripleEchoTimer = TRIPLE_ECHO_DURATION;
+    player.cloneTimer = 0;
+    player.tripleEchoClones = [];
+
+    updateTripleEchoClones(0.016);
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 42,
+        "TRIPLE ÉCHO",
+        "#d7b4ff"
+    );
+
+    createParticles(player.x, player.y, 80, "#d7b4ff", 3.2);
+}
+
+function updateTripleEchoClones(dt) {
+    if (!player || player.tripleEchoTimer <= 0) {
+        player.tripleEchoTimer = 0;
+        player.tripleEchoClones = [];
+        return;
+    }
+
+    player.tripleEchoTimer = Math.max(0, player.tripleEchoTimer - dt);
+
+    if (player.tripleEchoTimer <= 0) {
+        createParticles(player.x, player.y, 32, "#d7b4ff", 1.8);
+        player.tripleEchoClones = [];
+        return;
+    }
+
+    const angleA = player.aimAngle + Math.PI / 2;
+    const angleB = player.aimAngle - Math.PI / 2;
+
+    const targets = [{
+        x: player.x + Math.cos(angleA) * TRIPLE_ECHO_OFFSET,
+        y: player.y + Math.sin(angleA) * TRIPLE_ECHO_OFFSET
+    }, {
+        x: player.x + Math.cos(angleB) * TRIPLE_ECHO_OFFSET,
+        y: player.y + Math.sin(angleB) * TRIPLE_ECHO_OFFSET
+    }];
+
+    if (!player.tripleEchoClones || player.tripleEchoClones.length !== 2) {
+        player.tripleEchoClones = targets.map((target) => ({
+            x: target.x,
+            y: target.y
+        }));
+    }
+
+    const followStrength = 1 - Math.pow(0.001, dt);
+
+    for (let i = 0; i < 2; i++) {
+        const clone = player.tripleEchoClones[i];
+        const target = targets[i];
+
+        clone.x += (target.x - clone.x) * followStrength;
+        clone.y += (target.y - clone.y) * followStrength;
+
+        clone.x = Math.max(player.radius, Math.min(GAME_WIDTH - player.radius, clone.x));
+        clone.y = Math.max(player.radius, Math.min(GAME_HEIGHT - player.radius, clone.y));
+    }
+}
+
+function updateGuardianOrb(dt) {
+    if (!player || !player.guardianOrbUnlocked) {
+        return;
+    }
+
+    player.guardianOrbAngle += GUARDIAN_ORB_SPEED * dt;
+
+    const orb = getGuardianOrbPosition();
+
+    for (const enemy of enemies) {
+        if (!enemy || enemy.dead) {
+            continue;
+        }
+
+        enemy.guardianOrbCooldown = Math.max(
+            0,
+            (enemy.guardianOrbCooldown || 0) - dt
+        );
+
+        const dx = enemy.x - orb.x;
+        const dy = enemy.y - orb.y;
+        const hitRadius = enemy.radius + GUARDIAN_ORB_RADIUS;
+
+        if (
+            dx * dx + dy * dy <= hitRadius * hitRadius &&
+            enemy.guardianOrbCooldown <= 0
+        ) {
+            enemy.guardianOrbCooldown = GUARDIAN_ORB_HIT_COOLDOWN;
+
+            damageEnemyFromLegendary(
+                enemy,
+                player.damage * player.damageMultiplier * GUARDIAN_ORB_DAMAGE_RATIO,
+                orb.x,
+                orb.y,
+                "#ffd86b",
+                "ORBE"
+            );
+        }
+    }
+}
+
+function getGuardianOrbPosition() {
+    const angle = player.guardianOrbAngle || 0;
+
+    return {
+        x: player.x + Math.cos(angle) * GUARDIAN_ORB_ORBIT_RADIUS,
+        y: player.y + Math.sin(angle) * GUARDIAN_ORB_ORBIT_RADIUS
+    };
+}
+
+function updateAstralRain(dt) {
+    if (player && player.astralRainUnlocked) {
+        player.astralRainTimer -= dt;
+
+        if (player.astralRainTimer <= 0) {
+            spawnAstralRain();
+            player.astralRainTimer = ASTRAL_RAIN_INTERVAL;
+        }
+    }
+
+    updateAstralStrikes(dt);
+}
+
+function spawnAstralRain() {
+    const validTargets = enemies.filter((enemy) => {
+        return enemy && !enemy.dead && enemy.type !== "hordeBomb";
+    });
+
+    for (let i = 0; i < ASTRAL_RAIN_STRIKE_COUNT; i++) {
+        let x;
+        let y;
+
+        if (validTargets.length > 0) {
+            const target = validTargets[Math.floor(Math.random() * validTargets.length)];
+
+            x = target.x + randomBetween(-90, 90);
+            y = target.y + randomBetween(-90, 90);
+        } else {
+            x = player.x + randomBetween(-260, 260);
+            y = player.y + randomBetween(-180, 180);
+        }
+
+        astralStrikes.push({
+            x: Math.max(ASTRAL_RAIN_RADIUS, Math.min(GAME_WIDTH - ASTRAL_RAIN_RADIUS, x)),
+            y: Math.max(ASTRAL_RAIN_RADIUS, Math.min(GAME_HEIGHT - ASTRAL_RAIN_RADIUS, y)),
+            radius: ASTRAL_RAIN_RADIUS,
+            warningTimer: ASTRAL_RAIN_WARNING_DURATION,
+            activeTimer: ASTRAL_RAIN_ACTIVE_DURATION,
+            damaged: false
+        });
+    }
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 42,
+        "PLUIE ASTRALE",
+        "#9ee7ff"
+    );
+}
+
+function updateAstralStrikes(dt) {
+    for (let i = astralStrikes.length - 1; i >= 0; i--) {
+        const strike = astralStrikes[i];
+
+        if (strike.warningTimer > 0) {
+            strike.warningTimer -= dt;
+
+            if (strike.warningTimer <= 0) {
+                strike.warningTimer = 0;
+                strike.activeTimer = ASTRAL_RAIN_ACTIVE_DURATION;
+
+                applyAstralStrikeDamage(strike);
+
+                screenShake = Math.max(screenShake, 3.2);
+                screenShakeTimer = Math.max(screenShakeTimer, 0.08);
+
+                createParticles(strike.x, strike.y, 36, "#9ee7ff", 2.4);
+            }
+
+            continue;
+        }
+
+        strike.activeTimer -= dt;
+
+        if (strike.activeTimer <= 0) {
+            astralStrikes.splice(i, 1);
+        }
+    }
+}
+
+function applyAstralStrikeDamage(strike) {
+    if (strike.damaged) {
+        return;
+    }
+
+    strike.damaged = true;
+
+    const damage = player.damage * player.damageMultiplier * ASTRAL_RAIN_DAMAGE_RATIO;
+    const radiusSq = strike.radius * strike.radius;
+
+    for (const enemy of enemies) {
+        if (!enemy || enemy.dead) {
+            continue;
+        }
+
+        const dx = enemy.x - strike.x;
+        const dy = enemy.y - strike.y;
+
+        if (dx * dx + dy * dy <= radiusSq) {
+            damageEnemyFromLegendary(
+                enemy,
+                damage,
+                strike.x,
+                strike.y,
+                "#9ee7ff",
+                "ASTRAL"
+            );
+        }
+    }
+}
+
+function damageEnemyFromLegendary(enemy, damage, hitX, hitY, color, label) {
+    if (!enemy || enemy.dead || damage <= 0) {
+        return;
+    }
+
+    enemy.hp -= damage;
+
+    addFloatingText(
+        enemy.x,
+        enemy.y - enemy.radius,
+        label ? `${label} ${Math.floor(damage)}` : Math.floor(damage),
+        color
+    );
+
+    createParticles(hitX, hitY, 12, color, 1.5);
+
+    if (enemy.hp <= 0 && !enemy.dead) {
+        enemy.dead = true;
+        player.kills += 1;
+
+        if (!enemy.isBoss && enemy.xp > 0) {
+            dropGem(enemy.x, enemy.y, enemy.xp);
+        }
+
+        createParticles(
+            enemy.x,
+            enemy.y,
+            enemy.isBoss ? 48 : 22,
+            enemy.color,
+            enemy.isBoss ? 2.4 : 1.7
+        );
+    }
 }

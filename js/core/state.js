@@ -38,3 +38,7 @@ let selectedSkillTier = 0;
 let skillStatsPopoverOpen = false;
 let runRewardGranted = false;
 let skillTreeReturnState = "menu";
+
+// LEGENDARY UPGRADE
+let currentUpgrades = [];
+let astralStrikes = [];

@@ -86,3 +86,26 @@ const HEAL_KIT_LIFE = 20;
 const HEAL_KIT_HEAL_RATIO = 0.25;
 const HEAL_KIT_MIN_HEAL = 25;
 const HEAL_KIT_SPAWN_PLAYER_MIN_MISSING_HP_RATIO = 0.15;
+
+// Rune légendaire
+const LEGENDARY_UPGRADE_INTERVAL = 5; // tout les X niveaux, le joueur obtient une rune légendaire
+
+// Rune légendaire : Orbe gardien
+const GUARDIAN_ORB_ORBIT_RADIUS = 78;
+const GUARDIAN_ORB_RADIUS = 12;
+const GUARDIAN_ORB_SPEED = 4.4;
+const GUARDIAN_ORB_DAMAGE_RATIO = 0.75;
+const GUARDIAN_ORB_HIT_COOLDOWN = 0.42;
+
+// Rune légendaire : Pluie astrale
+const ASTRAL_RAIN_INTERVAL = 8;
+const ASTRAL_RAIN_STRIKE_COUNT = 7;
+const ASTRAL_RAIN_WARNING_DURATION = 0.75;
+const ASTRAL_RAIN_ACTIVE_DURATION = 0.22;
+const ASTRAL_RAIN_RADIUS = 58;
+const ASTRAL_RAIN_DAMAGE_RATIO = 1.65;
+
+// Rune légendaire : Triple écho
+const TRIPLE_ECHO_DURATION = 12;
+const TRIPLE_ECHO_OFFSET = 76;
+const TRIPLE_ECHO_DAMAGE_RATIO = 0.55;

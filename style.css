@@ -1613,6 +1613,86 @@ body {
   border-color: rgba(255, 216, 107, 0.85);
 }
 
+.upgrade-cards.has-legendary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.legendary-upgrade-card {
+  position: relative;
+  overflow: hidden;
+
+  border-color: rgba(255, 216, 107, 0.95) !important;
+
+  background:
+    radial-gradient(circle at top, rgba(255, 216, 107, 0.28), transparent 52%),
+    radial-gradient(circle at bottom, rgba(184, 140, 255, 0.22), transparent 58%),
+    linear-gradient(180deg, rgba(42, 28, 8, 0.96), rgba(18, 12, 34, 0.96)) !important;
+
+  box-shadow:
+    0 0 34px rgba(255, 216, 107, 0.42),
+    inset 0 0 28px rgba(255, 216, 107, 0.12) !important;
+
+  transform: translateY(-4px);
+}
+
+.legendary-upgrade-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent,
+      rgba(255, 216, 107, 0.32),
+      transparent,
+      rgba(184, 140, 255, 0.26),
+      transparent
+    );
+
+  animation: legendaryCardRotate 4s linear infinite;
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.legendary-upgrade-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.legendary-card-badge {
+  margin-bottom: 10px;
+  padding: 5px 8px;
+  border-radius: 999px;
+
+  background: rgba(255, 216, 107, 0.16);
+  color: #ffe9a6;
+
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+
+  box-shadow: 0 0 14px rgba(255, 216, 107, 0.28);
+}
+
+.legendary-upgrade-card .upgrade-icon {
+  color: #ffd86b;
+  text-shadow:
+    0 0 14px rgba(255, 216, 107, 0.9),
+    0 0 28px rgba(184, 140, 255, 0.55);
+}
+
+@keyframes legendaryCardRotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .hidden {
   display: none !important;
 }

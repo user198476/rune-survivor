@@ -1,11 +1,34 @@
 function shootAt(target) {
     const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
+
     player.targetAimAngle = baseAngle;
+
     fireProjectileVolley(player.x, player.y, baseAngle, 1, "#59dfff");
-    if (player.cloneTimer > 0) {
+
+    if (player.tripleEchoTimer > 0 && player.tripleEchoClones && player.tripleEchoClones.length > 0) {
+        for (const clone of player.tripleEchoClones) {
+            const cloneAngle = Math.atan2(target.y - clone.y, target.x - clone.x);
+
+            fireProjectileVolley(
+                clone.x,
+                clone.y,
+                cloneAngle,
+                TRIPLE_ECHO_DAMAGE_RATIO,
+                "#d7b4ff"
+            );
+        }
+    } else if (player.cloneTimer > 0) {
         const cloneAngle = Math.atan2(target.y - player.cloneY, target.x - player.cloneX);
-        fireProjectileVolley(player.cloneX, player.cloneY, cloneAngle, ARCANE_CLONE_DAMAGE_RATIO, "#b88cff");
+
+        fireProjectileVolley(
+            player.cloneX,
+            player.cloneY,
+            cloneAngle,
+            ARCANE_CLONE_DAMAGE_RATIO,
+            "#b88cff"
+        );
     }
+
     if (projectiles.length > MAX_ACTIVE_PROJECTILES) {
         projectiles.splice(0, projectiles.length - MAX_ACTIVE_PROJECTILES);
     }

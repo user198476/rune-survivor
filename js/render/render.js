@@ -10,6 +10,7 @@ function render() {
     drawRoyalSlimeAura();
     drawBossDangerZones();
     drawBossWallStrikes();
+    drawAstralStrikes();
 
     drawGems();
     drawPowerUps();
@@ -22,6 +23,7 @@ function render() {
     drawEnemyProjectiles();
     drawArcaneClone();
     drawPlayer();
+    drawGuardianOrb();
     drawParticles();
     drawFloatingTexts();
 

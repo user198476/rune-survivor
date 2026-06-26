@@ -50,40 +50,70 @@ function drawPlayer() {
 }
 
 function drawArcaneClone() {
+    if (player.tripleEchoTimer > 0 && player.tripleEchoClones && player.tripleEchoClones.length > 0) {
+        const fade = Math.min(1, player.tripleEchoTimer / 0.75);
+
+        for (const clone of player.tripleEchoClones) {
+            drawCloneLink(clone.x, clone.y, "#d7b4ff", 0.22 * fade);
+            drawCloneBody(clone.x, clone.y, "#d7b4ff", "#26133f", 0.76 * fade);
+        }
+
+        return;
+    }
+
     if (player.cloneTimer <= 0) {
         return;
     }
+
     const fade = Math.min(1, player.cloneTimer / 0.75);
+
+    drawCloneLink(player.cloneX, player.cloneY, "#b88cff", 0.28 * fade);
+    drawCloneBody(player.cloneX, player.cloneY, "#b88cff", "rgba(66, 42, 120, 0.92)", 0.72 * fade);
+}
+
+function drawCloneLink(cloneX, cloneY, color, alpha) {
     ctx.save();
-    ctx.globalAlpha = 0.28 * fade;
-    ctx.strokeStyle = "#b88cff";
+
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 8]);
+
     ctx.beginPath();
     ctx.moveTo(player.x, player.y);
-    ctx.lineTo(player.cloneX, player.cloneY);
+    ctx.lineTo(cloneX, cloneY);
     ctx.stroke();
+
     ctx.restore();
+}
+
+function drawCloneBody(cloneX, cloneY, color, darkColor, alpha) {
     ctx.save();
-    ctx.globalAlpha = 0.72 * fade;
-    ctx.translate(player.cloneX, player.cloneY);
+
+    ctx.globalAlpha = alpha;
+    ctx.translate(cloneX, cloneY);
     ctx.rotate(player.aimAngle);
     ctx.scale(0.86, 0.86);
-    ctx.fillStyle = "rgba(66, 42, 120, 0.92)";
+
+    ctx.fillStyle = darkColor;
     ctx.beginPath();
     ctx.arc(0, 0, player.radius + 5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#b88cff";
-    ctx.shadowColor = "#b88cff";
+
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
     ctx.shadowBlur = 20;
     ctx.beginPath();
     ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
     ctx.fill();
+
     ctx.shadowBlur = 0;
+
     ctx.fillStyle = "#f7f0ff";
     ctx.beginPath();
     ctx.arc(7, -3, 8, 0, Math.PI * 2);
     ctx.fill();
+
     ctx.fillStyle = "rgba(28, 18, 62, 0.96)";
     ctx.beginPath();
     ctx.moveTo(-10, -10);
@@ -91,6 +121,7 @@ function drawArcaneClone() {
     ctx.lineTo(-10, 10);
     ctx.closePath();
     ctx.fill();
+
     ctx.strokeStyle = "#e4d5ff";
     ctx.lineWidth = 5;
     ctx.lineCap = "round";
@@ -98,12 +129,14 @@ function drawArcaneClone() {
     ctx.moveTo(8, 12);
     ctx.lineTo(31, 0);
     ctx.stroke();
-    ctx.fillStyle = "#cfa7ff";
-    ctx.shadowColor = "#b88cff";
+
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
     ctx.shadowBlur = 18;
     ctx.beginPath();
     ctx.arc(35, 0, 6, 0, Math.PI * 2);
     ctx.fill();
+
     ctx.restore();
 }
 
@@ -442,6 +475,94 @@ function drawEnemyProjectiles() {
             Math.PI * 2
         );
         ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+function drawGuardianOrb() {
+    if (!player || !player.guardianOrbUnlocked) {
+        return;
+    }
+
+    const orb = getGuardianOrbPosition();
+
+    ctx.save();
+
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = "#ffd86b";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 8]);
+
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, GUARDIAN_ORB_ORBIT_RADIUS, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+
+    ctx.save();
+
+    ctx.translate(orb.x, orb.y);
+
+    ctx.shadowColor = "#ffd86b";
+    ctx.shadowBlur = 24;
+
+    ctx.fillStyle = "#ffd86b";
+    ctx.beginPath();
+    ctx.arc(0, 0, GUARDIAN_ORB_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#fff7c2";
+    ctx.beginPath();
+    ctx.arc(-3, -3, GUARDIAN_ORB_RADIUS * 0.42, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function drawAstralStrikes() {
+    for (const strike of astralStrikes) {
+        const isWarning = strike.warningTimer > 0;
+
+        ctx.save();
+
+        if (isWarning) {
+            const progress = 1 - strike.warningTimer / ASTRAL_RAIN_WARNING_DURATION;
+
+            ctx.globalAlpha = 0.24 + progress * 0.36;
+            ctx.strokeStyle = "#9ee7ff";
+            ctx.lineWidth = 3 + progress * 4;
+            ctx.shadowColor = "#9ee7ff";
+            ctx.shadowBlur = 18;
+
+            ctx.beginPath();
+            ctx.arc(strike.x, strike.y, strike.radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.globalAlpha = 0.65;
+            ctx.fillStyle = "#e9fbff";
+            ctx.font = "bold 24px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("✦", strike.x, strike.y);
+        } else {
+            ctx.globalAlpha = 0.72;
+            ctx.fillStyle = "rgba(158, 231, 255, 0.42)";
+            ctx.shadowColor = "#9ee7ff";
+            ctx.shadowBlur = 32;
+
+            ctx.beginPath();
+            ctx.arc(strike.x, strike.y, strike.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.globalAlpha = 0.95;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 4;
+
+            ctx.beginPath();
+            ctx.arc(strike.x, strike.y, strike.radius * 0.55, 0, Math.PI * 2);
+            ctx.stroke();
+        }
 
         ctx.restore();
     }

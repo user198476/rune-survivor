@@ -87,3 +87,60 @@ const upgrades = [{
         activateArcaneClone();
     }
 }];
+const legendaryUpgrades = [{
+    id: "legendary_guardian_orb",
+    rarity: "legendary",
+    icon: "☉",
+    title: "Orbe gardien",
+    description: "Une orbe légendaire tourne autour de toi et blesse les ennemis proches.",
+    canAppear() {
+        return !player.guardianOrbUnlocked;
+    },
+    apply() {
+        player.guardianOrbUnlocked = true;
+        player.guardianOrbAngle = 0;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 42,
+            "ORBE GARDIEN",
+            "#ffd86b"
+        );
+
+        createParticles(player.x, player.y, 70, "#ffd86b", 3);
+    }
+}, {
+    id: "legendary_astral_rain",
+    rarity: "legendary",
+    icon: "☄",
+    title: "Pluie astrale",
+    description: "Toutes les 8s, des frappes astrales tombent sur le champ de bataille.",
+    canAppear() {
+        return !player.astralRainUnlocked;
+    },
+    apply() {
+        player.astralRainUnlocked = true;
+        player.astralRainTimer = 1.2;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 42,
+            "PLUIE ASTRALE",
+            "#9ee7ff"
+        );
+
+        createParticles(player.x, player.y, 80, "#9ee7ff", 3.2);
+    }
+}, {
+    id: "legendary_triple_echo",
+    rarity: "legendary",
+    icon: "✥",
+    title: "Triple écho",
+    description: "Deux clones d’écho combattent avec toi pendant 12s.",
+    canAppear() {
+        return player.tripleEchoTimer <= 0;
+    },
+    apply() {
+        activateTripleEcho();
+    }
+}];

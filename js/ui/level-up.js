@@ -1,22 +1,41 @@
 function showLevelUp() {
     state = "levelup";
-    currentUpgrades = getRandomUpgrades(3);
-    upgradeCards.innerHTML = "";
-    currentUpgrades.forEach((upgrade, index) => {
-        const card = document.createElement("button");
-        card.className = "upgrade-card";
-        card.innerHTML = `
-		<div class="upgrade-icon">${upgrade.icon}</div>
-		<h2>${upgrade.title}</h2>
-		<p>${upgrade.description}</p>
 
-		<div class="upgrade-key">
-			<kbd class="upgrade-keycap">${index + 1}</kbd>
-		</div>
-	`;
+    currentUpgrades = getRandomUpgrades(3);
+
+    const legendaryUpgrade = getRandomLegendaryUpgrade();
+
+    if (legendaryUpgrade) {
+        currentUpgrades.push(legendaryUpgrade);
+    }
+
+    upgradeCards.innerHTML = "";
+    upgradeCards.classList.toggle("has-legendary", !!legendaryUpgrade);
+
+    currentUpgrades.forEach((upgrade, index) => {
+        const isLegendary = upgrade.rarity === "legendary";
+
+        const card = document.createElement("button");
+        card.className = isLegendary
+            ? "upgrade-card legendary-upgrade-card"
+            : "upgrade-card";
+
+        card.innerHTML = `
+            ${isLegendary ? `<div class="legendary-card-badge">RUNE LÉGENDAIRE</div>` : ""}
+
+            <div class="upgrade-icon">${upgrade.icon}</div>
+            <h2>${upgrade.title}</h2>
+            <p>${upgrade.description}</p>
+
+            <div class="upgrade-key">
+                <kbd class="upgrade-keycap">${index + 1}</kbd>
+            </div>
+        `;
+
         card.addEventListener("click", () => chooseUpgrade(index));
         upgradeCards.appendChild(card);
     });
+
     levelUpOverlay.classList.remove("hidden");
 }
 
@@ -51,4 +70,28 @@ function chooseUpgrade(index) {
     levelUpOverlay.classList.add("hidden");
     state = "playing";
     updateHud();
+}
+
+function shouldOfferLegendaryUpgrade() {
+    if (!player || player.level <= 1) {
+        return false;
+    }
+
+    return player.level % LEGENDARY_UPGRADE_INTERVAL === 0;
+}
+
+function getRandomLegendaryUpgrade() {
+    if (!shouldOfferLegendaryUpgrade()) {
+        return null;
+    }
+
+    const pool = legendaryUpgrades.filter((upgrade) => canUpgradeAppear(upgrade));
+
+    if (pool.length === 0) {
+        return null;
+    }
+
+    const index = Math.floor(Math.random() * pool.length);
+
+    return pool[index];
 }
