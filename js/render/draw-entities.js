@@ -199,9 +199,11 @@ function drawPowerUps() {
     }
     for (const powerUp of powerUps) {
         const isShield = powerUp.type === "shield";
-        const color = isShield ? "#d8dde8" : "#ffd86b";
-        const darkColor = isShield ? "#1c2028" : "#241209";
-        const label = isShield ? "⛨" : "x2";
+        const isHeal = powerUp.type === "heal";
+
+        const color = isHeal ? "#35e07a" : isShield ? "#d8dde8" : "#ffd86b";
+        const darkColor = isHeal ? "#062414" : isShield ? "#1c2028" : "#241209";
+        const label = isHeal ? "+" : isShield ? "⛨" : "x2";
         const pulse = Math.sin(powerUp.pulse * 7) * 0.18 + 1;
         const radius = powerUp.radius * pulse;
         ctx.save();
@@ -225,6 +227,35 @@ function drawPowerUps() {
             ctx.quadraticCurveTo(-radius * 0.35, radius, -radius * 0.72, radius * 0.35);
             ctx.quadraticCurveTo(-radius, -radius * 0.65, 0, -radius);
             ctx.fill();
+        } else if (isHeal) {
+            const boxSize = radius * 1.75;
+
+            ctx.beginPath();
+
+            if (typeof ctx.roundRect === "function") {
+                ctx.roundRect(
+                    -boxSize / 2,
+                    -boxSize / 2,
+                    boxSize,
+                    boxSize,
+                    6
+                );
+            } else {
+                ctx.rect(
+                    -boxSize / 2,
+                    -boxSize / 2,
+                    boxSize,
+                    boxSize
+                );
+            }
+
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(-radius * 0.18, -radius * 0.62, radius * 0.36, radius * 1.24);
+            ctx.fillRect(-radius * 0.62, -radius * 0.18, radius * 1.24, radius * 0.36);
         } else {
             ctx.beginPath();
             ctx.moveTo(0, -radius);
@@ -237,7 +268,7 @@ function drawPowerUps() {
         ctx.shadowBlur = 0;
         ctx.rotate(-gameTime * 2.2);
         ctx.fillStyle = darkColor;
-        ctx.font = isShield ? "bold 18px Arial" : "bold 14px Arial";
+        ctx.font = isHeal ? "bold 22px Arial" : isShield ? "bold 18px Arial" : "bold 14px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(label, 0, 1);

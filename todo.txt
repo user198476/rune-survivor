@@ -50,10 +50,11 @@ choix entre 3 récompenses spéciales
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
 
 -----------------
-ARRET RUNE VIE:
-- On retire les runes de vol de vie et la branche de vol de vie du skill tree
-    et on spawn une trousse de soin comme pour le bouclier ou X2
+ARRET RUNE VAMPIRIQUE (VOL DE VIE):
+On retire la rune de vol de vie et la branche de vol de vie du skill tree et on spawn une trousse de soin comme pour le bouclier ou X2 (nouveau concept pour compenser)
+Par contre on garde la rune vitale
+
+Equilibrage a prevoir apres retrait rune vampirique:
 - Boss 1 on aspire moins le joueur
-- Boss 2 on fait plus de laser cible mais plusieurs autour du boss en fix et on garde les missiles
+- Boss 2 on ne fait plus de laser ciblé mais plusieurs autour du boss en fixe et on garde les missiles
 - Boss 3 on durcie en rajoutant une méchanique pour pas longer les murs
-- On garde la rune vitale

@@ -29,6 +29,7 @@ const enemySpriteCache = new Map();
 
 let postBossRampTimer = 0;
 let hordeBombSpawnTimer = 20;
+let healKitSpawnTimer = 0;
 
 let metaCoins = 0;
 let metaSkills = {};

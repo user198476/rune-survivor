@@ -293,7 +293,6 @@ function renderSkillTotalStats() {
     const bonuses = getPermanentBonuses();
 
     const effectiveFireRateReduction = Math.min(0.65, bonuses.fireRateReduction);
-    const effectiveLifeSteal = Math.min(0.15, bonuses.lifeStealPercent);
 
     const totalBought = getTotalBoughtSkillLevels();
     const totalPossible = getTotalMaxSkillLevelsForCompletedTiers();
@@ -329,8 +328,8 @@ function renderSkillTotalStats() {
             </div>
 
             <div>
-                <span>Vol de vie</span>
-                <strong>+${formatPermanentPercent(effectiveLifeSteal)}</strong>
+                <span>Soin trousses</span>
+                <strong>+${formatPermanentPercent(bonuses.healKitPowerPercent || 0)}</strong>
             </div>
 
             <div>

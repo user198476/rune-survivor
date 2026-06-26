@@ -76,17 +76,6 @@ const upgrades = [{
         player.projectileBounces = 1;
     }
 }, {
-    id: "lifeSteal",
-    icon: "✚",
-    title: "Rune vampirique",
-    description: "+3% de vol de vie. Maximum 15%.",
-    canAppear() {
-        return player.lifeSteal < 0.15;
-    },
-    apply() {
-        player.lifeSteal = Math.min(0.15, Number((player.lifeSteal + 0.03).toFixed(2)));
-    }
-}, {
     id: "arcaneClone",
     icon: "✥",
     title: "Rune d’écho",

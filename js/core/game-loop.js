@@ -123,6 +123,7 @@ function resetGame() {
         lifeSteal: 0,
         lifeStealBuffer: 0,
         lifeStealPopupBuffer: 0,
+        healKitPower: 0,
         healLockTimer: 0,
         hordeDamageTimer: 0,
         hordeWarningTimer: 0,
@@ -159,6 +160,7 @@ function resetGame() {
     runRewardGranted = false;
     postBossRampTimer = 0;
     hordeBombSpawnTimer = HORDE_BOMB_SPAWN_INTERVAL;
+    healKitSpawnTimer = randomBetween(HEAL_KIT_SPAWN_MIN, HEAL_KIT_SPAWN_MAX);
     levelUpOverlay.classList.add("hidden");
     pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");

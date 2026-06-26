@@ -159,6 +159,15 @@ function applyLifeSteal(damageDealt) {
 }
 
 function updateLifeStealHealing(dt) {
+    if (!player || !player.lifeSteal || player.lifeSteal <= 0) {
+        if (player) {
+            player.lifeStealBuffer = 0;
+            player.lifeStealPopupBuffer = 0;
+        }
+
+        return;
+    }
+    
     if (player.lifeStealBuffer <= 0) {
         return;
     }

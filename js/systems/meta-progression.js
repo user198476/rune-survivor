@@ -68,7 +68,7 @@ function getPermanentBonuses() {
         fireRateReduction: 0,
         projectileSpeedPercent: 0,
         maxHpFlat: 0,
-        lifeStealPercent: 0,
+        healKitPowerPercent: 0,
         shieldDurationFlat: 0,
         moveSpeedPercent: 0,
         magnetFlat: 0,
@@ -105,9 +105,13 @@ function applyPermanentBonusesToPlayer() {
     player.damage *= 1 + bonuses.damagePercent;
     player.fireRate *= Math.max(0.35, 1 - bonuses.fireRateReduction);
     player.projectileSpeed *= 1 + bonuses.projectileSpeedPercent;
+    
     player.maxHp += bonuses.maxHpFlat;
     player.hp = player.maxHp;
-    player.lifeSteal = Math.min(0.15, player.lifeSteal + bonuses.lifeStealPercent);
+
+    player.lifeSteal = 0;
+    player.healKitPower = bonuses.healKitPowerPercent || 0;
+
     player.shieldDurationBonus = bonuses.shieldDurationFlat;
     player.speed *= 1 + bonuses.moveSpeedPercent;
     player.magnetRadius += bonuses.magnetFlat;

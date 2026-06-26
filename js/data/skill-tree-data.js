@@ -64,8 +64,8 @@ const SKILL_TREE = [{
     }, {
         id: "defense_lifesteal",
         nodeIcon: "✚",
-        title: "Sang ancien",
-        desc: "+1% vol de vie permanent par niveau.",
+        title: "Médecine runique",
+        desc: "+8% de soin reçu par les trousses par niveau.",
         maxLevel: 5,
         baseCost: 360,
         costStep: 190,
@@ -73,8 +73,8 @@ const SKILL_TREE = [{
             id: "defense_hp",
             level: 1
         }],
-        effectType: "lifeStealPercent",
-        effectValue: 0.01
+        effectType: "healKitPowerPercent",
+        effectValue: 0.08
     }, {
         id: "defense_shield",
         nodeIcon: "⛨",

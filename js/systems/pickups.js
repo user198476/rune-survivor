@@ -7,46 +7,74 @@ function updatePowerUps(dt) {
     if (!powerUps) {
         powerUps = [];
     }
+
     powerUpSpawnTimer -= dt;
+
     if (powerUpSpawnTimer <= 0) {
         const hasDamageBoost = powerUps.some((powerUp) => powerUp.type === "damageBoost");
         const damageBoostActive = player.damageBoostTimer > 0;
+
         if (!hasDamageBoost && !damageBoostActive) {
             spawnDamageBoost();
         }
+
         powerUpSpawnTimer = randomBetween(18, 26);
     }
+
     shieldSpawnTimer -= dt;
+
     if (shieldSpawnTimer <= 0) {
         const hasShieldPowerUp = powerUps.some((powerUp) => powerUp.type === "shield");
         const shieldActive = player.shieldTimer > 0;
+
         if (!hasShieldPowerUp && !shieldActive) {
             spawnShieldPowerUp();
         }
+
         shieldSpawnTimer = randomBetween(28, 42);
     }
+
+    healKitSpawnTimer -= dt;
+
+    if (healKitSpawnTimer <= 0) {
+        spawnHealKit();
+        healKitSpawnTimer = randomBetween(HEAL_KIT_SPAWN_MIN, HEAL_KIT_SPAWN_MAX);
+    }
+
     for (let i = powerUps.length - 1; i >= 0; i--) {
         const powerUp = powerUps[i];
+
         powerUp.life -= dt;
         powerUp.pulse += dt;
+
         const d = distance(player, powerUp);
+
         if (d < player.radius + powerUp.radius) {
             let activated = false;
+
             if (powerUp.type === "damageBoost") {
                 activated = activateDamageBoost();
             }
+
             if (powerUp.type === "shield") {
                 activated = activateShield();
             }
+
+            if (powerUp.type === "heal") {
+                activated = activateHealKit();
+            }
+
             if (activated) {
-                const color = powerUp.type === "shield" ? "#d8dde8" : "#ffd86b";
+                const color = getPowerUpColor(powerUp);
                 createParticles(powerUp.x, powerUp.y, 36, color, 2.4);
                 powerUps.splice(i, 1);
             }
+
             continue;
         }
+
         if (powerUp.life <= 0) {
-            const color = powerUp.type === "shield" ? "#d8dde8" : "#ffd86b";
+            const color = getPowerUpColor(powerUp);
             createParticles(powerUp.x, powerUp.y, 14, color, 1.1);
             powerUps.splice(i, 1);
         }
@@ -259,4 +287,100 @@ function spawnShieldPowerUp() {
         });
         return;
     }
+}
+
+function spawnHealKit() {
+    if (!arePickablePowerUpsAllowed()) {
+        return false;
+    }
+
+    if (!player || player.hp >= player.maxHp) {
+        return false;
+    }
+
+    const missingHpRatio = 1 - player.hp / player.maxHp;
+
+    if (missingHpRatio < HEAL_KIT_SPAWN_PLAYER_MIN_MISSING_HP_RATIO) {
+        return false;
+    }
+
+    const hasHealKit = powerUps.some((powerUp) => powerUp.type === "heal");
+
+    if (hasHealKit) {
+        return false;
+    }
+
+    for (let attempt = 0; attempt < 120; attempt++) {
+        const x = randomBetween(90, GAME_WIDTH - 90);
+        const y = randomBetween(90, GAME_HEIGHT - 90);
+
+        if (distance({ x, y }, player) < 170) {
+            continue;
+        }
+
+        if (isTooCloseToSpike(spikes, x, y, 70)) {
+            continue;
+        }
+
+        powerUps.push({
+            type: "heal",
+            x,
+            y,
+            radius: HEAL_KIT_RADIUS,
+            life: HEAL_KIT_LIFE,
+            pulse: 0
+        });
+
+        return true;
+    }
+
+    return false;
+}
+
+function activateHealKit() {
+    if (!player || player.hp >= player.maxHp) {
+        return false;
+    }
+
+    const healMultiplier = 1 + (player.healKitPower || 0);
+
+    const healAmount = Math.max(
+        HEAL_KIT_MIN_HEAL,
+        Math.ceil(player.maxHp * HEAL_KIT_HEAL_RATIO * healMultiplier)
+    );
+
+    const hpBefore = player.hp;
+
+    player.hp = Math.min(player.maxHp, player.hp + healAmount);
+
+    const realHeal = Math.round(player.hp - hpBefore);
+
+    if (realHeal <= 0) {
+        return false;
+    }
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 34,
+        `+${realHeal} PV`,
+        "#35e07a"
+    );
+
+    createParticles(player.x, player.y, 46, "#35e07a", 2.4);
+
+    updateHud();
+
+    return true;
+}
+
+function getPowerUpColor(powerUp) {
+    if (powerUp.type === "shield") {
+        return "#d8dde8";
+    }
+
+    if (powerUp.type === "heal") {
+        return "#35e07a";
+    }
+
+    return "#ffd86b";
 }
