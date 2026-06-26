@@ -1,5 +1,5 @@
 function spawnEnemy() {
-    if (enemies.length >= MAX_ACTIVE_ENEMIES) {
+    if (enemies.length >= getCurrentEnemyCap()) {
         return false;
     }
 
@@ -91,14 +91,16 @@ function spawnEnemy() {
 }
 
 function updateSpawns(dt) {
-    if (enemies.length >= MAX_ACTIVE_ENEMIES) {
-        spawnTimer = Math.max(spawnTimer, 0.35);
+    const enemyCap = getCurrentEnemyCap();
+
+    if (enemies.length >= enemyCap) {
+        spawnTimer = Math.max(spawnTimer, 0.45);
         return;
     }
 
     spawnTimer -= dt;
 
-    const baseSpawnInterval = Math.max(0.22, 1.05 - waveTime / 160);
+    const baseSpawnInterval = Math.max(0.22, 1.05 - waveTime / 160) * getCurrentSpawnIntervalMultiplier();
     const spawnInterval = getCurrentSpawnInterval(baseSpawnInterval);
 
     if (spawnTimer > 0) {
@@ -120,7 +122,7 @@ function updateSpawns(dt) {
     const spawnCount = getMaxSpawnsThisTick(desiredSpawnCount);
 
     for (let i = 0; i < spawnCount; i++) {
-        if (enemies.length >= MAX_ACTIVE_ENEMIES) {
+        if (enemies.length >= enemyCap) {
             break;
         }
 
@@ -218,17 +220,23 @@ function updateEnemies(dt) {
 }
 
 function trimEnemyOverflow() {
-    if (enemies.length <= MAX_ACTIVE_ENEMIES) {
+    const enemyCap = getCurrentEnemyCap();
+
+    if (enemies.length <= enemyCap) {
         return;
     }
+
     enemies = enemies.filter((enemy) => enemy && !enemy.dead);
-    if (enemies.length <= MAX_ACTIVE_ENEMIES) {
+
+    if (enemies.length <= enemyCap) {
         return;
     }
+
     enemies.sort((a, b) => {
         return getEnemyDistanceSqToPlayer(a) - getEnemyDistanceSqToPlayer(b);
     });
-    enemies.length = MAX_ACTIVE_ENEMIES;
+
+    enemies.length = enemyCap;
 }
 
 function buildEnemyGrid() {
@@ -292,7 +300,7 @@ function getPostBossRampRatio() {
 }
 
 function canSpawnDuringPostBossRamp() {
-    return enemies.length < MAX_ACTIVE_ENEMIES;
+    return enemies.length < getCurrentEnemyCap();
 }
 
 function isPostBossRampActive() {
@@ -654,4 +662,36 @@ function damagePlayerByHordeBomb() {
     if (player.hp <= 0) {
         endGame();
     }
+}
+
+function getCurrentEnemyCap() {
+    if (triggeredBossIds.has("rune_brute")) {
+        return ENEMY_CAP_AFTER_BOSS_3;
+    }
+
+    if (triggeredBossIds.has("blood_bat")) {
+        return ENEMY_CAP_AFTER_BOSS_2;
+    }
+
+    if (triggeredBossIds.has("royal_slime")) {
+        return ENEMY_CAP_AFTER_BOSS_1;
+    }
+
+    return ENEMY_CAP_BEFORE_BOSS_1;
+}
+
+function getCurrentSpawnIntervalMultiplier() {
+    if (triggeredBossIds.has("rune_brute")) {
+        return SPAWN_INTERVAL_MULTIPLIER_AFTER_BOSS_3;
+    }
+
+    if (triggeredBossIds.has("blood_bat")) {
+        return SPAWN_INTERVAL_MULTIPLIER_AFTER_BOSS_2;
+    }
+
+    if (triggeredBossIds.has("royal_slime")) {
+        return SPAWN_INTERVAL_MULTIPLIER_AFTER_BOSS_1;
+    }
+
+    return 1;
 }
