@@ -1,6 +1,9 @@
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 
+// DEBUG
+const DEBUG_BOSS_TEST_ENABLED = false; // set to true to enable boss test buttons in the main menu
+
 const MAX_PARTICLES = 450;
 const MAX_FLOATING_TEXTS = 90;
 const MAX_ACTIVE_ENEMIES = 170;

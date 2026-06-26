@@ -271,3 +271,56 @@ function updateBossAbilities(dt) {
         updateRuneBruteAbilities(dt);
     }
 }
+
+function startBossTest(bossId) {
+    if (!DEBUG_BOSS_TEST_ENABLED) {
+        return;
+    }
+
+    const bossDefinition = BOSS_WAVES.find((boss) => boss.id === bossId);
+
+    if (!bossDefinition) {
+        console.warn("Boss test introuvable :", bossId);
+        return;
+    }
+
+    resetGame();
+
+    state = "playing";
+
+    mainMenuOverlay.classList.add("hidden");
+    pauseOverlay.classList.add("hidden");
+    gameOverOverlay.classList.add("hidden");
+    levelUpOverlay.classList.add("hidden");
+    skillTreeOverlay.classList.add("hidden");
+
+    gameTime = 0;
+    waveTime = bossDefinition.time;
+
+    triggeredBossIds = new Set(
+        BOSS_WAVES
+            .filter((boss) => boss.time < bossDefinition.time)
+            .map((boss) => boss.id)
+    );
+
+    enemies = [];
+    projectiles = [];
+    enemyProjectiles = [];
+    gems = [];
+    powerUps = [];
+    spikes = [];
+    particles = [];
+    floatingTexts = [];
+    enemyGrid.clear();
+
+    player.x = GAME_WIDTH / 2;
+    player.y = GAME_HEIGHT - 135;
+    player.hp = player.maxHp;
+    player.fireCooldown = 0;
+
+    startBossIntro(bossDefinition);
+
+    updateHud();
+
+    console.log(`Mode test boss lancé : ${bossDefinition.name}`);
+}

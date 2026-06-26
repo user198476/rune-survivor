@@ -330,6 +330,14 @@ function isPlayerInsideLaser(laser) {
 }
 
 function updateRuneBruteAbilities(dt) {
+    if (!currentBoss || currentBoss.bossId !== "rune_brute") {
+        return;
+    }
+
+    // Important : la pression des murs doit tourner tout le temps,
+    // pas seulement quand les zones du boss sont prêtes.
+    updateRuneBruteWallPressure(dt);
+
     currentBoss.zoneCooldown -= dt;
 
     if (currentBoss.zoneCooldown > 0) {
@@ -374,8 +382,6 @@ function updateRuneBruteAbilities(dt) {
         "RUPTURE",
         currentBoss.color
     );
-
-    updateRuneBruteWallPressure(dt);
 }
 
 function createBossDangerZone(x, y) {
@@ -546,7 +552,7 @@ function updateRuneBruteWallPressure(dt) {
 
     currentBoss.wallDangerCooldown = Math.max(
         0,
-        currentBoss.wallDangerCooldown - dt
+        (currentBoss.wallDangerCooldown || 0) - dt
     );
 
     if (currentBoss.wallDangerCooldown > 0) {
@@ -596,7 +602,15 @@ function getPlayerDangerWall() {
 }
 
 function spawnBossWallStrike(wall) {
-    if (bossWallStrikes.some((strike) => strike.wall === wall)) {
+    if (!wall) {
+        return;
+    }
+
+    const alreadyActiveOnSameWall = bossWallStrikes.some((strike) => {
+        return strike.wall === wall;
+    });
+
+    if (alreadyActiveOnSameWall) {
         return;
     }
 
@@ -605,13 +619,20 @@ function spawnBossWallStrike(wall) {
         state: "warning",
         warningTimer: BOSS_WALL_WARNING_DURATION,
         activeTimer: BOSS_WALL_ACTIVE_DURATION,
-        damageDone: false
+        age: 0
     });
 }
 
 function updateBossWallStrikes(dt) {
     for (let i = bossWallStrikes.length - 1; i >= 0; i--) {
         const strike = bossWallStrikes[i];
+
+        if (!strike) {
+            bossWallStrikes.splice(i, 1);
+            continue;
+        }
+
+        strike.age = (strike.age || 0) + dt;
 
         if (strike.state === "warning") {
             strike.warningTimer -= dt;
@@ -629,11 +650,17 @@ function updateBossWallStrikes(dt) {
             continue;
         }
 
-        strike.activeTimer -= dt;
+        if (strike.state === "active") {
+            strike.activeTimer -= dt;
 
-        if (strike.activeTimer <= 0) {
-            bossWallStrikes.splice(i, 1);
+            if (strike.activeTimer <= 0) {
+                bossWallStrikes.splice(i, 1);
+            }
+
+            continue;
         }
+
+        bossWallStrikes.splice(i, 1);
     }
 }
 

@@ -1564,6 +1564,55 @@ body {
   text-shadow: 0 0 10px rgba(115, 236, 255, 0.25);
 }
 
+.boss-test-panel {
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid rgba(255, 216, 107, 0.28);
+  border-radius: 18px;
+
+  background:
+    radial-gradient(circle at top, rgba(255, 216, 107, 0.14), transparent 60%),
+    rgba(12, 10, 28, 0.72);
+
+  box-shadow: 0 0 22px rgba(255, 216, 107, 0.08);
+}
+
+.boss-test-title {
+  margin-bottom: 8px;
+  color: #ffe7a3;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.boss-test-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.boss-test-actions button {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 216, 107, 0.38);
+  border-radius: 999px;
+
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent),
+    rgba(34, 25, 10, 0.82);
+
+  color: #fff3c4;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.boss-test-actions button:hover {
+  filter: brightness(1.18);
+  transform: translateY(-1px);
+  border-color: rgba(255, 216, 107, 0.85);
+}
+
 .hidden {
   display: none !important;
 }

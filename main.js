@@ -42,6 +42,24 @@ function bindMenuButtons() {
     resetProgressionButton.addEventListener("click", resetProgressionButKeepScores);
     skillTreeStatsToggleButton.addEventListener("click", toggleSkillStatsPopover);
 
+    if (DEBUG_BOSS_TEST_ENABLED) {
+        bossTestPanel.classList.remove("hidden");
+
+        testBoss1Button.addEventListener("click", () => {
+            startBossTest("royal_slime");
+        });
+
+        testBoss2Button.addEventListener("click", () => {
+            startBossTest("blood_bat");
+        });
+
+        testBoss3Button.addEventListener("click", () => {
+            startBossTest("rune_brute");
+        });
+    } else {
+        bossTestPanel.classList.add("hidden");
+    }
+
     window.addEventListener("beforeunload", () => {
         if (!player) {
             return;
