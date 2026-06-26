@@ -144,41 +144,21 @@ function updateRoyalSlimeAura(dt) {
 }
 
 function updateBloodBatAbilities(dt) {
+    if (!currentBoss || currentBoss.bossId !== "blood_bat") {
+        return;
+    }
+
     currentBoss.laserCooldown -= dt;
     currentBoss.missileCooldown -= dt;
 
     if (currentBoss.laserCooldown <= 0) {
+        spawnBossFixedLaserPattern(currentBoss);
         currentBoss.laserCooldown = BOSS_LASER_COOLDOWN;
-
-        bossLasers.push({
-            x: currentBoss.x,
-            y: currentBoss.y,
-            angle: Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x),
-            warning: BOSS_LASER_WARNING_DURATION,
-            active: BOSS_LASER_ACTIVE_DURATION,
-            damageTick: 0,
-            color: currentBoss.color,
-            locked: false
-        });
-
-        addFloatingText(
-            currentBoss.x,
-            currentBoss.y - currentBoss.radius - 28,
-            "LASER",
-            currentBoss.color
-        );
     }
 
     if (currentBoss.missileCooldown <= 0) {
+        spawnBossMissileWave(currentBoss);
         currentBoss.missileCooldown = BOSS_MISSILE_COOLDOWN;
-        spawnBossMissileWave();
-
-        addFloatingText(
-            currentBoss.x,
-            currentBoss.y - currentBoss.radius - 54,
-            "MISSILES",
-            "#ff9bd3"
-        );
     }
 }
 
@@ -302,45 +282,31 @@ function updateBossLasers(dt) {
     for (let i = bossLasers.length - 1; i >= 0; i--) {
         const laser = bossLasers[i];
 
-        if (!laser.locked && laser.warning > 0) {
-            // Le laser suit le joueur pendant l'avertissement.
-            laser.x = currentBoss ? currentBoss.x : laser.x;
-            laser.y = currentBoss ? currentBoss.y : laser.y;
-            laser.angle = Math.atan2(player.y - laser.y, player.x - laser.x);
+        if (laser.state === "warning") {
+            laser.warningTimer -= dt;
 
-            laser.warning -= dt;
+            if (laser.warningTimer <= 0) {
+                laser.state = "active";
+                laser.activeTimer = BOSS_LASER_ACTIVE_DURATION;
 
-            if (laser.warning <= 0) {
-                laser.warning = 0;
-                laser.locked = true;
-
-                screenShake = 5.5;
-                screenShakeTimer = 0.12;
+                screenShake = Math.max(screenShake, 3.5);
+                screenShakeTimer = Math.max(screenShakeTimer, 0.14);
             }
 
             continue;
         }
 
-        laser.active -= dt;
-        laser.damageTick -= dt;
+        laser.activeTimer -= dt;
+        laser.damageTimer = Math.max(0, laser.damageTimer - dt);
 
-        if (laser.damageTick <= 0) {
-            laser.damageTick = 0.22;
-
-            if (isPlayerInsideLaser(laser)) {
-                damagePlayer(BOSS_LASER_DAMAGE, null);
-
-                addFloatingText(
-                    player.x,
-                    player.y - player.radius - 24,
-                    "LASER",
-                    "#ff5f75"
-                );
-            }
+        if (laser.activeTimer <= 0) {
+            bossLasers.splice(i, 1);
+            continue;
         }
 
-        if (laser.active <= 0) {
-            bossLasers.splice(i, 1);
+        if (laser.damageTimer <= 0 && isPlayerInsideBossLaser(laser)) {
+            damagePlayer(BOSS_LASER_DAMAGE, currentBoss || laser);
+            laser.damageTimer = 0.45;
         }
     }
 }
@@ -408,6 +374,8 @@ function updateRuneBruteAbilities(dt) {
         "RUPTURE",
         currentBoss.color
     );
+
+    updateRuneBruteWallPressure(dt);
 }
 
 function createBossDangerZone(x, y) {
@@ -511,4 +479,209 @@ function damagePlayerByBossZone(amount, overlapCount) {
     }
 
     updateHud();
+}
+
+function spawnBossFixedLaserPattern(boss) {
+    if (!boss || boss.dead) {
+        return;
+    }
+
+    const patternIndex = boss.laserPatternIndex || 0;
+
+    const angleOffset = patternIndex % 2 === 0
+        ? 0
+        : Math.PI / BOSS_LASER_FIXED_COUNT;
+
+    for (let i = 0; i < BOSS_LASER_FIXED_COUNT; i++) {
+        const angle = angleOffset + (Math.PI * 2 * i) / BOSS_LASER_FIXED_COUNT;
+
+        bossLasers.push({
+            x: boss.x,
+            y: boss.y,
+            angle,
+            width: BOSS_LASER_WIDTH,
+            length: BOSS_LASER_LENGTH,
+            warningTimer: BOSS_LASER_WARNING_DURATION,
+            activeTimer: BOSS_LASER_ACTIVE_DURATION,
+            damageTimer: 0,
+            state: "warning"
+        });
+    }
+
+    boss.laserPatternIndex = patternIndex + 1;
+
+    addFloatingText(
+        boss.x,
+        boss.y - boss.radius - 34,
+        "RAYONS RUNIQUES",
+        "#ff4d8d"
+    );
+}
+
+function isPlayerInsideBossLaser(laser) {
+    const dx = player.x - laser.x;
+    const dy = player.y - laser.y;
+
+    const cos = Math.cos(laser.angle);
+    const sin = Math.sin(laser.angle);
+
+    const forwardDistance = dx * cos + dy * sin;
+    const sideDistance = Math.abs(-dx * sin + dy * cos);
+
+    if (forwardDistance < -player.radius) {
+        return false;
+    }
+
+    if (forwardDistance > laser.length + player.radius) {
+        return false;
+    }
+
+    return sideDistance <= laser.width / 2 + player.radius;
+}
+
+function updateRuneBruteWallPressure(dt) {
+    if (!currentBoss || currentBoss.bossId !== "rune_brute") {
+        return;
+    }
+
+    currentBoss.wallDangerCooldown = Math.max(
+        0,
+        currentBoss.wallDangerCooldown - dt
+    );
+
+    if (currentBoss.wallDangerCooldown > 0) {
+        return;
+    }
+
+    const wall = getPlayerDangerWall();
+
+    if (!wall) {
+        return;
+    }
+
+    spawnBossWallStrike(wall);
+
+    currentBoss.wallDangerCooldown = BOSS_WALL_COOLDOWN;
+}
+
+function getPlayerDangerWall() {
+    if (player.x <= BOSS_WALL_DANGER_MARGIN) {
+        return "left";
+    }
+
+    if (player.x >= GAME_WIDTH - BOSS_WALL_DANGER_MARGIN) {
+        return "right";
+    }
+
+    if (player.y <= BOSS_WALL_DANGER_MARGIN) {
+        return "top";
+    }
+
+    if (player.y >= GAME_HEIGHT - BOSS_WALL_DANGER_MARGIN) {
+        return "bottom";
+    }
+
+    return null;
+}
+
+function spawnBossWallStrike(wall) {
+    if (bossWallStrikes.some((strike) => strike.wall === wall)) {
+        return;
+    }
+
+    bossWallStrikes.push({
+        wall,
+        state: "warning",
+        warningTimer: BOSS_WALL_WARNING_DURATION,
+        activeTimer: BOSS_WALL_ACTIVE_DURATION,
+        damageDone: false
+    });
+}
+
+function updateBossWallStrikes(dt) {
+    for (let i = bossWallStrikes.length - 1; i >= 0; i--) {
+        const strike = bossWallStrikes[i];
+
+        if (strike.state === "warning") {
+            strike.warningTimer -= dt;
+
+            if (strike.warningTimer <= 0) {
+                strike.state = "active";
+                strike.activeTimer = BOSS_WALL_ACTIVE_DURATION;
+
+                screenShake = Math.max(screenShake, 4);
+                screenShakeTimer = Math.max(screenShakeTimer, 0.16);
+
+                applyBossWallStrike(strike);
+            }
+
+            continue;
+        }
+
+        strike.activeTimer -= dt;
+
+        if (strike.activeTimer <= 0) {
+            bossWallStrikes.splice(i, 1);
+        }
+    }
+}
+
+function applyBossWallStrike(strike) {
+    if (!isPlayerInsideWallStrike(strike)) {
+        return;
+    }
+
+    damagePlayer(BOSS_WALL_DAMAGE, currentBoss || strike);
+
+    const push = getWallPushVector(strike.wall);
+
+    player.knockbackX += push.x * BOSS_WALL_PUSH_FORCE;
+    player.knockbackY += push.y * BOSS_WALL_PUSH_FORCE;
+
+    addFloatingText(
+        player.x,
+        player.y - player.radius - 28,
+        "MUR RUNIQUE",
+        "#a855f7"
+    );
+}
+
+function isPlayerInsideWallStrike(strike) {
+    if (strike.wall === "left") {
+        return player.x <= BOSS_WALL_DANGER_MARGIN + player.radius;
+    }
+
+    if (strike.wall === "right") {
+        return player.x >= GAME_WIDTH - BOSS_WALL_DANGER_MARGIN - player.radius;
+    }
+
+    if (strike.wall === "top") {
+        return player.y <= BOSS_WALL_DANGER_MARGIN + player.radius;
+    }
+
+    if (strike.wall === "bottom") {
+        return player.y >= GAME_HEIGHT - BOSS_WALL_DANGER_MARGIN - player.radius;
+    }
+
+    return false;
+}
+
+function getWallPushVector(wall) {
+    if (wall === "left") {
+        return { x: 1, y: 0 };
+    }
+
+    if (wall === "right") {
+        return { x: -1, y: 0 };
+    }
+
+    if (wall === "top") {
+        return { x: 0, y: 1 };
+    }
+
+    if (wall === "bottom") {
+        return { x: 0, y: -1 };
+    }
+
+    return { x: 0, y: 0 };
 }

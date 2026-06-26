@@ -64,6 +64,7 @@ function prepareArenaForBoss() {
     bossLasers = [];
     bossPullTimer = 0;
     bossMissiles = [];
+    bossWallStrikes = [];
 }
 
 function updateBossIntro(dt) {
@@ -112,6 +113,8 @@ function startBossFight() {
         zoneCooldown: 3.2,
         pullCooldown: 2.5,
         pullContactCooldown: 0,
+        laserPatternIndex: 0,
+        wallDangerCooldown: 0,
 
         rewardXp: bossDefinition.rewardXp,
         rewardGemCount: bossDefinition.rewardGemCount
@@ -175,6 +178,7 @@ function defeatBoss() {
     bossLasers = [];
     bossPullTimer = 0;
     bossMissiles = [];
+    bossWallStrikes = [];
 }
 
 function dropBossRewardXp(boss, x, y) {
@@ -252,6 +256,7 @@ function updateBossAbilities(dt) {
     updateBossLasers(dt);
     updateBossMissiles(dt);
     updateBossDangerZones(dt);
+    updateBossWallStrikes(dt);
     updateRoyalSlimeAura(dt);
 
     if (currentBoss.bossId === "royal_slime") {

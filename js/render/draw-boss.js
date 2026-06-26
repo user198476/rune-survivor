@@ -290,61 +290,144 @@ function drawBossLasers() {
         ctx.translate(laser.x, laser.y);
         ctx.rotate(laser.angle);
 
-        if (laser.warning > 0) {
-            const progress = 1 - laser.warning / BOSS_LASER_WARNING_DURATION;
-            const warningWidth = 10 + progress * BOSS_LASER_WIDTH;
+        if (laser.state === "warning") {
+            const pulse = 0.45 + Math.sin(gameTime * 24) * 0.18;
+            const warningProgress = 1 - laser.warningTimer / BOSS_LASER_WARNING_DURATION;
 
-            ctx.globalAlpha = 0.25 + progress * 0.35;
-            ctx.strokeStyle = laser.color;
-            ctx.lineWidth = warningWidth;
-            ctx.setLineDash([26, 16]);
-            ctx.shadowColor = laser.color;
-            ctx.shadowBlur = 22;
-
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(BOSS_LASER_LENGTH, 0);
-            ctx.stroke();
-
-            ctx.globalAlpha = 0.9;
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(0, 0, 8 + progress * 8, 0, Math.PI * 2);
-            ctx.fill();
-        } else {
-            ctx.globalAlpha = 0.95;
-            ctx.strokeStyle = laser.color;
-            ctx.lineWidth = BOSS_LASER_WIDTH;
-            ctx.shadowColor = laser.color;
-            ctx.shadowBlur = 38;
-
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(BOSS_LASER_LENGTH, 0);
-            ctx.stroke();
-
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = Math.max(8, BOSS_LASER_WIDTH * 0.32);
-            ctx.shadowColor = "#ffffff";
+            ctx.globalAlpha = 0.25 + warningProgress * 0.45;
+            ctx.strokeStyle = "#ff4d8d";
+            ctx.lineWidth = laser.width * 0.35;
+            ctx.shadowColor = "#ff4d8d";
             ctx.shadowBlur = 18;
 
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(BOSS_LASER_LENGTH, 0);
+            ctx.lineTo(laser.length, 0);
             ctx.stroke();
 
-            ctx.globalAlpha = 0.45;
-            ctx.strokeStyle = laser.color;
-            ctx.lineWidth = BOSS_LASER_WIDTH * 1.7;
-            ctx.shadowBlur = 0;
+            ctx.globalAlpha = pulse;
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
 
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(BOSS_LASER_LENGTH, 0);
+            ctx.lineTo(laser.length, 0);
             ctx.stroke();
+        } else {
+            ctx.globalAlpha = 0.92;
+            ctx.fillStyle = "rgba(255, 77, 141, 0.72)";
+            ctx.shadowColor = "#ff4d8d";
+            ctx.shadowBlur = 26;
+
+            ctx.fillRect(
+                0,
+                -laser.width / 2,
+                laser.length,
+                laser.width
+            );
+
+            ctx.globalAlpha = 0.95;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.78)";
+
+            ctx.fillRect(
+                0,
+                -laser.width * 0.14,
+                laser.length,
+                laser.width * 0.28
+            );
         }
 
         ctx.restore();
     }
+}
+
+function drawBossWallStrikes() {
+    for (const strike of bossWallStrikes) {
+        const isWarning = strike.state === "warning";
+
+        const alpha = isWarning
+            ? 0.22 + Math.sin(gameTime * 22) * 0.08
+            : 0.62;
+
+        const color = isWarning
+            ? "rgba(168, 85, 247, 0.45)"
+            : "rgba(168, 85, 247, 0.82)";
+
+        ctx.save();
+
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.shadowColor = "#a855f7";
+        ctx.shadowBlur = isWarning ? 18 : 34;
+
+        if (strike.wall === "left") {
+            ctx.fillRect(0, 0, BOSS_WALL_DANGER_MARGIN, GAME_HEIGHT);
+        }
+
+        if (strike.wall === "right") {
+            ctx.fillRect(
+                GAME_WIDTH - BOSS_WALL_DANGER_MARGIN,
+                0,
+                BOSS_WALL_DANGER_MARGIN,
+                GAME_HEIGHT
+            );
+        }
+
+        if (strike.wall === "top") {
+            ctx.fillRect(0, 0, GAME_WIDTH, BOSS_WALL_DANGER_MARGIN);
+        }
+
+        if (strike.wall === "bottom") {
+            ctx.fillRect(
+                0,
+                GAME_HEIGHT - BOSS_WALL_DANGER_MARGIN,
+                GAME_WIDTH,
+                BOSS_WALL_DANGER_MARGIN
+            );
+        }
+
+        ctx.restore();
+
+        drawBossWallStrikeRunes(strike, isWarning);
+    }
+}
+
+function drawBossWallStrikeRunes(strike, isWarning) {
+    ctx.save();
+
+    ctx.globalAlpha = isWarning
+        ? 0.55 + Math.sin(gameTime * 18) * 0.18
+        : 0.95;
+
+    ctx.fillStyle = "#e9d5ff";
+    ctx.font = "bold 22px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "#a855f7";
+    ctx.shadowBlur = 16;
+
+    const spacing = 82;
+    const rune = "✦";
+
+    if (strike.wall === "left" || strike.wall === "right") {
+        const x = strike.wall === "left"
+            ? BOSS_WALL_DANGER_MARGIN / 2
+            : GAME_WIDTH - BOSS_WALL_DANGER_MARGIN / 2;
+
+        for (let y = 55; y < GAME_HEIGHT; y += spacing) {
+            ctx.fillText(rune, x, y);
+        }
+    }
+
+    if (strike.wall === "top" || strike.wall === "bottom") {
+        const y = strike.wall === "top"
+            ? BOSS_WALL_DANGER_MARGIN / 2
+            : GAME_HEIGHT - BOSS_WALL_DANGER_MARGIN / 2;
+
+        for (let x = 55; x < GAME_WIDTH; x += spacing) {
+            ctx.fillText(rune, x, y);
+        }
+    }
+
+    ctx.restore();
 }

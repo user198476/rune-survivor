@@ -9,6 +9,7 @@ function render() {
 
     drawRoyalSlimeAura();
     drawBossDangerZones();
+    drawBossWallStrikes();
 
     drawGems();
     drawPowerUps();

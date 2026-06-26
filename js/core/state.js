@@ -23,6 +23,7 @@ let currentBoss = null;
 let bossDangerZones = [];
 let bossLasers = [];
 let bossMissiles = [];
+let bossWallStrikes = [];
 
 let enemyGrid = new Map();
 const enemySpriteCache = new Map();

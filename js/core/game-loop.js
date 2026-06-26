@@ -94,6 +94,7 @@ function resetGame() {
     bossLasers = [];
     bossPullTimer = 0;
     bossMissiles = [];
+    bossWallStrikes = [];
 
     // objet player (player object)
     player = {
