@@ -346,18 +346,18 @@ function drawBossWallStrikes() {
         const isWarning = strike.state === "warning";
 
         const alpha = isWarning
-            ? 0.22 + Math.sin(gameTime * 22) * 0.08
-            : 0.62;
+            ? 0.24 + Math.sin(gameTime * 22) * 0.08
+            : 0.66;
 
         const color = isWarning
-            ? "rgba(168, 85, 247, 0.45)"
-            : "rgba(168, 85, 247, 0.82)";
+            ? "rgba(170, 247, 55, 0.45)"
+            : "rgba(170, 247, 55, 0.82)";
 
         ctx.save();
 
         ctx.globalAlpha = alpha;
         ctx.fillStyle = color;
-        ctx.shadowColor = "#a855f7";
+        ctx.shadowColor = "#aaf737";
         ctx.shadowBlur = isWarning ? 18 : 34;
 
         if (strike.wall === "left") {
@@ -399,11 +399,11 @@ function drawBossWallStrikeRunes(strike, isWarning) {
         ? 0.55 + Math.sin(gameTime * 18) * 0.18
         : 0.95;
 
-    ctx.fillStyle = "#e9d5ff";
+    ctx.fillStyle = "#f2ffd0";
     ctx.font = "bold 22px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.shadowColor = "#a855f7";
+    ctx.shadowColor = "#aaf737";
     ctx.shadowBlur = 16;
 
     const spacing = 82;

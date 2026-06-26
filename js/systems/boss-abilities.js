@@ -565,20 +565,31 @@ function updateRuneBruteWallPressure(dt) {
 }
 
 function getPlayerDangerWall() {
-    if (player.x <= BOSS_WALL_DANGER_MARGIN) {
-        return "left";
-    }
+    const distances = [
+        {
+            wall: "left",
+            distance: player.x
+        },
+        {
+            wall: "right",
+            distance: GAME_WIDTH - player.x
+        },
+        {
+            wall: "top",
+            distance: player.y
+        },
+        {
+            wall: "bottom",
+            distance: GAME_HEIGHT - player.y
+        }
+    ];
 
-    if (player.x >= GAME_WIDTH - BOSS_WALL_DANGER_MARGIN) {
-        return "right";
-    }
+    distances.sort((a, b) => a.distance - b.distance);
 
-    if (player.y <= BOSS_WALL_DANGER_MARGIN) {
-        return "top";
-    }
+    const closestWall = distances[0];
 
-    if (player.y >= GAME_HEIGHT - BOSS_WALL_DANGER_MARGIN) {
-        return "bottom";
+    if (closestWall.distance <= BOSS_WALL_DANGER_MARGIN) {
+        return closestWall.wall;
     }
 
     return null;
@@ -642,7 +653,7 @@ function applyBossWallStrike(strike) {
         player.x,
         player.y - player.radius - 28,
         "MUR RUNIQUE",
-        "#a855f7"
+        "#aaf737"
     );
 }
 
