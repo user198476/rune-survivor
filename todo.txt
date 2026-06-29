@@ -44,3 +44,5 @@ choix entre 3 récompenses spéciales
 - Pour le concept de rune legendaire, 4eme card avec contour ultra legendaire et apparait tous les 5 niveaux
 
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
+
+- BUG: si on prend la rune légendaire triple écho et qu'on a pas de clone actif il se passe rien
