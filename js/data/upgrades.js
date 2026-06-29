@@ -88,6 +88,8 @@ const upgrades = [{
     }
 }, {
     id: "guardian_orb_damage",
+    legendaryUpgradeFor: "legendary_guardian_orb",
+    rarity: "legendary-upgrade",
     icon: "☉",
     title: "Orbe renforcé",
     description: "+25% dégâts de l’Orbe gardien.",
@@ -98,17 +100,14 @@ const upgrades = [{
     apply() {
         player.guardianOrbDamageLevel = (player.guardianOrbDamageLevel || 0) + 1;
 
-        addFloatingText(
-            player.x,
-            player.y - player.radius - 38,
-            "ORBE +DÉGÂTS",
-            "#ffd86b"
-        );
-
+        addFloatingText(player.x, player.y - player.radius - 38, "ORBE +DÉGÂTS", "#ffd86b");
         createParticles(player.x, player.y, 42, "#ffd86b", 2.4);
     }
-}, {
+},
+{
     id: "guardian_orb_speed",
+    legendaryUpgradeFor: "legendary_guardian_orb",
+    rarity: "legendary-upgrade",
     icon: "◌",
     title: "Orbe accéléré",
     description: "+18% vitesse de rotation de l’Orbe gardien.",
@@ -119,17 +118,14 @@ const upgrades = [{
     apply() {
         player.guardianOrbSpeedLevel = (player.guardianOrbSpeedLevel || 0) + 1;
 
-        addFloatingText(
-            player.x,
-            player.y - player.radius - 38,
-            "ORBE +VITESSE",
-            "#ffd86b"
-        );
-
+        addFloatingText(player.x, player.y - player.radius - 38, "ORBE +VITESSE", "#ffd86b");
         createParticles(player.x, player.y, 42, "#ffd86b", 2.4);
     }
-}, {
+},
+{
     id: "guardian_orb_count",
+    legendaryUpgradeFor: "legendary_guardian_orb",
+    rarity: "legendary-upgrade",
     icon: "☉+",
     title: "Orbe supplémentaire",
     description: "+1 Orbe gardien autour de toi.",
@@ -143,13 +139,7 @@ const upgrades = [{
             (player.guardianOrbCount || 1) + 1
         );
 
-        addFloatingText(
-            player.x,
-            player.y - player.radius - 38,
-            "+1 ORBE",
-            "#ffd86b"
-        );
-
+        addFloatingText(player.x, player.y - player.radius - 38, "+1 ORBE", "#ffd86b");
         createParticles(player.x, player.y, 58, "#ffd86b", 2.8);
     }
 }];

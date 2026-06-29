@@ -152,7 +152,8 @@ function resetGame() {
         astralRainUnlocked: false,
         astralRainTimer: ASTRAL_RAIN_INTERVAL,
         tripleEchoTimer: 0,
-        tripleEchoClones: []
+        tripleEchoClones: [],
+        tripleEchoUnlocked: false
     };
     applyPermanentBonusesToPlayer();
     enemies = [];

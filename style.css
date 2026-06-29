@@ -256,6 +256,16 @@ body {
     0 0 34px rgba(255, 95, 117, 0.28);
 }
 
+.upgrade-cards.has-five-cards {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 1220px;
+  gap: 16px;
+}
+
+.upgrade-cards.has-five-cards .upgrade-card {
+  min-width: 0;
+}
+
 .game-over-box {
   width: min(480px, 90vw);
   padding: 36px;
@@ -270,6 +280,7 @@ body {
     rgba(16, 13, 38, 0.95);
   box-shadow: 0 0 50px rgba(125, 88, 255, 0.35);
 }
+
 #restartButton {
   margin-top: 18px;
   padding: 14px 26px;

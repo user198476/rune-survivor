@@ -278,6 +278,7 @@ function updateLegendaryRunes(dt) {
 function activateTripleEcho() {
     player.tripleEchoTimer = TRIPLE_ECHO_DURATION;
     player.tripleEchoClones = [];
+    player.tripleEchoUnlocked = true;
 
     const angleA = player.aimAngle + Math.PI / 2;
     const angleB = player.aimAngle - Math.PI / 2;

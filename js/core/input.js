@@ -25,9 +25,11 @@ function handleKeyDown(event) {
     }
 
     if (state === "levelup") {
-        if (key === "1") chooseUpgrade(0);
-        if (key === "2") chooseUpgrade(1);
-        if (key === "3") chooseUpgrade(2);
+        if (event.key === "1") chooseUpgrade(0);
+        if (event.key === "2") chooseUpgrade(1);
+        if (event.key === "3") chooseUpgrade(2);
+        if (event.key === "4") chooseUpgrade(3);
+        if (event.key === "5") chooseUpgrade(4);
     }
 
     if (state === "gameover" && key === "r") {

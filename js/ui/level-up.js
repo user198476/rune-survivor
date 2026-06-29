@@ -1,27 +1,33 @@
 function showLevelUp() {
     state = "levelup";
 
-    currentUpgrades = getRandomUpgrades(3);
+    const normalUpgrades = getRandomNormalUpgrades(3);
+    const legendaryImprovementUpgrades = getRandomLegendaryImprovementUpgrades(2);
 
-    const legendaryUpgrade = getRandomLegendaryUpgrade();
-
-    if (legendaryUpgrade) {
-        currentUpgrades.push(legendaryUpgrade);
-    }
+    currentUpgrades = [
+        ...normalUpgrades,
+        ...legendaryImprovementUpgrades
+    ];
 
     upgradeCards.innerHTML = "";
-    upgradeCards.classList.toggle("has-legendary", !!legendaryUpgrade);
+
+    const hasLegendaryCards = legendaryImprovementUpgrades.length > 0;
+
+    upgradeCards.classList.toggle("has-legendary", hasLegendaryCards);
+    upgradeCards.classList.toggle("has-five-cards", currentUpgrades.length >= 5);
 
     currentUpgrades.forEach((upgrade, index) => {
         const isLegendary = upgrade.rarity === "legendary";
+        const isLegendaryUpgrade = upgrade.rarity === "legendary-upgrade";
 
         const card = document.createElement("button");
-        card.className = isLegendary
+
+        card.className = isLegendary || isLegendaryUpgrade
             ? "upgrade-card legendary-upgrade-card"
             : "upgrade-card";
 
         card.innerHTML = `
-            ${isLegendary ? `
+            ${isLegendary || isLegendaryUpgrade ? `
                 <div class="legendary-sparks">
                     <span class="spark spark-1"></span>
                     <span class="spark spark-2"></span>
@@ -30,7 +36,9 @@ function showLevelUp() {
                     <span class="spark spark-5"></span>
                     <span class="spark spark-6"></span>
                 </div>
-                <div class="legendary-card-badge">RUNE LÉGENDAIRE</div>
+                <div class="legendary-card-badge">
+                    ${isLegendaryUpgrade ? "AMÉLIORATION LÉGENDAIRE" : "RUNE LÉGENDAIRE"}
+                </div>
             ` : ""}
 
             <div class="upgrade-icon">${upgrade.icon}</div>
@@ -49,14 +57,75 @@ function showLevelUp() {
     levelUpOverlay.classList.remove("hidden");
 }
 
-function getRandomUpgrades(count) {
-    const pool = upgrades.filter((upgrade) => canUpgradeAppear(upgrade));
-    const selected = [];
-    while (selected.length < count && pool.length > 0) {
-        const index = Math.floor(Math.random() * pool.length);
-        selected.push(pool.splice(index, 1)[0]);
+function getRandomNormalUpgrades(count) {
+    const pool = upgrades.filter((upgrade) => {
+        return !upgrade.legendaryUpgradeFor && canUpgradeAppear(upgrade);
+    });
+
+    return pickRandomUniqueUpgrades(pool, count);
+}
+
+function getRandomLegendaryImprovementUpgrades(maxCount) {
+    const activeLegendaryIds = getActiveLegendaryUpgradeIds();
+
+    if (activeLegendaryIds.length === 0) {
+        return [];
     }
+
+    const selected = [];
+
+    const shuffledLegendaryIds = [...activeLegendaryIds].sort(() => Math.random() - 0.5);
+
+    for (const legendaryId of shuffledLegendaryIds) {
+        if (selected.length >= maxCount) {
+            break;
+        }
+
+        const pool = upgrades.filter((upgrade) => {
+            return upgrade.legendaryUpgradeFor === legendaryId &&
+                canUpgradeAppear(upgrade);
+        });
+
+        if (pool.length === 0) {
+            continue;
+        }
+
+        const picked = pool[Math.floor(Math.random() * pool.length)];
+
+        selected.push(picked);
+    }
+
     return selected;
+}
+
+function pickRandomUniqueUpgrades(pool, count) {
+    const selected = [];
+    const available = [...pool];
+
+    while (selected.length < count && available.length > 0) {
+        const index = Math.floor(Math.random() * available.length);
+        selected.push(available.splice(index, 1)[0]);
+    }
+
+    return selected;
+}
+
+function getActiveLegendaryUpgradeIds() {
+    const active = [];
+
+    if (player.guardianOrbUnlocked) {
+        active.push("legendary_guardian_orb");
+    }
+
+    if (player.astralRainUnlocked) {
+        active.push("legendary_astral_rain");
+    }
+
+    if (player.tripleEchoUnlocked) {
+        active.push("legendary_triple_echo");
+    }
+
+    return active;
 }
 
 function canUpgradeAppear(upgrade) {
