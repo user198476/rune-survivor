@@ -277,10 +277,22 @@ function updateLegendaryRunes(dt) {
 
 function activateTripleEcho() {
     player.tripleEchoTimer = TRIPLE_ECHO_DURATION;
-    player.cloneTimer = 0;
     player.tripleEchoClones = [];
 
-    updateTripleEchoClones(0.016);
+    const angleA = player.aimAngle + Math.PI / 2;
+    const angleB = player.aimAngle - Math.PI / 2;
+
+    player.tripleEchoClones.push({
+        x: player.x + Math.cos(angleA) * TRIPLE_ECHO_OFFSET,
+        y: player.y + Math.sin(angleA) * TRIPLE_ECHO_OFFSET
+    });
+
+    player.tripleEchoClones.push({
+        x: player.x + Math.cos(angleB) * TRIPLE_ECHO_OFFSET,
+        y: player.y + Math.sin(angleB) * TRIPLE_ECHO_OFFSET
+    });
+
+    player.cloneTimer = 0;
 
     addFloatingText(
         player.x,

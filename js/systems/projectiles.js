@@ -5,9 +5,16 @@ function shootAt(target) {
 
     fireProjectileVolley(player.x, player.y, baseAngle, 1, "#59dfff");
 
-    if (player.tripleEchoTimer > 0 && player.tripleEchoClones && player.tripleEchoClones.length > 0) {
+    if (
+        player.tripleEchoTimer > 0 &&
+        player.tripleEchoClones &&
+        player.tripleEchoClones.length > 0
+    ) {
         for (const clone of player.tripleEchoClones) {
-            const cloneAngle = Math.atan2(target.y - clone.y, target.x - clone.x);
+            const cloneAngle = Math.atan2(
+                target.y - clone.y,
+                target.x - clone.x
+            );
 
             fireProjectileVolley(
                 clone.x,
@@ -18,7 +25,10 @@ function shootAt(target) {
             );
         }
     } else if (player.cloneTimer > 0) {
-        const cloneAngle = Math.atan2(target.y - player.cloneY, target.x - player.cloneX);
+        const cloneAngle = Math.atan2(
+            target.y - player.cloneY,
+            target.x - player.cloneX
+        );
 
         fireProjectileVolley(
             player.cloneX,

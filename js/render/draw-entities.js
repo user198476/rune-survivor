@@ -50,12 +50,22 @@ function drawPlayer() {
 }
 
 function drawArcaneClone() {
-    if (player.tripleEchoTimer > 0 && player.tripleEchoClones && player.tripleEchoClones.length > 0) {
+    if (
+        player.tripleEchoTimer > 0 &&
+        player.tripleEchoClones &&
+        player.tripleEchoClones.length > 0
+    ) {
         const fade = Math.min(1, player.tripleEchoTimer / 0.75);
 
         for (const clone of player.tripleEchoClones) {
-            drawCloneLink(clone.x, clone.y, "#d7b4ff", 0.22 * fade);
-            drawCloneBody(clone.x, clone.y, "#d7b4ff", "#26133f", 0.76 * fade);
+            drawCloneLink(clone.x, clone.y, "#d7b4ff", 0.24 * fade);
+            drawCloneBody(
+                clone.x,
+                clone.y,
+                "#d7b4ff",
+                "rgba(58, 24, 94, 0.92)",
+                0.78 * fade
+            );
         }
 
         return;
@@ -68,7 +78,13 @@ function drawArcaneClone() {
     const fade = Math.min(1, player.cloneTimer / 0.75);
 
     drawCloneLink(player.cloneX, player.cloneY, "#b88cff", 0.28 * fade);
-    drawCloneBody(player.cloneX, player.cloneY, "#b88cff", "rgba(66, 42, 120, 0.92)", 0.72 * fade);
+    drawCloneBody(
+        player.cloneX,
+        player.cloneY,
+        "#b88cff",
+        "rgba(66, 42, 120, 0.92)",
+        0.72 * fade
+    );
 }
 
 function drawCloneLink(cloneX, cloneY, color, alpha) {
