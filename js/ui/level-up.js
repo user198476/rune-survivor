@@ -21,7 +21,17 @@ function showLevelUp() {
             : "upgrade-card";
 
         card.innerHTML = `
-            ${isLegendary ? `<div class="legendary-card-badge">RUNE LÉGENDAIRE</div>` : ""}
+            ${isLegendary ? `
+                <div class="legendary-sparks">
+                    <span class="spark spark-1"></span>
+                    <span class="spark spark-2"></span>
+                    <span class="spark spark-3"></span>
+                    <span class="spark spark-4"></span>
+                    <span class="spark spark-5"></span>
+                    <span class="spark spark-6"></span>
+                </div>
+                <div class="legendary-card-badge">RUNE LÉGENDAIRE</div>
+            ` : ""}
 
             <div class="upgrade-icon">${upgrade.icon}</div>
             <h2>${upgrade.title}</h2>

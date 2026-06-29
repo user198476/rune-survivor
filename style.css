@@ -1732,6 +1732,97 @@ body {
     0 0 18px rgba(184, 140, 255, 0.16);
 }
 
+.legendary-sparks {
+  position: absolute;
+  inset: -26px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.legendary-sparks .spark {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+
+  background:
+    radial-gradient(circle, rgba(255, 249, 214, 1) 0%, rgba(255, 216, 107, 0.95) 35%, rgba(255, 216, 107, 0) 75%);
+
+  box-shadow:
+    0 0 8px rgba(255, 216, 107, 0.9),
+    0 0 16px rgba(255, 216, 107, 0.75),
+    0 0 24px rgba(184, 140, 255, 0.35);
+
+  opacity: 0.9;
+  transform-origin: center;
+}
+
+.legendary-sparks .spark::before,
+.legendary-sparks .spark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 216, 107, 0),
+    rgba(255, 248, 220, 0.95),
+    rgba(255, 216, 107, 0)
+  );
+  box-shadow: 0 0 8px rgba(255, 216, 107, 0.7);
+}
+
+.legendary-sparks .spark::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* Positionnement autour de la carte */
+.legendary-sparks .spark-1 {
+  top: 8%;
+  left: 14%;
+  animation: legendarySparkTwinkle 1.8s ease-in-out infinite,
+             legendarySparkFloat1 5.8s ease-in-out infinite;
+}
+
+.legendary-sparks .spark-2 {
+  top: 12%;
+  right: 10%;
+  animation: legendarySparkTwinkle 2.1s ease-in-out infinite 0.2s,
+             legendarySparkFloat2 6.4s ease-in-out infinite;
+}
+
+.legendary-sparks .spark-3 {
+  top: 46%;
+  right: -4px;
+  animation: legendarySparkTwinkle 1.7s ease-in-out infinite 0.45s,
+             legendarySparkFloat3 5.1s ease-in-out infinite;
+}
+
+.legendary-sparks .spark-4 {
+  bottom: 14%;
+  right: 12%;
+  animation: legendarySparkTwinkle 1.95s ease-in-out infinite 0.15s,
+             legendarySparkFloat4 6.2s ease-in-out infinite;
+}
+
+.legendary-sparks .spark-5 {
+  bottom: 10%;
+  left: 8%;
+  animation: legendarySparkTwinkle 1.65s ease-in-out infinite 0.55s,
+             legendarySparkFloat5 5.6s ease-in-out infinite;
+}
+
+.legendary-sparks .spark-6 {
+  top: 52%;
+  left: -6px;
+  animation: legendarySparkTwinkle 2.25s ease-in-out infinite 0.35s,
+             legendarySparkFloat6 6.8s ease-in-out infinite;
+}
+
 @keyframes legendaryBorderRunner {
   0% {
     top: -8px;
@@ -1892,6 +1983,74 @@ body {
       0 0 18px rgba(255, 216, 107, 0.16),
       0 0 34px rgba(184, 140, 255, 0.12);
   }
+}
+
+@keyframes legendarySparkTwinkle {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.55) rotate(0deg);
+    filter: brightness(0.9);
+  }
+
+  20% {
+    opacity: 1;
+    transform: scale(1.15) rotate(45deg);
+    filter: brightness(1.2);
+  }
+
+  45% {
+    opacity: 0.55;
+    transform: scale(0.75) rotate(90deg);
+    filter: brightness(1);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.28) rotate(135deg);
+    filter: brightness(1.35);
+  }
+
+  100% {
+    opacity: 0.2;
+    transform: scale(0.55) rotate(180deg);
+    filter: brightness(0.9);
+  }
+}
+
+@keyframes legendarySparkFloat1 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(10px, -6px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes legendarySparkFloat2 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(-8px, 8px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes legendarySparkFloat3 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(-10px, -4px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes legendarySparkFloat4 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(8px, -8px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes legendarySparkFloat5 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(10px, 4px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes legendarySparkFloat6 {
+  0%   { transform: translate(0, 0); }
+  50%  { transform: translate(6px, -10px); }
+  100% { transform: translate(0, 0); }
 }
 
 .hidden {
