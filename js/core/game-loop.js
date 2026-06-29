@@ -151,6 +151,9 @@ function resetGame() {
         guardianOrbSpeedLevel: 0,
         astralRainUnlocked: false,
         astralRainTimer: ASTRAL_RAIN_INTERVAL,
+        astralRainDamageLevel: 0,
+        astralRainCooldownLevel: 0,
+        astralRainStrikeLevel: 0,
         tripleEchoTimer: 0,
         tripleEchoClones: [],
         tripleEchoUnlocked: false

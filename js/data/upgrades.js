@@ -142,6 +142,80 @@ const upgrades = [{
         addFloatingText(player.x, player.y - player.radius - 38, "+1 ORBE", "#ffd86b");
         createParticles(player.x, player.y, 58, "#ffd86b", 2.8);
     }
+}, {
+    id: "astral_rain_damage",
+    legendaryUpgradeFor: "legendary_astral_rain",
+    rarity: "legendary-upgrade",
+    icon: "☄",
+    title: "Comètes renforcées",
+    description: "+25% dégâts de la Pluie astrale.",
+    canAppear() {
+        return player.astralRainUnlocked &&
+            (player.astralRainDamageLevel || 0) < ASTRAL_RAIN_DAMAGE_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.astralRainDamageLevel = (player.astralRainDamageLevel || 0) + 1;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "ASTRAL +DÉGÂTS",
+            "#9ee7ff"
+        );
+
+        createParticles(player.x, player.y, 46, "#9ee7ff", 2.5);
+    }
+}, {
+    id: "astral_rain_cooldown",
+    legendaryUpgradeFor: "legendary_astral_rain",
+    rarity: "legendary-upgrade",
+    icon: "⌛",
+    title: "Ciel instable",
+    description: "-2s de délai entre deux Pluies astrales.",
+    canAppear() {
+        return player.astralRainUnlocked &&
+            (player.astralRainCooldownLevel || 0) < ASTRAL_RAIN_COOLDOWN_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.astralRainCooldownLevel = (player.astralRainCooldownLevel || 0) + 1;
+
+        player.astralRainTimer = Math.min(
+            player.astralRainTimer,
+            getAstralRainInterval()
+        );
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "ASTRAL +FRÉQUENCE",
+            "#9ee7ff"
+        );
+
+        createParticles(player.x, player.y, 46, "#9ee7ff", 2.5);
+    }
+}, {
+    id: "astral_rain_strikes",
+    legendaryUpgradeFor: "legendary_astral_rain",
+    rarity: "legendary-upgrade",
+    icon: "✦+",
+    title: "Averse astrale",
+    description: "+1 frappe à chaque Pluie astrale.",
+    canAppear() {
+        return player.astralRainUnlocked &&
+            (player.astralRainStrikeLevel || 0) < ASTRAL_RAIN_STRIKE_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.astralRainStrikeLevel = (player.astralRainStrikeLevel || 0) + 1;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "ASTRAL +FRAPPES",
+            "#9ee7ff"
+        );
+
+        createParticles(player.x, player.y, 58, "#9ee7ff", 2.8);
+    }
 }];
 
 const legendaryUpgrades = [{
@@ -182,6 +256,10 @@ const legendaryUpgrades = [{
     apply() {
         player.astralRainUnlocked = true;
         player.astralRainTimer = 1.2;
+
+        player.astralRainDamageLevel = player.astralRainDamageLevel || 0;
+        player.astralRainCooldownLevel = player.astralRainCooldownLevel || 0;
+        player.astralRainStrikeLevel = player.astralRainStrikeLevel || 0;
 
         addFloatingText(
             player.x,

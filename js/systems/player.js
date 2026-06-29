@@ -423,7 +423,7 @@ function updateAstralRain(dt) {
 
         if (player.astralRainTimer <= 0) {
             spawnAstralRain();
-            player.astralRainTimer = ASTRAL_RAIN_INTERVAL;
+            player.astralRainTimer = getAstralRainInterval();
         }
     }
 
@@ -435,7 +435,9 @@ function spawnAstralRain() {
         return enemy && !enemy.dead && enemy.type !== "hordeBomb";
     });
 
-    for (let i = 0; i < ASTRAL_RAIN_STRIKE_COUNT; i++) {
+    const strikeCount = ASTRAL_RAIN_STRIKE_COUNT + (player.astralRainStrikeLevel || 0) * ASTRAL_RAIN_STRIKE_UPGRADE_BONUS;
+
+    for (let i = 0; i < strikeCount; i++) {
         let x;
         let y;
 
@@ -504,7 +506,9 @@ function applyAstralStrikeDamage(strike) {
 
     strike.damaged = true;
 
-    const damage = player.damage * player.damageMultiplier * ASTRAL_RAIN_DAMAGE_RATIO;
+    const damageMultiplier = 1 + (player.astralRainDamageLevel || 0) * ASTRAL_RAIN_DAMAGE_UPGRADE_BONUS;
+    const damage = player.damage * player.damageMultiplier * ASTRAL_RAIN_DAMAGE_RATIO * damageMultiplier;
+    
     const radiusSq = strike.radius * strike.radius;
 
     for (const enemy of enemies) {
@@ -560,4 +564,13 @@ function damageEnemyFromLegendary(enemy, damage, hitX, hitY, color, label) {
             enemy.isBoss ? 2.4 : 1.7
         );
     }
+}
+
+function getAstralRainInterval() {
+    const cooldownLevel = player.astralRainCooldownLevel || 0;
+
+    return Math.max(
+        ASTRAL_RAIN_MIN_INTERVAL,
+        ASTRAL_RAIN_INTERVAL - cooldownLevel * ASTRAL_RAIN_COOLDOWN_UPGRADE_REDUCTION
+    );
 }
