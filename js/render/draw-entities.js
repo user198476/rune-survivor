@@ -501,7 +501,7 @@ function drawGuardianOrb() {
         return;
     }
 
-    const orb = getGuardianOrbPosition();
+    const orbCount = Math.max(1, player.guardianOrbCount || 1);
 
     ctx.save();
 
@@ -516,24 +516,28 @@ function drawGuardianOrb() {
 
     ctx.restore();
 
-    ctx.save();
+    for (let i = 0; i < orbCount; i++) {
+        const orb = getGuardianOrbPosition(i, orbCount);
 
-    ctx.translate(orb.x, orb.y);
+        ctx.save();
 
-    ctx.shadowColor = "#ffd86b";
-    ctx.shadowBlur = 24;
+        ctx.translate(orb.x, orb.y);
 
-    ctx.fillStyle = "#ffd86b";
-    ctx.beginPath();
-    ctx.arc(0, 0, GUARDIAN_ORB_RADIUS, 0, Math.PI * 2);
-    ctx.fill();
+        ctx.shadowColor = "#ffd86b";
+        ctx.shadowBlur = 24;
 
-    ctx.fillStyle = "#fff7c2";
-    ctx.beginPath();
-    ctx.arc(-3, -3, GUARDIAN_ORB_RADIUS * 0.42, 0, Math.PI * 2);
-    ctx.fill();
+        ctx.fillStyle = "#ffd86b";
+        ctx.beginPath();
+        ctx.arc(0, 0, GUARDIAN_ORB_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
 
-    ctx.restore();
+        ctx.fillStyle = "#fff7c2";
+        ctx.beginPath();
+        ctx.arc(-3, -3, GUARDIAN_ORB_RADIUS * 0.42, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
 }
 
 function drawAstralStrikes() {

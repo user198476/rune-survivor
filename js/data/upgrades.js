@@ -86,7 +86,74 @@ const upgrades = [{
     apply() {
         activateArcaneClone();
     }
+}, {
+    id: "guardian_orb_damage",
+    icon: "☉",
+    title: "Orbe renforcé",
+    description: "+25% dégâts de l’Orbe gardien.",
+    canAppear() {
+        return player.guardianOrbUnlocked &&
+            (player.guardianOrbDamageLevel || 0) < GUARDIAN_ORB_DAMAGE_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.guardianOrbDamageLevel = (player.guardianOrbDamageLevel || 0) + 1;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "ORBE +DÉGÂTS",
+            "#ffd86b"
+        );
+
+        createParticles(player.x, player.y, 42, "#ffd86b", 2.4);
+    }
+}, {
+    id: "guardian_orb_speed",
+    icon: "◌",
+    title: "Orbe accéléré",
+    description: "+18% vitesse de rotation de l’Orbe gardien.",
+    canAppear() {
+        return player.guardianOrbUnlocked &&
+            (player.guardianOrbSpeedLevel || 0) < GUARDIAN_ORB_SPEED_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.guardianOrbSpeedLevel = (player.guardianOrbSpeedLevel || 0) + 1;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "ORBE +VITESSE",
+            "#ffd86b"
+        );
+
+        createParticles(player.x, player.y, 42, "#ffd86b", 2.4);
+    }
+}, {
+    id: "guardian_orb_count",
+    icon: "☉+",
+    title: "Orbe supplémentaire",
+    description: "+1 Orbe gardien autour de toi.",
+    canAppear() {
+        return player.guardianOrbUnlocked &&
+            (player.guardianOrbCount || 1) < GUARDIAN_ORB_MAX_COUNT;
+    },
+    apply() {
+        player.guardianOrbCount = Math.min(
+            GUARDIAN_ORB_MAX_COUNT,
+            (player.guardianOrbCount || 1) + 1
+        );
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "+1 ORBE",
+            "#ffd86b"
+        );
+
+        createParticles(player.x, player.y, 58, "#ffd86b", 2.8);
+    }
 }];
+
 const legendaryUpgrades = [{
     id: "legendary_guardian_orb",
     rarity: "legendary",
@@ -99,6 +166,10 @@ const legendaryUpgrades = [{
     apply() {
         player.guardianOrbUnlocked = true;
         player.guardianOrbAngle = 0;
+
+        player.guardianOrbCount = Math.max(1, player.guardianOrbCount || 1);
+        player.guardianOrbDamageLevel = player.guardianOrbDamageLevel || 0;
+        player.guardianOrbSpeedLevel = player.guardianOrbSpeedLevel || 0;
 
         addFloatingText(
             player.x,

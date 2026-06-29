@@ -356,44 +356,59 @@ function updateGuardianOrb(dt) {
         return;
     }
 
-    player.guardianOrbAngle += GUARDIAN_ORB_SPEED * dt;
+    const speedMultiplier =
+        1 + (player.guardianOrbSpeedLevel || 0) * GUARDIAN_ORB_SPEED_UPGRADE_BONUS;
 
-    const orb = getGuardianOrbPosition();
+    player.guardianOrbAngle += GUARDIAN_ORB_SPEED * speedMultiplier * dt;
 
-    for (const enemy of enemies) {
-        if (!enemy || enemy.dead) {
-            continue;
-        }
+    const orbCount = Math.max(1, player.guardianOrbCount || 1);
 
-        enemy.guardianOrbCooldown = Math.max(
-            0,
-            (enemy.guardianOrbCooldown || 0) - dt
-        );
+    for (let i = 0; i < orbCount; i++) {
+        const orb = getGuardianOrbPosition(i, orbCount);
 
-        const dx = enemy.x - orb.x;
-        const dy = enemy.y - orb.y;
-        const hitRadius = enemy.radius + GUARDIAN_ORB_RADIUS;
+        for (const enemy of enemies) {
+            if (!enemy || enemy.dead) {
+                continue;
+            }
 
-        if (
-            dx * dx + dy * dy <= hitRadius * hitRadius &&
-            enemy.guardianOrbCooldown <= 0
-        ) {
-            enemy.guardianOrbCooldown = GUARDIAN_ORB_HIT_COOLDOWN;
-
-            damageEnemyFromLegendary(
-                enemy,
-                player.damage * player.damageMultiplier * GUARDIAN_ORB_DAMAGE_RATIO,
-                orb.x,
-                orb.y,
-                "#ffd86b",
-                "ORBE"
+            enemy.guardianOrbCooldown = Math.max(
+                0,
+                (enemy.guardianOrbCooldown || 0) - dt
             );
+
+            const dx = enemy.x - orb.x;
+            const dy = enemy.y - orb.y;
+            const hitRadius = enemy.radius + GUARDIAN_ORB_RADIUS;
+
+            if (
+                dx * dx + dy * dy <= hitRadius * hitRadius &&
+                enemy.guardianOrbCooldown <= 0
+            ) {
+                enemy.guardianOrbCooldown = GUARDIAN_ORB_HIT_COOLDOWN;
+
+                const damageMultiplier =
+                    1 + (player.guardianOrbDamageLevel || 0) * GUARDIAN_ORB_DAMAGE_UPGRADE_BONUS;
+
+                damageEnemyFromLegendary(
+                    enemy,
+                    player.damage *
+                        player.damageMultiplier *
+                        GUARDIAN_ORB_DAMAGE_RATIO *
+                        damageMultiplier,
+                    orb.x,
+                    orb.y,
+                    "#ffd86b",
+                    "ORBE"
+                );
+            }
         }
     }
 }
 
-function getGuardianOrbPosition() {
-    const angle = player.guardianOrbAngle || 0;
+function getGuardianOrbPosition(index = 0, total = 1) {
+    const baseAngle = player.guardianOrbAngle || 0;
+    const offset = (Math.PI * 2 * index) / total;
+    const angle = baseAngle + offset;
 
     return {
         x: player.x + Math.cos(angle) * GUARDIAN_ORB_ORBIT_RADIUS,
