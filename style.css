@@ -256,10 +256,24 @@ body {
     0 0 34px rgba(255, 95, 117, 0.28);
 }
 
+.level-card-wrapper {
+  width: min(96vw, 1380px);
+}
+
 .upgrade-cards.has-five-cards {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  max-width: 1220px;
+  display: grid;
+  grid-template-columns: repeat(5, 200px);
+  justify-content: center;
+  align-items: stretch;
+
+  width: 100%;
+  max-width: none;
   gap: 16px;
+}
+
+.upgrade-cards.has-five-cards .upgrade-card {
+  width: 200px;
+  min-width: 0;
 }
 
 .upgrade-cards.has-five-cards .upgrade-card {

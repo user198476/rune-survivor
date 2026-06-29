@@ -42,3 +42,5 @@ choix entre 3 récompenses spéciales
 - Pour le boss 4, basé sur le mob coward + il se clones
 
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
+
+- Un vrai menu comme DBD avec a gauche de haut en bas TITRE et List avec Jouer, Profil (skins, backgrounds, couleurs tirs, etc), Options, Dev (menu boss acces directs) Quit (fermer l'onglet)
