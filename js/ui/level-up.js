@@ -2,16 +2,16 @@ function showLevelUp() {
     state = "levelup";
 
     const normalUpgrades = getRandomNormalUpgrades(3);
-    const legendaryImprovementUpgrades = getRandomLegendaryImprovementUpgrades(2);
+    const legendaryCards = getLegendaryCardsForLevelUp(2);
 
     currentUpgrades = [
         ...normalUpgrades,
-        ...legendaryImprovementUpgrades
+        ...legendaryCards
     ];
 
     upgradeCards.innerHTML = "";
 
-    const hasLegendaryCards = legendaryImprovementUpgrades.length > 0;
+    const hasLegendaryCards = legendaryCards.length > 0;
 
     upgradeCards.classList.toggle("has-legendary", hasLegendaryCards);
     upgradeCards.classList.toggle("has-five-cards", currentUpgrades.length >= 5);
@@ -173,4 +173,24 @@ function getRandomLegendaryUpgrade() {
     const index = Math.floor(Math.random() * pool.length);
 
     return pool[index];
+}
+
+function getLegendaryCardsForLevelUp(maxCount) {
+    const selected = [];
+
+    const newLegendaryUpgrade = getRandomLegendaryUpgrade();
+
+    if (newLegendaryUpgrade) {
+        selected.push(newLegendaryUpgrade);
+    }
+
+    const remainingSlots = maxCount - selected.length;
+
+    if (remainingSlots > 0) {
+        const legendaryImprovementUpgrades = getRandomLegendaryImprovementUpgrades(remainingSlots);
+
+        selected.push(...legendaryImprovementUpgrades);
+    }
+
+    return selected;
 }
