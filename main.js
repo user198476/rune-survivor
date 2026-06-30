@@ -29,37 +29,63 @@ function loadGameVersion() {
 }
 
 function bindMenuButtons() {
-    playButton.addEventListener("click", startGame);
-    restartButton.addEventListener("click", startGame);
-    resumeButton.addEventListener("click", resumeGame);
+    playButton?.addEventListener("click", startGame);
+    restartButton?.addEventListener("click", startGame);
+    resumeButton?.addEventListener("click", resumeGame);
 
-    openSkillTreeButton.addEventListener("click", () => openSkillTree("menu"));
-    pauseSkillTreeButton.addEventListener("click", () => openSkillTree("paused"));
-    gameOverSkillTreeButton.addEventListener("click", () => openSkillTree("gameover"));
-    closeSkillTreeButton.addEventListener("click", closeSkillTree);
-    skillTierPreviousButton.addEventListener("click", selectPreviousSkillTier);
-    skillTierNextButton.addEventListener("click", selectNextSkillTier); 
-    resetProgressionButton.addEventListener("click", openResetProgressionModal);
-    cancelResetProgressionButton.addEventListener("click", closeResetProgressionModal);
-    confirmResetProgressionButton.addEventListener("click", confirmResetProgression);
-    skillTreeStatsToggleButton.addEventListener("click", toggleSkillStatsPopover);
+    openSkillTreeButton?.addEventListener("click", () => openSkillTree("menu"));
+    pauseSkillTreeButton?.addEventListener("click", () => openSkillTree("paused"));
+    gameOverSkillTreeButton?.addEventListener("click", () => openSkillTree("gameover"));
+    closeSkillTreeButton?.addEventListener("click", closeSkillTree);
+
+    skillTierPreviousButton?.addEventListener("click", selectPreviousSkillTier);
+    skillTierNextButton?.addEventListener("click", selectNextSkillTier);
+
+    resetProgressionButton?.addEventListener("click", openResetProgressionModal);
+    cancelResetProgressionButton?.addEventListener("click", closeResetProgressionModal);
+    confirmResetProgressionButton?.addEventListener("click", confirmResetProgression);
+
+    skillTreeStatsToggleButton?.addEventListener("click", toggleSkillStatsPopover);
+
+    profileMenuButton?.addEventListener("click", () => {
+        alert("Menu Profil bientôt disponible.");
+    });
+
+    optionsMenuButton?.addEventListener("click", () => {
+        alert("Menu Options bientôt disponible.");
+    });
+
+    devMenuButton?.addEventListener("click", () => {
+        if (DEBUG_BOSS_TEST_ENABLED && bossTestPanel) {
+            bossTestPanel.classList.toggle("hidden");
+            return;
+        }
+    });
+
+    quitGameButton?.addEventListener("click", () => {
+        window.close();
+
+        setTimeout(() => {
+            alert("Si l’onglet ne se ferme pas automatiquement, ferme-le manuellement.");
+        }, 120);
+    });
+
+    if (bossTestPanel) {
+        bossTestPanel.classList.toggle("hidden", !DEBUG_BOSS_TEST_ENABLED);
+    }
 
     if (DEBUG_BOSS_TEST_ENABLED) {
-        bossTestPanel.classList.remove("hidden");
-
-        testBoss1Button.addEventListener("click", () => {
+        testBoss1Button?.addEventListener("click", () => {
             startBossTest("royal_slime");
         });
 
-        testBoss2Button.addEventListener("click", () => {
+        testBoss2Button?.addEventListener("click", () => {
             startBossTest("blood_bat");
         });
 
-        testBoss3Button.addEventListener("click", () => {
+        testBoss3Button?.addEventListener("click", () => {
             startBossTest("rune_brute");
         });
-    } else {
-        bossTestPanel.classList.add("hidden");
     }
 
     window.addEventListener("beforeunload", () => {

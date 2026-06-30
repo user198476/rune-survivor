@@ -9,56 +9,100 @@
   <body>
     <div id="game-wrapper">
       <canvas id="gameCanvas" width="1280" height="720"></canvas>
-      <div id="mainMenuOverlay" class="overlay">
-        <div class="main-menu-box">
-          <h1>Rune Survivor</h1>
-          <p>Survis aux vagues de créatures et absorbe les cristaux d’XP.</p>
-          <div class="main-menu-actions">
-            <button id="playButton">Jouer</button>
-            <button id="openSkillTreeButton" class="secondary-menu-button"> Arbre de compétences </button>
-          </div>
-          <div id="bossTestPanel" class="boss-test-panel">
-            <div class="boss-test-title">Mode test boss</div>
+      <div id="mainMenuOverlay" class="overlay menu-overlay">
+        <div class="menu-background-image"></div>
+        <div class="menu-background-tint"></div>
 
-            <div class="boss-test-actions">
-              <button id="testBoss1Button">Boss 1</button>
-              <button id="testBoss2Button">Boss 2</button>
-              <button id="testBoss3Button">Boss 3</button>
-            </div>
-          </div>
-          <div class="menu-currency"> Pièces : <strong id="menuCoinsText">0</strong>
-          </div>
-          <div class="menu-controls"> ZQSD / WASD / Flèches pour bouger <br /> Le tir est automatique </div>
+        <div class="menu-floating-particles">
+          <span class="particle particle-1"></span>
+          <span class="particle particle-2"></span>
+          <span class="particle particle-3"></span>
+          <span class="particle particle-4"></span>
+          <span class="particle particle-5"></span>
+          <span class="particle particle-6"></span>
+          <span class="particle particle-7"></span>
+          <span class="particle particle-8"></span>
+          <span class="particle particle-9"></span>
+          <span class="particle particle-10"></span>
         </div>
-        <button id="resetProgressionButton" class="reset-progression-button">
-          Réinitialiser la progression
-        </button>
-        <div id="resetProgressionModal" class="reset-progression-modal hidden">
-          <div class="reset-progression-box">
-            <h2>Réinitialiser la progression ?</h2>
 
-            <p>
-              Cette action supprimera les pièces, les compétences et la progression permanente.
-            </p>
+        <div class="menu-background-glow menu-glow-left"></div>
+        <div class="menu-background-glow menu-glow-right"></div>
+        <div class="menu-noise"></div>
 
-            <label class="reset-score-checkbox">
-              <input id="resetScoreCheckbox" type="checkbox" />
-              <span>Supprimer aussi le meilleur score</span>
-            </label>
-
-            <div class="reset-progression-actions">
-              <button id="cancelResetProgressionButton" class="reset-cancel-button">
-                Annuler
-              </button>
-
-              <button id="confirmResetProgressionButton" class="reset-confirm-button">
-                Confirmer
-              </button>
+        <div class="main-menu-layout">
+          <aside class="main-menu-sidebar">
+            <div class="game-title-block">
+              <h1 class="game-title">RUNE SURVIVOR</h1>
+              <p class="game-subtitle"> Survivre, progresser, dominer les boss. </p>
             </div>
-          </div>
+            <nav class="main-menu-nav">
+              <button id="playButton" class="menu-nav-button is-primary">
+                <span class="menu-nav-index">01</span>
+                <span class="menu-nav-label">Jouer</span>
+              </button>
+              <button id="profileMenuButton" class="menu-nav-button">
+                <span class="menu-nav-index">02</span>
+                <span class="menu-nav-label">Profil</span>
+              </button>
+              <button id="optionsMenuButton" class="menu-nav-button">
+                <span class="menu-nav-index">03</span>
+                <span class="menu-nav-label">Options</span>
+              </button>
+              <button id="devMenuButton" class="menu-nav-button">
+                <span class="menu-nav-index">04</span>
+                <span class="menu-nav-label">Dev</span>
+              </button>
+              <button id="quitGameButton" class="menu-nav-button">
+                <span class="menu-nav-index">05</span>
+                <span class="menu-nav-label">Quitter</span>
+              </button>
+            </nav>
+            <div class="main-menu-side-footer">
+              <button id="resetProgressionButton" class="reset-progression-button"> Réinitialiser la progression </button>
+              <div id="resetProgressionModal" class="reset-progression-modal hidden">
+                <div class="reset-progression-box">
+                  <h2>Réinitialiser la progression ?</h2>
+                  <p> Cette action supprimera les pièces, les compétences et la progression permanente. </p>
+                  <label class="reset-score-checkbox">
+                    <input id="resetScoreCheckbox" type="checkbox" />
+                    <span>Supprimer aussi le meilleur score</span>
+                  </label>
+                  <div class="reset-progression-actions">
+                    <button id="cancelResetProgressionButton" class="reset-cancel-button"> Annuler </button>
+                    <button id="confirmResetProgressionButton" class="reset-confirm-button"> Confirmer </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+          <section class="main-menu-visual">
+            <div class="menu-visual-panel">
+              <div class="menu-visual-badge">MODE PRINCIPAL</div>
+              <h2 class="menu-visual-title">Entre dans l’arène</h2>
+              <p class="menu-visual-text"> Affronte des vagues de monstres, récupère des runes, terrasse des boss et construis ta progression au fil du temps. </p>
+              <div class="menu-visual-cards">
+                <div class="menu-preview-card">
+                  <div class="menu-preview-label">Progression</div>
+                  <div class="menu-preview-value">Infinie</div>
+                </div>
+                <div class="menu-preview-card">
+                  <div class="menu-preview-label">Runes / Legs</div>
+                  <div class="menu-preview-value">19 / 3</div>
+                </div>
+                <div class="menu-preview-card">
+                  <div class="menu-preview-label">Boss</div>
+                  <div class="menu-preview-value">3</div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-        <div id="gameVersionText" class="game-version-text">
-          Version ...
+        <div class="main-menu-bottom-left">
+          <!-- si besoin d'autres petits boutons plus tard -->
+        </div>
+        <div class="main-menu-bottom-right">
+          <span id="gameVersionText" class="version-text">Version ...</span>
         </div>
       </div>
       <div id="hud">
@@ -135,31 +179,22 @@
             <div class="skill-tree-title-block">
               <h1>Arbre de compétences</h1>
               <p>Utilise tes pièces gagnées en run pour acheter des bonus permanents.</p>
-
               <div class="skill-stats-popover-wrapper">
-                <button id="skillTreeStatsToggleButton" class="skill-stats-toggle-button">
-                  Stats permanentes cumulées
-                </button>
-
+                <button id="skillTreeStatsToggleButton" class="skill-stats-toggle-button"> Stats permanentes cumulées </button>
                 <div id="skillTreeTotalStats" class="skill-total-stats skill-total-stats-popover hidden"></div>
               </div>
             </div>
             <div class="skill-tree-header-right">
               <div class="skill-tier-controls">
                 <button id="skillTierPreviousButton" class="skill-tier-button">‹</button>
-
                 <div class="skill-tier-display">
                   <span id="skillTierLabel">Palier de base</span>
                   <small id="skillTierStatus">Progression actuelle</small>
                 </div>
-
                 <button id="skillTierNextButton" class="skill-tier-button">›</button>
               </div>
-
-              <div class="skill-tree-wallet">
-                Pièces <strong id="skillTreeCoinsText">0</strong>
+              <div class="skill-tree-wallet"> Pièces <strong id="skillTreeCoinsText">0</strong>
               </div>
-
               <button id="closeSkillTreeButton" class="skill-tree-close-button">✕</button>
             </div>
           </div>
@@ -189,11 +224,9 @@
     <script src="js/core/utils.js"></script>
     <script src="js/core/storage.js"></script>
     <script src="js/core/input.js"></script>
-
     <script src="js/data/upgrades.js"></script>
     <script src="js/data/skill-tree-data.js"></script>
     <script src="js/data/bosses-data.js"></script>
-
     <script src="js/systems/score.js"></script>
     <script src="js/systems/meta-progression.js"></script>
     <script src="js/systems/particles.js"></script>
@@ -205,18 +238,15 @@
     <script src="js/systems/xp-gems.js"></script>
     <script src="js/systems/boss-abilities.js"></script>
     <script src="js/systems/boss.js"></script>
-
     <script src="js/ui/hud.js"></script>
     <script src="js/ui/level-up.js"></script>
     <script src="js/ui/skill-tree.js"></script>
     <script src="js/ui/overlays.js"></script>
-
     <script src="js/render/draw-background.js"></script>
     <script src="js/render/draw-entities.js"></script>
     <script src="js/render/draw-boss.js"></script>
     <script src="js/render/draw-effects.js"></script>
     <script src="js/render/render.js"></script>
-
     <script src="js/core/game-loop.js"></script>
     <script src="main.js"></script>
   </body>

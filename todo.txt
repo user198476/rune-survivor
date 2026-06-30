@@ -45,4 +45,4 @@ choix entre 3 récompenses spéciales
 
 - Un vrai menu comme DBD avec a gauche de haut en bas TITRE et List avec Jouer, Profil (skins, backgrounds, couleurs tirs, etc), Options, Dev (menu boss acces directs) Quit (fermer l'onglet)
 
-- Faire débloquer les tiers de paliers en se basant sur le meilleur score, genre tier 1 = 2500 best score, tier 2 a 5000 etc etc (max 3 pallier pour l'instant)
+- Pour le menu option mettre un code secret en dur et ensuite ça ouvre un modal ou on peut activer mode Dev par exemple
