@@ -167,16 +167,16 @@ function resetProgressionButKeepScores(resetScores = false) {
     const preservedValues = new Map();
 
     if (!resetScores) {
-        for (const key of BEST_SCORE_STORAGE_KEYS) {
-            preservedValues.set(key, localStorage.getItem(key));
-        }
+        preservedValues.set(
+            BEST_SCORE_STORAGE_KEY,
+            localStorage.getItem(BEST_SCORE_STORAGE_KEY)
+        );
 
         preservedValues.set(
             BEST_SCORE_STATS_KEY,
             localStorage.getItem(BEST_SCORE_STATS_KEY)
         );
     }
-
     const keysToDelete = [];
 
     for (let i = 0; i < localStorage.length; i++) {
@@ -296,32 +296,6 @@ function isSkillTierCompleted(tier) {
     }
 
     return true;
-}
-
-function getHighestUnlockedSkillTier() {
-    let tier = 0;
-
-    while (
-        tier < MAX_VISIBLE_SKILL_TIER &&
-        isSkillTierCompleted(tier)
-    ) {
-        tier++;
-    }
-
-    return tier;
-}
-
-function isSkillTierUnlocked(tier) {
-    return tier <= getHighestUnlockedSkillTier();
-}
-
-function clampSelectedSkillTier() {
-    const highestUnlockedTier = getHighestUnlockedSkillTier();
-
-    selectedSkillTier = Math.max(
-        0,
-        Math.min(selectedSkillTier, highestUnlockedTier)
-    );
 }
 
 function getSkillTierUnlockBestScore(tier) {

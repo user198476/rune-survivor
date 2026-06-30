@@ -30,7 +30,12 @@ const ARCANE_CLONE_DURATION = 18;
 const ARCANE_CLONE_OFFSET = 58;
 const ARCANE_CLONE_DAMAGE_RATIO = 0.65;
 
-const BEST_SCORE_STORAGE_KEYS = ["runeSurvivorBestScore", "runeSurvivor.bestScore", "RuneSurvivor_BEST_SCORE"];
+const BEST_SCORE_STORAGE_KEY = "runeSurvivor.bestScore";
+const LEGACY_BEST_SCORE_STORAGE_KEYS = [
+    "runeSurvivorBestScore",
+    "RuneSurvivor_BEST_SCORE"
+];
+
 const BEST_SCORE_STATS_KEY = "runeSurvivor.stats";
 const CURRENT_RUN_STORAGE_KEY = "runeSurvivor.currentRun";
 

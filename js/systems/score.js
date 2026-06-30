@@ -1,35 +1,38 @@
 function loadBestScore() {
-    let loadedBest = 0;
-    for (const key of BEST_SCORE_STORAGE_KEYS) {
-        loadedBest = Math.max(loadedBest, parseStoredScore(safeLocalStorageGet(key)));
-    }
-    const statsRaw = safeLocalStorageGet(BEST_SCORE_STATS_KEY);
-    if (statsRaw) {
-        try {
-            const stats = JSON.parse(statsRaw);
-            loadedBest = Math.max(loadedBest, parseStoredScore(stats.bestScore));
-        } catch (error) {
-            // Stats corrompues : on ignore et on garde les autres clés.
+    const keys = [
+        BEST_SCORE_STORAGE_KEY,
+        ...LEGACY_BEST_SCORE_STORAGE_KEYS
+    ];
+
+    let loadedBestScore = 0;
+
+    for (const key of keys) {
+        const value = Number(localStorage.getItem(key));
+
+        if (!Number.isNaN(value)) {
+            loadedBestScore = Math.max(loadedBestScore, value);
         }
     }
-    return loadedBest;
+
+    // Migration vers la clé propre unique
+    localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(loadedBestScore));
+
+    // Nettoyage des anciennes clés
+    for (const legacyKey of LEGACY_BEST_SCORE_STORAGE_KEYS) {
+        localStorage.removeItem(legacyKey);
+    }
+
+    return loadedBestScore;
 }
 
-function saveBestScore(score) {
-    const safeScore = Math.max(0, Math.floor(score));
-    if (safeScore <= lastSavedBestScore) {
-        return;
+function saveBestScore(value) {
+    const cleanValue = Math.max(0, Math.floor(Number(value) || 0));
+
+    localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(cleanValue));
+
+    for (const legacyKey of LEGACY_BEST_SCORE_STORAGE_KEYS) {
+        localStorage.removeItem(legacyKey);
     }
-    lastSavedBestScore = safeScore;
-    for (const key of BEST_SCORE_STORAGE_KEYS) {
-        safeLocalStorageSet(key, String(safeScore));
-    }
-    safeLocalStorageSet(BEST_SCORE_STATS_KEY, JSON.stringify({
-        bestScore: safeScore,
-        bestKills: player ? player.kills : 0,
-        bestTime: Math.floor(gameTime),
-        updatedAt: new Date().toISOString()
-    }));
 }
 
 function saveCurrentRunScore(score) {
