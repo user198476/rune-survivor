@@ -13,8 +13,15 @@ function showLevelUp() {
 
     const hasLegendaryCards = legendaryCards.length > 0;
 
+    upgradeCards.classList.remove(
+        "has-legendary",
+        "has-four-cards",
+        "has-five-cards"
+    );
+
     upgradeCards.classList.toggle("has-legendary", hasLegendaryCards);
-    upgradeCards.classList.toggle("has-five-cards", currentUpgrades.length >= 5);
+    upgradeCards.classList.toggle("has-four-cards", currentUpgrades.length === 4);
+    upgradeCards.classList.toggle("has-five-cards", currentUpgrades.length === 5);
 
     currentUpgrades.forEach((upgrade, index) => {
         const isLegendary = upgrade.rarity === "legendary";
