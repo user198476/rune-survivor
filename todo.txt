@@ -44,3 +44,5 @@ choix entre 3 récompenses spéciales
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
 
 - Un vrai menu comme DBD avec a gauche de haut en bas TITRE et List avec Jouer, Profil (skins, backgrounds, couleurs tirs, etc), Options, Dev (menu boss acces directs) Quit (fermer l'onglet)
+
+- Faire débloquer les tiers de paliers en se basant sur le meilleur score, genre tier 1 = 2500 best score, tier 2 a 5000 etc etc (max 3 pallier pour l'instant)

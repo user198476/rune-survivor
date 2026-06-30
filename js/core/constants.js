@@ -41,7 +41,13 @@ const SPIKE_HEAL_LOCK_DURATION = 1.15;
 
 const SKILL_TIER_COST_MULTIPLIER = 2.8;
 const SKILL_TIER_EFFECT_BONUS = 0.25;
-const MAX_VISIBLE_SKILL_TIER = 0; // nombre de palier/tier max de l'arbre de compétence
+const MAX_VISIBLE_SKILL_TIER = 2; // nombre de palier/tier max de l'arbre de compétence
+const SKILL_TIER_UNLOCK_BEST_SCORE = [
+    0,     // Palier de base
+    2500,  // Palier 1
+    5000,  // Palier 2
+    7500   // Palier 3
+];
 
 // orange enemy
 const COWARD_SHOOTER_SPAWN_CHANCE = 0.18;

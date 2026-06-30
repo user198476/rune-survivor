@@ -49,3 +49,7 @@ const bossTestPanel = document.getElementById("bossTestPanel");
 const testBoss1Button = document.getElementById("testBoss1Button");
 const testBoss2Button = document.getElementById("testBoss2Button");
 const testBoss3Button = document.getElementById("testBoss3Button");
+const resetProgressionModal = document.getElementById("resetProgressionModal");
+const resetScoreCheckbox = document.getElementById("resetScoreCheckbox");
+const cancelResetProgressionButton = document.getElementById("cancelResetProgressionButton");
+const confirmResetProgressionButton = document.getElementById("confirmResetProgressionButton");

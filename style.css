@@ -2084,6 +2084,122 @@ body {
   100% { transform: translate(0, 0); }
 }
 
+.reset-progression-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(3, 3, 10, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.reset-progression-modal.hidden {
+  display: none;
+}
+
+.reset-progression-box {
+  width: min(430px, 90vw);
+  padding: 28px;
+  border: 1px solid rgba(255, 95, 117, 0.42);
+  border-radius: 24px;
+
+  background:
+    radial-gradient(circle at top, rgba(255, 95, 117, 0.18), transparent 58%),
+    rgba(16, 10, 22, 0.96);
+
+  box-shadow:
+    0 0 40px rgba(255, 54, 93, 0.18),
+    inset 0 0 24px rgba(255, 255, 255, 0.04);
+
+  text-align: center;
+}
+
+.reset-progression-box h2 {
+  margin: 0 0 12px;
+  color: #ffffff;
+  font-size: 26px;
+  text-shadow: 0 0 16px rgba(255, 95, 117, 0.45);
+}
+
+.reset-progression-box p {
+  margin: 0 0 18px;
+  color: #ffcad4;
+  line-height: 1.45;
+  font-size: 14px;
+}
+
+.reset-score-checkbox {
+  margin: 18px auto 22px;
+  padding: 12px 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border: 1px solid rgba(255, 216, 107, 0.28);
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.045);
+  color: #ffe7a3;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.reset-score-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff5f75;
+  cursor: pointer;
+}
+
+.reset-progression-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.reset-progression-actions button {
+  padding: 11px 18px;
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+}
+
+.reset-cancel-button {
+  border: 1px solid rgba(180, 150, 255, 0.36);
+  background: rgba(22, 17, 46, 0.9);
+  color: #e7e0ff;
+}
+
+.reset-confirm-button {
+  border: 1px solid rgba(255, 95, 117, 0.72);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
+    rgba(70, 14, 28, 0.95);
+  color: #ffd8df;
+
+  box-shadow: 0 0 20px rgba(255, 54, 93, 0.22);
+}
+
+.reset-cancel-button:hover,
+.reset-confirm-button:hover {
+  filter: brightness(1.16);
+  transform: translateY(-1px);
+}
+
 .hidden {
   display: none !important;
 }

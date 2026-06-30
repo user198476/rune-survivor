@@ -31,11 +31,35 @@
           <div class="menu-controls"> ZQSD / WASD / Flèches pour bouger <br /> Le tir est automatique </div>
         </div>
         <button id="resetProgressionButton" class="reset-progression-button">
-            Réinitialiser la progression
-          </button>
-          <div id="gameVersionText" class="game-version-text">
-            Version ...
+          Réinitialiser la progression
+        </button>
+        <div id="resetProgressionModal" class="reset-progression-modal hidden">
+          <div class="reset-progression-box">
+            <h2>Réinitialiser la progression ?</h2>
+
+            <p>
+              Cette action supprimera les pièces, les compétences et la progression permanente.
+            </p>
+
+            <label class="reset-score-checkbox">
+              <input id="resetScoreCheckbox" type="checkbox" />
+              <span>Supprimer aussi le meilleur score</span>
+            </label>
+
+            <div class="reset-progression-actions">
+              <button id="cancelResetProgressionButton" class="reset-cancel-button">
+                Annuler
+              </button>
+
+              <button id="confirmResetProgressionButton" class="reset-confirm-button">
+                Confirmer
+              </button>
+            </div>
           </div>
+        </div>
+        <div id="gameVersionText" class="game-version-text">
+          Version ...
+        </div>
       </div>
       <div id="hud">
         <div class="hud-top">

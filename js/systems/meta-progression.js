@@ -163,62 +163,74 @@ function findSkillNodeById(skillId) {
     return null;
 }
 
-function resetProgressionButKeepScores() {
-    const confirmed = window.confirm(
-        "Réinitialiser toute la progression ?\n\nLes pièces, l'arbre de compétences et la run sauvegardée seront supprimés.\nLe meilleur score sera conservé."
-    );
+function resetProgressionButKeepScores(resetScores = false) {
+    const preservedValues = new Map();
 
-    if (!confirmed) {
-        return;
+    if (!resetScores) {
+        for (const key of BEST_SCORE_STORAGE_KEYS) {
+            preservedValues.set(key, localStorage.getItem(key));
+        }
+
+        preservedValues.set(
+            BEST_SCORE_STATS_KEY,
+            localStorage.getItem(BEST_SCORE_STATS_KEY)
+        );
     }
-
-    const protectedScoreKeys = new Set([
-        ...BEST_SCORE_STORAGE_KEYS,
-        BEST_SCORE_STATS_KEY
-    ]);
 
     const keysToDelete = [];
 
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
 
-        if (!key) {
-            continue;
+        if (
+            key &&
+            (
+                key.startsWith("runeSurvivor") ||
+                key.startsWith("RuneSurvivor")
+            )
+        ) {
+            keysToDelete.push(key);
         }
-
-        const isRuneSurvivorKey =
-            key.startsWith("runeSurvivor") ||
-            key.startsWith("RuneSurvivor");
-
-        if (!isRuneSurvivorKey) {
-            continue;
-        }
-
-        if (protectedScoreKeys.has(key)) {
-            continue;
-        }
-
-        keysToDelete.push(key);
     }
 
     for (const key of keysToDelete) {
         localStorage.removeItem(key);
     }
 
-    metaCoins = 0;
-    metaSkills = {};
-
-    saveMetaProgression();
-    loadMetaProgression();
-
-    if (player) {
-        resetGame();
+    if (!resetScores) {
+        for (const [key, value] of preservedValues.entries()) {
+            if (value !== null) {
+                localStorage.setItem(key, value);
+            }
+        }
     }
 
-    updateMetaCurrencyDisplays();
-    renderSkillTree();
+    metaCoins = 0;
+    metaSkills = {};
+    selectedSkillTier = 0;
 
-    alert("Progression réinitialisée. Le meilleur score a été conservé.");
+    bestScore = resetScores ? 0 : loadBestScore();
+    currentScore = 0;
+    newBestThisRun = false;
+    runRewardGranted = false;
+
+    saveMetaProgression();
+    updateMetaCurrencyDisplays();
+    
+    if (typeof renderSkillTree === "function") {
+        renderSkillTree();
+    }
+
+    if (typeof updateHud === "function") {
+        updateHud();
+    }
+
+    addFloatingText(
+        GAME_WIDTH / 2,
+        GAME_HEIGHT / 2,
+        resetScores ? "PROGRESSION + SCORE RÉINITIALISÉS" : "PROGRESSION RÉINITIALISÉE",
+        "#ffb3c0"
+    );
 }
 
 function getSkillKey(skillId, tier = selectedSkillTier) {
@@ -301,6 +313,39 @@ function getHighestUnlockedSkillTier() {
 
 function isSkillTierUnlocked(tier) {
     return tier <= getHighestUnlockedSkillTier();
+}
+
+function clampSelectedSkillTier() {
+    const highestUnlockedTier = getHighestUnlockedSkillTier();
+
+    selectedSkillTier = Math.max(
+        0,
+        Math.min(selectedSkillTier, highestUnlockedTier)
+    );
+}
+
+function getSkillTierUnlockBestScore(tier) {
+    return SKILL_TIER_UNLOCK_BEST_SCORE[tier] ?? tier * 2500;
+}
+
+function isSkillTierUnlocked(tier) {
+    if (tier <= 0) {
+        return true;
+    }
+
+    return bestScore >= getSkillTierUnlockBestScore(tier);
+}
+
+function getHighestUnlockedSkillTier() {
+    let highestUnlockedTier = 0;
+
+    for (let tier = 1; tier <= MAX_VISIBLE_SKILL_TIER; tier++) {
+        if (isSkillTierUnlocked(tier)) {
+            highestUnlockedTier = tier;
+        }
+    }
+
+    return highestUnlockedTier;
 }
 
 function clampSelectedSkillTier() {

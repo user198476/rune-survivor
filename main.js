@@ -39,7 +39,9 @@ function bindMenuButtons() {
     closeSkillTreeButton.addEventListener("click", closeSkillTree);
     skillTierPreviousButton.addEventListener("click", selectPreviousSkillTier);
     skillTierNextButton.addEventListener("click", selectNextSkillTier); 
-    resetProgressionButton.addEventListener("click", resetProgressionButKeepScores);
+    resetProgressionButton.addEventListener("click", openResetProgressionModal);
+    cancelResetProgressionButton.addEventListener("click", closeResetProgressionModal);
+    confirmResetProgressionButton.addEventListener("click", confirmResetProgression);
     skillTreeStatsToggleButton.addEventListener("click", toggleSkillStatsPopover);
 
     if (DEBUG_BOSS_TEST_ENABLED) {
@@ -67,6 +69,23 @@ function bindMenuButtons() {
 
         finalizeScore();
     });
+}
+
+function openResetProgressionModal() {
+    resetScoreCheckbox.checked = false;
+    resetProgressionModal.classList.remove("hidden");
+}
+
+function closeResetProgressionModal() {
+    resetProgressionModal.classList.add("hidden");
+}
+
+function confirmResetProgression() {
+    const resetScores = resetScoreCheckbox.checked;
+
+    resetProgressionButKeepScores(resetScores);
+
+    closeResetProgressionModal();
 }
 
 function bootGame() {
