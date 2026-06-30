@@ -11,6 +11,7 @@ function render() {
     drawBossDangerZones();
     drawBossWallStrikes();
     drawAstralStrikes();
+    drawVoidRifts();
 
     drawGems();
     drawPowerUps();

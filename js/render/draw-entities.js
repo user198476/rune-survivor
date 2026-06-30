@@ -50,34 +50,19 @@ function drawPlayer() {
 }
 
 function drawArcaneClone() {
-    if (
-        player.tripleEchoTimer > 0 &&
-        player.tripleEchoClones &&
-        player.tripleEchoClones.length > 0
-    ) {
-        const fade = Math.min(1, player.tripleEchoTimer / 0.75);
-
-        for (const clone of player.tripleEchoClones) {
-            drawCloneLink(clone.x, clone.y, "#d7b4ff", 0.24 * fade);
-            drawCloneBody(
-                clone.x,
-                clone.y,
-                "#d7b4ff",
-                "rgba(58, 24, 94, 0.92)",
-                0.78 * fade
-            );
-        }
-
-        return;
-    }
-
     if (player.cloneTimer <= 0) {
         return;
     }
 
     const fade = Math.min(1, player.cloneTimer / 0.75);
 
-    drawCloneLink(player.cloneX, player.cloneY, "#b88cff", 0.28 * fade);
+    drawCloneLink(
+        player.cloneX,
+        player.cloneY,
+        "#b88cff",
+        0.28 * fade
+    );
+
     drawCloneBody(
         player.cloneX,
         player.cloneY,
@@ -583,6 +568,58 @@ function drawAstralStrikes() {
             ctx.arc(strike.x, strike.y, strike.radius * 0.55, 0, Math.PI * 2);
             ctx.stroke();
         }
+
+        ctx.restore();
+    }
+}
+
+function drawVoidRifts() {
+    if (!voidRifts || voidRifts.length === 0) {
+        return;
+    }
+
+    for (const rift of voidRifts) {
+        const lifeRatio = Math.max(0, rift.life / rift.maxLife);
+        const pulse = Math.sin(rift.pulse * 8) * 0.08 + 1;
+        const radius = rift.radius * pulse;
+
+        ctx.save();
+
+        ctx.globalAlpha = 0.22 + lifeRatio * 0.18;
+        ctx.fillStyle = "rgba(181, 109, 255, 0.22)";
+        ctx.shadowColor = "#b56dff";
+        ctx.shadowBlur = 34;
+
+        ctx.beginPath();
+        ctx.arc(rift.x, rift.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalAlpha = 0.78;
+        ctx.strokeStyle = "#d9b4ff";
+        ctx.lineWidth = 3;
+        ctx.setLineDash([12, 10]);
+        ctx.lineDashOffset = -gameTime * 80;
+
+        ctx.beginPath();
+        ctx.arc(rift.x, rift.y, radius * 0.86, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        ctx.globalAlpha = 0.95;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.arc(rift.x, rift.y, radius * 0.28, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "#f4e8ff";
+        ctx.font = "bold 26px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("◈", rift.x, rift.y);
 
         ctx.restore();
     }

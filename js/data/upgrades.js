@@ -216,6 +216,80 @@ const upgrades = [{
 
         createParticles(player.x, player.y, 58, "#9ee7ff", 2.8);
     }
+}, {
+    id: "void_rift_damage",
+    legendaryUpgradeFor: "legendary_void_rift",
+    rarity: "legendary-upgrade",
+    icon: "◈",
+    title: "Néant vorace",
+    description: "+25% dégâts de la Faille du Néant.",
+    canAppear() {
+        return player.voidRiftUnlocked &&
+            (player.voidRiftDamageLevel || 0) < VOID_RIFT_DAMAGE_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.voidRiftDamageLevel = (player.voidRiftDamageLevel || 0) + 1;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "NÉANT +DÉGÂTS",
+            "#b56dff"
+        );
+
+        createParticles(player.x, player.y, 48, "#b56dff", 2.6);
+    }
+}, {
+    id: "void_rift_radius",
+    legendaryUpgradeFor: "legendary_void_rift",
+    rarity: "legendary-upgrade",
+    icon: "◎",
+    title: "Gravité instable",
+    description: "+20% rayon et aspiration de la Faille du Néant.",
+    canAppear() {
+        return player.voidRiftUnlocked &&
+            (player.voidRiftRadiusLevel || 0) < VOID_RIFT_RADIUS_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.voidRiftRadiusLevel = (player.voidRiftRadiusLevel || 0) + 1;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "NÉANT +RAYON",
+            "#b56dff"
+        );
+
+        createParticles(player.x, player.y, 56, "#b56dff", 2.8);
+    }
+}, {
+    id: "void_rift_trigger",
+    legendaryUpgradeFor: "legendary_void_rift",
+    rarity: "legendary-upgrade",
+    icon: "✦",
+    title: "Fracture accélérée",
+    description: "La Faille du Néant se déclenche avec moins de kills.",
+    canAppear() {
+        return player.voidRiftUnlocked &&
+            (player.voidRiftTriggerLevel || 0) < VOID_RIFT_TRIGGER_UPGRADE_MAX_LEVEL;
+    },
+    apply() {
+        player.voidRiftTriggerLevel = (player.voidRiftTriggerLevel || 0) + 1;
+
+        player.voidRiftKillCounter = Math.min(
+            player.voidRiftKillCounter || 0,
+            getVoidRiftKillsRequired() - 1
+        );
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 38,
+            "NÉANT +FRÉQUENCE",
+            "#b56dff"
+        );
+
+        createParticles(player.x, player.y, 56, "#b56dff", 2.8);
+    }
 }];
 
 const legendaryUpgrades = [{
@@ -249,7 +323,7 @@ const legendaryUpgrades = [{
     rarity: "legendary",
     icon: "☄",
     title: "Pluie astrale",
-    description: "Toutes les 8s, des frappes astrales tombent sur le champ de bataille.",
+    description: "Toutes les 18s, des frappes astrales tombent sur le champ de bataille.",
     canAppear() {
         return !player.astralRainUnlocked;
     },
@@ -271,15 +345,29 @@ const legendaryUpgrades = [{
         createParticles(player.x, player.y, 80, "#9ee7ff", 3.2);
     }
 }, {
-    id: "legendary_triple_echo",
+    id: "legendary_void_rift",
     rarity: "legendary",
-    icon: "✥",
-    title: "Triple écho",
-    description: "Deux clones d’écho combattent avec toi pendant 12s.",
+    icon: "◈",
+    title: "Faille du Néant",
+    description: "Après plusieurs ennemis tués, ouvre une faille qui aspire et blesse les ennemis proches.",
     canAppear() {
-        return player.tripleEchoTimer <= 0;
+        return !player.voidRiftUnlocked;
     },
     apply() {
-        activateTripleEcho();
+        player.voidRiftUnlocked = true;
+        player.voidRiftKillCounter = 0;
+
+        player.voidRiftDamageLevel = player.voidRiftDamageLevel || 0;
+        player.voidRiftRadiusLevel = player.voidRiftRadiusLevel || 0;
+        player.voidRiftTriggerLevel = player.voidRiftTriggerLevel || 0;
+
+        addFloatingText(
+            player.x,
+            player.y - player.radius - 42,
+            "FAILLE DU NÉANT",
+            "#b56dff"
+        );
+
+        createParticles(player.x, player.y, 90, "#b56dff", 3.4);
     }
 }];

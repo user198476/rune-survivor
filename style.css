@@ -128,12 +128,21 @@ body {
 .game-over-box p {
   color: #d9d2ff;
 }
+
 .upgrade-cards {
-  margin-top: 28px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  justify-content: center;
+  align-items: stretch;
+  gap: 22px;
+
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+
+  /* 3 cartes par défaut */
+  grid-template-columns: repeat(3, 300px);
 }
+
 .upgrade-card {
   min-height: 220px;
   padding: 22px;
@@ -147,9 +156,12 @@ body {
     rgba(16, 13, 38, 0.95);
   color: white;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 300px;
+  min-width: 0;
+  max-width: 300px;
 }
+
 .upgrade-card:hover {
   transform: translateY(-6px);
   border-color: rgba(200, 177, 255, 0.85);
@@ -260,24 +272,25 @@ body {
   width: min(96vw, 1380px);
 }
 
+/* 4 cartes */
+.upgrade-cards.has-four-cards {
+  grid-template-columns: repeat(4, 240px);
+}
+
+.upgrade-cards.has-four-cards .upgrade-card {
+  width: 240px;
+  max-width: 240px;
+}
+
+/* 5 cartes */
 .upgrade-cards.has-five-cards {
-  display: grid;
-  grid-template-columns: repeat(5, 200px);
-  justify-content: center;
-  align-items: stretch;
-
-  width: 100%;
-  max-width: none;
-  gap: 16px;
+  grid-template-columns: repeat(5, 205px);
+  gap: 18px;
 }
 
 .upgrade-cards.has-five-cards .upgrade-card {
-  width: 200px;
-  min-width: 0;
-}
-
-.upgrade-cards.has-five-cards .upgrade-card {
-  min-width: 0;
+  width: 205px;
+  max-width: 205px;
 }
 
 .game-over-box {
@@ -1636,10 +1649,6 @@ body {
   filter: brightness(1.18);
   transform: translateY(-1px);
   border-color: rgba(255, 216, 107, 0.85);
-}
-
-.upgrade-cards.has-legendary {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .legendary-upgrade-card {

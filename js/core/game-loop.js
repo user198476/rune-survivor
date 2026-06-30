@@ -144,19 +144,24 @@ function resetGame() {
         knockbackY: 0,
         slowTimer: 0,
         slowMultiplier: 1,
+
         guardianOrbUnlocked: false,
         guardianOrbAngle: 0,
         guardianOrbCount: 1,
         guardianOrbDamageLevel: 0,
         guardianOrbSpeedLevel: 0,
+
         astralRainUnlocked: false,
         astralRainTimer: ASTRAL_RAIN_INTERVAL,
         astralRainDamageLevel: 0,
         astralRainCooldownLevel: 0,
         astralRainStrikeLevel: 0,
-        tripleEchoTimer: 0,
-        tripleEchoClones: [],
-        tripleEchoUnlocked: false
+
+        voidRiftUnlocked: false,
+        voidRiftKillCounter: 0,
+        voidRiftDamageLevel: 0,
+        voidRiftRadiusLevel: 0,
+        voidRiftTriggerLevel: 0
     };
     applyPermanentBonusesToPlayer();
     enemies = [];
@@ -169,6 +174,7 @@ function resetGame() {
     particles = [];
     floatingTexts = [];
     astralStrikes = [];
+    voidRifts = [];
     currentUpgrades = [];
     enemyGrid.clear();
     powerUpSpawnTimer = 6;

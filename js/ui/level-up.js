@@ -121,8 +121,8 @@ function getActiveLegendaryUpgradeIds() {
         active.push("legendary_astral_rain");
     }
 
-    if (player.tripleEchoUnlocked) {
-        active.push("legendary_triple_echo");
+    if (player.voidRiftUnlocked) {
+        active.push("legendary_void_rift");
     }
 
     return active;

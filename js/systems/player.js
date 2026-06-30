@@ -26,7 +26,6 @@ function updatePlayer(dt) {
     }
     player.aimAngle = lerpAngle(player.aimAngle, player.targetAimAngle, player.aimTurnSpeed, dt);
     updateArcaneClone(dt);
-    updateTripleEchoClones(dt);
     updateLegendaryRunes(dt);
     if (player.fireCooldown <= 0 && target) {
         shootAt(target);
@@ -273,83 +272,8 @@ function healPlayer(amount) {
 function updateLegendaryRunes(dt) {
     updateGuardianOrb(dt);
     updateAstralRain(dt);
-}
-
-function activateTripleEcho() {
-    player.tripleEchoTimer = TRIPLE_ECHO_DURATION;
-    player.tripleEchoClones = [];
-    player.tripleEchoUnlocked = true;
-
-    const angleA = player.aimAngle + Math.PI / 2;
-    const angleB = player.aimAngle - Math.PI / 2;
-
-    player.tripleEchoClones.push({
-        x: player.x + Math.cos(angleA) * TRIPLE_ECHO_OFFSET,
-        y: player.y + Math.sin(angleA) * TRIPLE_ECHO_OFFSET
-    });
-
-    player.tripleEchoClones.push({
-        x: player.x + Math.cos(angleB) * TRIPLE_ECHO_OFFSET,
-        y: player.y + Math.sin(angleB) * TRIPLE_ECHO_OFFSET
-    });
-
-    player.cloneTimer = 0;
-
-    addFloatingText(
-        player.x,
-        player.y - player.radius - 42,
-        "TRIPLE ÉCHO",
-        "#d7b4ff"
-    );
-
-    createParticles(player.x, player.y, 80, "#d7b4ff", 3.2);
-}
-
-function updateTripleEchoClones(dt) {
-    if (!player || player.tripleEchoTimer <= 0) {
-        player.tripleEchoTimer = 0;
-        player.tripleEchoClones = [];
-        return;
-    }
-
-    player.tripleEchoTimer = Math.max(0, player.tripleEchoTimer - dt);
-
-    if (player.tripleEchoTimer <= 0) {
-        createParticles(player.x, player.y, 32, "#d7b4ff", 1.8);
-        player.tripleEchoClones = [];
-        return;
-    }
-
-    const angleA = player.aimAngle + Math.PI / 2;
-    const angleB = player.aimAngle - Math.PI / 2;
-
-    const targets = [{
-        x: player.x + Math.cos(angleA) * TRIPLE_ECHO_OFFSET,
-        y: player.y + Math.sin(angleA) * TRIPLE_ECHO_OFFSET
-    }, {
-        x: player.x + Math.cos(angleB) * TRIPLE_ECHO_OFFSET,
-        y: player.y + Math.sin(angleB) * TRIPLE_ECHO_OFFSET
-    }];
-
-    if (!player.tripleEchoClones || player.tripleEchoClones.length !== 2) {
-        player.tripleEchoClones = targets.map((target) => ({
-            x: target.x,
-            y: target.y
-        }));
-    }
-
-    const followStrength = 1 - Math.pow(0.001, dt);
-
-    for (let i = 0; i < 2; i++) {
-        const clone = player.tripleEchoClones[i];
-        const target = targets[i];
-
-        clone.x += (target.x - clone.x) * followStrength;
-        clone.y += (target.y - clone.y) * followStrength;
-
-        clone.x = Math.max(player.radius, Math.min(GAME_WIDTH - player.radius, clone.x));
-        clone.y = Math.max(player.radius, Math.min(GAME_HEIGHT - player.radius, clone.y));
-    }
+    updateVoidRifts(dt);
+    cleanupLegendaryDeadEnemies();
 }
 
 function updateGuardianOrb(dt) {
@@ -552,6 +476,8 @@ function damageEnemyFromLegendary(enemy, damage, hitX, hitY, color, label) {
         enemy.dead = true;
         player.kills += 1;
 
+        registerVoidRiftKill(enemy);
+
         if (!enemy.isBoss && enemy.xp > 0) {
             dropGem(enemy.x, enemy.y, enemy.xp);
         }
@@ -573,4 +499,170 @@ function getAstralRainInterval() {
         ASTRAL_RAIN_MIN_INTERVAL,
         ASTRAL_RAIN_INTERVAL - cooldownLevel * ASTRAL_RAIN_COOLDOWN_UPGRADE_REDUCTION
     );
+}
+
+function getVoidRiftKillsRequired() {
+    const triggerLevel = player.voidRiftTriggerLevel || 0;
+
+    return Math.max(
+        VOID_RIFT_MIN_KILLS_REQUIRED,
+        VOID_RIFT_KILLS_REQUIRED - triggerLevel * VOID_RIFT_KILLS_REDUCTION_PER_LEVEL
+    );
+}
+
+function getVoidRiftRadius() {
+    const radiusLevel = player.voidRiftRadiusLevel || 0;
+
+    return VOID_RIFT_RADIUS *
+        (1 + radiusLevel * VOID_RIFT_RADIUS_UPGRADE_BONUS);
+}
+
+function getVoidRiftPullForce() {
+    const radiusLevel = player.voidRiftRadiusLevel || 0;
+
+    return VOID_RIFT_PULL_FORCE *
+        (1 + radiusLevel * VOID_RIFT_RADIUS_UPGRADE_BONUS);
+}
+
+function getVoidRiftDamage() {
+    const damageLevel = player.voidRiftDamageLevel || 0;
+
+    return player.damage *
+        player.damageMultiplier *
+        VOID_RIFT_DAMAGE_RATIO *
+        (1 + damageLevel * VOID_RIFT_DAMAGE_UPGRADE_BONUS);
+}
+
+function registerVoidRiftKill(enemy) {
+    if (!player || !player.voidRiftUnlocked) {
+        return;
+    }
+
+    if (!enemy || enemy.isBoss || enemy.type === "hordeBomb") {
+        return;
+    }
+
+    player.voidRiftKillCounter = (player.voidRiftKillCounter || 0) + 1;
+
+    const killsRequired = getVoidRiftKillsRequired();
+
+    if (player.voidRiftKillCounter < killsRequired) {
+        return;
+    }
+
+    player.voidRiftKillCounter = 0;
+
+    spawnVoidRift(enemy.x, enemy.y);
+}
+
+function spawnVoidRift(x, y) {
+    if (!voidRifts) {
+        voidRifts = [];
+    }
+
+    while (voidRifts.length >= VOID_RIFT_MAX_ACTIVE) {
+        voidRifts.shift();
+    }
+
+    const radius = getVoidRiftRadius();
+
+    voidRifts.push({
+        x: Math.max(radius, Math.min(GAME_WIDTH - radius, x)),
+        y: Math.max(radius, Math.min(GAME_HEIGHT - radius, y)),
+        radius,
+        life: VOID_RIFT_DURATION,
+        maxLife: VOID_RIFT_DURATION,
+        damageTick: 0,
+        pulse: 0
+    });
+
+    addFloatingText(
+        x,
+        y - 34,
+        "FAILLE",
+        "#b56dff"
+    );
+
+    createParticles(x, y, 72, "#b56dff", 3);
+}
+
+function updateVoidRifts(dt) {
+    if (!voidRifts || voidRifts.length === 0) {
+        return;
+    }
+
+    for (let i = voidRifts.length - 1; i >= 0; i--) {
+        const rift = voidRifts[i];
+
+        rift.life -= dt;
+        rift.pulse += dt;
+
+        const shouldDamage = rift.damageTick <= 0;
+        rift.damageTick -= dt;
+
+        if (rift.life <= 0) {
+            createParticles(rift.x, rift.y, 36, "#b56dff", 2);
+            voidRifts.splice(i, 1);
+            continue;
+        }
+
+        const radiusSq = rift.radius * rift.radius;
+        const pullForce = getVoidRiftPullForce();
+
+        for (const enemy of enemies) {
+            if (
+                !enemy ||
+                enemy.dead ||
+                enemy.type === "hordeBomb"
+            ) {
+                continue;
+            }
+
+            const dx = rift.x - enemy.x;
+            const dy = rift.y - enemy.y;
+            const distanceSq = dx * dx + dy * dy;
+
+            if (distanceSq > radiusSq) {
+                continue;
+            }
+
+            const distance = Math.sqrt(distanceSq) || 1;
+            const ratio = 1 - distance / rift.radius;
+
+            if (!enemy.isBoss) {
+                enemy.x += (dx / distance) * pullForce * ratio * dt;
+                enemy.y += (dy / distance) * pullForce * ratio * dt;
+
+                enemy.x = Math.max(enemy.radius, Math.min(GAME_WIDTH - enemy.radius, enemy.x));
+                enemy.y = Math.max(enemy.radius, Math.min(GAME_HEIGHT - enemy.radius, enemy.y));
+            }
+
+            if (shouldDamage) {
+                damageEnemyFromLegendary(
+                    enemy,
+                    getVoidRiftDamage(),
+                    rift.x,
+                    rift.y,
+                    "#b56dff",
+                    "NÉANT"
+                );
+            }
+        }
+
+        if (shouldDamage) {
+            rift.damageTick = VOID_RIFT_DAMAGE_TICK;
+        }
+    }
+}
+
+function cleanupLegendaryDeadEnemies() {
+    if (!enemies || enemies.length === 0) {
+        return;
+    }
+
+    if (!enemies.some((enemy) => enemy && enemy.dead)) {
+        return;
+    }
+
+    enemies = enemies.filter((enemy) => enemy && !enemy.dead);
 }

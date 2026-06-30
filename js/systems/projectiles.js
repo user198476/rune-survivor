@@ -5,26 +5,7 @@ function shootAt(target) {
 
     fireProjectileVolley(player.x, player.y, baseAngle, 1, "#59dfff");
 
-    if (
-        player.tripleEchoTimer > 0 &&
-        player.tripleEchoClones &&
-        player.tripleEchoClones.length > 0
-    ) {
-        for (const clone of player.tripleEchoClones) {
-            const cloneAngle = Math.atan2(
-                target.y - clone.y,
-                target.x - clone.x
-            );
-
-            fireProjectileVolley(
-                clone.x,
-                clone.y,
-                cloneAngle,
-                TRIPLE_ECHO_DAMAGE_RATIO,
-                "#d7b4ff"
-            );
-        }
-    } else if (player.cloneTimer > 0) {
+    if (player.cloneTimer > 0) {
         const cloneAngle = Math.atan2(
             target.y - player.cloneY,
             target.x - player.cloneX
@@ -95,6 +76,8 @@ function updateProjectiles(dt) {
                     enemy.dead = true;
                     enemiesNeedCleanup = true;
                     player.kills += 1;
+
+                    registerVoidRiftKill(enemy);
 
                     if (!enemy.isBoss && enemy.xp > 0) {
                         dropGem(enemy.x, enemy.y, enemy.xp);

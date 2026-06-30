@@ -39,7 +39,7 @@ choix entre 3 récompenses spéciales
 +soin complet
 
 
-- Pour le boss 4, basé sur le mob coward + il se clones
+- Pour le boss 4, basé sur le mob coward + il se clone
 
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
 

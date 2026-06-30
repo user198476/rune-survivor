@@ -42,3 +42,4 @@ let skillTreeReturnState = "menu";
 // LEGENDARY UPGRADE
 let currentUpgrades = [];
 let astralStrikes = [];
+let voidRifts = [];
