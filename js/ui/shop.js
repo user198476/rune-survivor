@@ -84,6 +84,8 @@ function renderShopItems() {
         }
 
         card.innerHTML = `
+            ${getShopItemPreviewHtml(item)}
+
             <h3>${item.name}</h3>
             <p>${item.description}</p>
 
@@ -200,4 +202,41 @@ function bindShopMenuEvents() {
             renderShopMenu();
         });
     });
+}
+
+function getShopItemPreviewHtml(item) {
+    if (selectedShopCategory === "skins") {
+        return `
+            <div class="shop-item-preview shop-skin-preview">
+                <div class="shop-mini-mage ${item.id}">
+                    <div class="shop-mini-mage-shadow"></div>
+                    <div class="shop-mini-mage-cape"></div>
+                    <div class="shop-mini-mage-body"></div>
+                    <div class="shop-mini-mage-face"></div>
+                    <div class="shop-mini-mage-staff"></div>
+                    <div class="shop-mini-mage-orb"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (selectedShopCategory === "backgrounds") {
+        return `
+            <div class="shop-item-preview shop-background-preview ${item.id}">
+                <div class="shop-background-preview-glow"></div>
+                <div class="shop-background-preview-grid"></div>
+            </div>
+        `;
+    }
+
+    if (selectedShopCategory === "projectiles") {
+        return `
+            <div class="shop-item-preview shop-projectile-preview-box">
+                <div class="shop-projectile-trail ${item.id}"></div>
+                <div class="shop-projectile-preview ${item.id}"></div>
+            </div>
+        `;
+    }
+
+    return "";
 }

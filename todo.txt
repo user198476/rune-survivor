@@ -22,6 +22,7 @@ choix entre 3 récompenses spéciales
 +10 secondes de clone
 +soin complet
 
+- Buff boss 2, missille ne vont pas asser vite, ne tracke pas le joueur assez longtemps et c'est peu trop facile a eviter + au lieu de faire laser en croix puis en + on fait les 2 en meme temps
 
 - Pour le boss 4, basé sur le mob coward + il se clone
 
@@ -31,11 +32,11 @@ choix entre 3 récompenses spéciales
 
 - Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
 
-- Dans le menu Profile ajouter un accès à l'arbre de compétences et le score du joueur (au dessus de "Pieces")
-
 - Rajouter un previsu du skin dans le shop pour voir ce que c'est
 
-- Retirer 
+- Retirer les 3 skins par defaut sur shop
+
+- Faire un skin midnight purple R34
 
 - Ajouter des skins :
 skins du mage
