@@ -32,11 +32,9 @@ choix entre 3 récompenses spéciales
 
 - Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
 
-- Rajouter un previsu du skin dans le shop pour voir ce que c'est
-
 - Retirer les 3 skins par defaut sur shop
 
-- Faire un skin midnight purple R34
+- Faire un skin midnight purple gtr r34
 
 - Ajouter des skins :
 skins du mage

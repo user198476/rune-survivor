@@ -67,7 +67,9 @@ function renderShopItems() {
         return;
     }
 
-    const items = PROFILE_ITEMS[selectedShopCategory] || [];
+    const items = (PROFILE_ITEMS[selectedShopCategory] || []).filter((item) => {
+        return !item.defaultUnlocked;
+    });
 
     shopItemsGrid.innerHTML = "";
 
