@@ -207,6 +207,14 @@ function bindShopMenuEvents() {
 }
 
 function getShopItemPreviewHtml(item) {
+    if (selectedShopCategory === "skins" && item.previewImage) {
+        return `
+            <div class="shop-item-preview shop-skin-preview">
+                <img class="shop-skin-image-preview" src="${item.previewImage}" alt="${item.name}" />
+            </div>
+        `;
+    }
+    
     if (selectedShopCategory === "skins") {
         return `
             <div class="shop-item-preview shop-skin-preview">

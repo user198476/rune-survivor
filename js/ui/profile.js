@@ -31,8 +31,22 @@ const PROFILE_ITEMS = {
         id: "skin-void",
         name: "Mage du Néant",
         description: "Un skin violet sombre lié aux failles.",
-        price: 10000,
+        price: 5000,
         defaultUnlocked: false
+    }, {
+        id: "skin-lime",
+        name: "Mage RunatoR",
+        description: "Un skin vert vif et acidulé.",
+        price: 8000,
+        defaultUnlocked: false
+    }, {
+        id: "skin-midnight-purple-gtr-r34",
+        name: "Midnight Purple GT-R R34",
+        description: "Un skin premium inspiré du Midnight Purple, avec reflets violets métalliques et style racing.",
+        price: 5000,
+        defaultUnlocked: false,
+        previewImage: "assets/skins/skin-midnight-purple-gtr-r34.png",
+        gameImage: "assets/skins/skin-midnight-purple-gtr-r34.png"
     }],
 
     backgrounds: [{
@@ -270,8 +284,18 @@ function renderProfilePreview() {
         profilePreviewStage.className = `profile-preview-stage ${profileCustomization.background}`;
     }
 
-    if (profileMagePreview) {
-        profileMagePreview.className = `profile-mage-preview ${profileCustomization.skin}`;
+    const skinItem = getEquippedSkinItem();
+
+    if (profileSkinImagePreview && profileMagePreview) {
+        if (skinItem && skinItem.previewImage) {
+            profileSkinImagePreview.src = skinItem.previewImage;
+            profileSkinImagePreview.classList.remove("hidden");
+            profileMagePreview.classList.add("hidden");
+        } else {
+            profileSkinImagePreview.classList.add("hidden");
+            profileMagePreview.classList.remove("hidden");
+            profileMagePreview.className = `profile-mage-preview ${profileCustomization.skin}`;
+        }
     }
 
     if (profileProjectilePreview) {
@@ -279,9 +303,7 @@ function renderProfilePreview() {
     }
 
     if (profileEquippedLabel) {
-        const skin = PROFILE_ITEMS.skins.find((item) => item.id === profileCustomization.skin);
-
-        profileEquippedLabel.textContent = skin ? skin.name : "Mage runique";
+        profileEquippedLabel.textContent = skinItem ? skinItem.name : "Mage runique";
     }
 }
 
@@ -485,4 +507,50 @@ function updateProfileScore() {
     }
 
     profileBestScoreText.textContent = Math.floor(bestScore || 0).toLocaleString("fr-FR");
+}
+
+const profileSkinImageCache = {};
+
+function getProfileItemById(category, itemId) {
+    const items = PROFILE_ITEMS[category] || [];
+    return items.find((item) => item.id === itemId) || null;
+}
+
+function getEquippedSkinItem() {
+    return getProfileItemById("skins", profileCustomization.skin || "skin-default");
+}
+
+function preloadProfileSkinImages() {
+    const skins = PROFILE_ITEMS.skins || [];
+
+    for (const skin of skins) {
+        if (!skin.gameImage) {
+            continue;
+        }
+
+        if (profileSkinImageCache[skin.id]) {
+            continue;
+        }
+
+        const image = new Image();
+        image.src = skin.gameImage;
+
+        profileSkinImageCache[skin.id] = image;
+    }
+}
+
+function getEquippedPlayerSkinImage() {
+    const skin = getEquippedSkinItem();
+
+    if (!skin || !skin.gameImage) {
+        return null;
+    }
+
+    const image = profileSkinImageCache[skin.id];
+
+    if (!image || !image.complete || image.naturalWidth === 0) {
+        return null;
+    }
+
+    return image;
 }

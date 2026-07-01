@@ -1,5 +1,13 @@
 function drawPlayer() {
     const skin = getPlayerSkinPalette();
+    const skinImage = typeof getEquippedPlayerSkinImage === "function"
+        ? getEquippedPlayerSkinImage()
+        : null;
+
+    if (skinImage) {
+        drawPlayerImageSkin(skinImage);
+        return;
+    }
 
     ctx.save();
     const isHit = player.hitFlashTimer > 0;
@@ -49,6 +57,29 @@ function drawPlayer() {
     ctx.arc(35, 0, 6, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
+    ctx.restore();
+}
+
+function drawPlayerImageSkin(skinImage) {
+    ctx.save();
+
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.aimAngle || 0);
+
+    const drawWidth = player.radius * 6;
+    const drawHeight = drawWidth * (skinImage.naturalHeight / skinImage.naturalWidth);
+
+    ctx.shadowColor = "rgba(135, 80, 255, 0.55)";
+    ctx.shadowBlur = 14;
+
+    ctx.drawImage(
+        skinImage,
+        -drawWidth * 0.5,
+        -drawHeight * 0.5,
+        drawWidth,
+        drawHeight
+    );
+
     ctx.restore();
 }
 

@@ -76,6 +76,8 @@ const profileItemDetails = document.getElementById("profileItemDetails");
 const profileBestScoreText = document.getElementById("profileBestScoreText");
 const profileSkillTreeButton = document.getElementById("profileSkillTreeButton");
 
+const profileSkinImagePreview = document.getElementById("profileSkinImagePreview");
+
 // SHOP MENU
 const shopMenuButton = document.getElementById("shopMenuButton");
 

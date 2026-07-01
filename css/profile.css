@@ -634,3 +634,25 @@
 .profile-wallet {
   margin-top: 0;
 }
+
+.profile-skin-image-preview {
+  position: absolute;
+  z-index: 3;
+
+  width: 230px;
+  max-width: 60%;
+  height: 180px;
+
+  object-fit: contain;
+  object-position: center;
+
+  pointer-events: none;
+
+  filter:
+    drop-shadow(0 0 18px rgba(140, 80, 255, 0.36))
+    drop-shadow(0 0 30px rgba(80, 210, 255, 0.13));
+}
+
+.profile-skin-image-preview.hidden {
+  display: none;
+}

@@ -120,6 +120,10 @@ function bootGame() {
     if (typeof loadProfileOwnership === "function") {
         loadProfileOwnership();
     }
+
+    if (typeof preloadProfileSkinImages === "function") {
+        preloadProfileSkinImages();
+    }
     
     updateMetaCurrencyDisplays();
     loadGameVersion();
