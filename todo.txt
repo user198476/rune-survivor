@@ -50,3 +50,5 @@ choix entre 3 récompenses spéciales
 - Optimiser le menu principal car finit par fair elag et ralentir le PC
 
 - Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
+
+- Dans le menu Profile ajouter un accès à l'arbre de compétences et le score du joueur (au dessus de "Pieces")

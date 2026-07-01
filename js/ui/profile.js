@@ -1,4 +1,10 @@
 const PROFILE_STORAGE_KEY = "runeSurvivor.profile";
+const PROFILE_OWNERSHIP_STORAGE_KEY = "runeSurvivor.profile.owned";
+let profileOwnership = {
+    skins: ["skin-default"],
+    backgrounds: ["bg-neon-city"],
+    projectiles: ["projectile-blue"]
+};
 
 let selectedProfileCategory = "skins";
 
@@ -13,51 +19,60 @@ const PROFILE_ITEMS = {
         id: "skin-default",
         name: "Mage runique",
         description: "Le skin classique du survivant.",
-        unlocked: true
+        price: 0,
+        defaultUnlocked: true
     }, {
         id: "skin-royal",
         name: "Mage solaire",
         description: "Une variante dorée, future récompense du shop.",
-        unlocked: false
+        price: 2500,
+        defaultUnlocked: false
     }, {
         id: "skin-void",
         name: "Mage du Néant",
         description: "Un skin violet sombre lié aux failles.",
-        unlocked: false
+        price: 3500,
+        defaultUnlocked: false
     }],
 
     backgrounds: [{
         id: "bg-neon-city",
         name: "Cité néon",
         description: "Background principal actuel.",
-        unlocked: true
+        price: 0,
+        defaultUnlocked: true
     }, {
         id: "bg-void",
         name: "Abîme du Néant",
         description: "Un fond sombre et cosmique.",
-        unlocked: false
+        price: 2000,
+        defaultUnlocked: false
     }, {
         id: "bg-forge",
         name: "Forge astrale",
         description: "Un décor chaud et volcanique.",
-        unlocked: false
+        price: 2500,
+        defaultUnlocked: false
     }],
 
     projectiles: [{
         id: "projectile-blue",
         name: "Tir arcanique",
         description: "Projectile bleu classique.",
-        unlocked: true
+        price: 0,
+        defaultUnlocked: true
     }, {
         id: "projectile-gold",
         name: "Tir solaire",
         description: "Projectile doré premium.",
-        unlocked: false
+        price: 3000,
+        defaultUnlocked: false
     }, {
         id: "projectile-purple",
         name: "Tir du Néant",
         description: "Projectile violet sombre.",
-        unlocked: false
+        price: 3500,
+        defaultUnlocked: false
     }]
 };
 
@@ -90,6 +105,7 @@ function saveProfileCustomization() {
 
 function openProfileMenu() {
     loadProfileCustomization();
+    loadProfileOwnership();
 
     if (typeof state !== "undefined") {
         state = "profile";
@@ -162,10 +178,11 @@ function renderProfileItems() {
 
     for (const item of items) {
         const card = document.createElement("button");
+        const unlocked = isProfileItemUnlocked(selectedProfileCategory, item.id);
 
         card.className = "profile-item-card";
 
-        if (!item.unlocked) {
+        if (!unlocked) {
             card.classList.add("locked");
         }
 
@@ -177,7 +194,7 @@ function renderProfileItems() {
             <h3>${item.name}</h3>
             <p>${item.description}</p>
             <div class="profile-item-status">
-                ${item.id === equippedId ? "Équipé" : item.unlocked ? "Disponible" : "Shop"}
+                ${item.id === equippedId ? "Équipé" : unlocked ? "Disponible" : `${item.price.toLocaleString("fr-FR")} pièces`}
             </div>
         `;
 
@@ -190,7 +207,7 @@ function renderProfileItems() {
 function selectProfileItem(item) {
     updateProfileItemDetails(item);
 
-    if (!item.unlocked) {
+    if (!isProfileItemUnlocked(selectedProfileCategory, item.id)) {
         return;
     }
 
@@ -215,12 +232,18 @@ function updateProfileItemDetails(item) {
         return;
     }
 
+    const unlocked = isProfileItemUnlocked(selectedProfileCategory, item.id);
+
     profileItemDetails.innerHTML = `
         <span>${item.name}</span>
         <p>
             ${item.description}
             <br />
-            ${item.unlocked ? "Cet élément peut être équipé." : "Cet élément sera débloquable via le futur shop."}
+            ${
+                unlocked
+                    ? "Cet élément peut être équipé."
+                    : `Disponible au shop pour ${item.price.toLocaleString("fr-FR")} pièces.`
+            }
         </p>
     `;
 }
@@ -272,4 +295,69 @@ function bindProfileMenuEvents() {
             renderProfileMenu();
         });
     });
+}
+
+function loadProfileOwnership() {
+    const raw = localStorage.getItem(PROFILE_OWNERSHIP_STORAGE_KEY);
+
+    if (!raw) {
+        saveProfileOwnership();
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+
+        profileOwnership = {
+            skins: Array.isArray(parsed.skins) ? parsed.skins : ["skin-default"],
+            backgrounds: Array.isArray(parsed.backgrounds) ? parsed.backgrounds : ["bg-neon-city"],
+            projectiles: Array.isArray(parsed.projectiles) ? parsed.projectiles : ["projectile-blue"]
+        };
+    } catch (error) {
+        profileOwnership = {
+            skins: ["skin-default"],
+            backgrounds: ["bg-neon-city"],
+            projectiles: ["projectile-blue"]
+        };
+    }
+
+    ensureDefaultProfileItemsUnlocked();
+}
+
+function saveProfileOwnership() {
+    localStorage.setItem(PROFILE_OWNERSHIP_STORAGE_KEY, JSON.stringify(profileOwnership));
+}
+
+function ensureDefaultProfileItemsUnlocked() {
+    for (const category of Object.keys(PROFILE_ITEMS)) {
+        if (!profileOwnership[category]) {
+            profileOwnership[category] = [];
+        }
+
+        for (const item of PROFILE_ITEMS[category]) {
+            if (item.defaultUnlocked && !profileOwnership[category].includes(item.id)) {
+                profileOwnership[category].push(item.id);
+            }
+        }
+    }
+
+    saveProfileOwnership();
+}
+
+function isProfileItemUnlocked(category, itemId) {
+    return Boolean(
+        profileOwnership[category] &&
+        profileOwnership[category].includes(itemId)
+    );
+}
+
+function unlockProfileItem(category, itemId) {
+    if (!profileOwnership[category]) {
+        profileOwnership[category] = [];
+    }
+
+    if (!profileOwnership[category].includes(itemId)) {
+        profileOwnership[category].push(itemId);
+        saveProfileOwnership();
+    }
 }

@@ -72,3 +72,15 @@ const profileCategoryTitle = document.getElementById("profileCategoryTitle");
 const profileCategoryKicker = document.getElementById("profileCategoryKicker");
 const profileItemsGrid = document.getElementById("profileItemsGrid");
 const profileItemDetails = document.getElementById("profileItemDetails");
+
+// SHOP MENU
+const shopMenuButton = document.getElementById("shopMenuButton");
+
+const shopOverlay = document.getElementById("shopOverlay");
+const shopBackButton = document.getElementById("shopBackButton");
+const shopCoinsText = document.getElementById("shopCoinsText");
+
+const shopCategoryTitle = document.getElementById("shopCategoryTitle");
+const shopCategoryKicker = document.getElementById("shopCategoryKicker");
+const shopItemsGrid = document.getElementById("shopItemsGrid");
+const shopItemDetails = document.getElementById("shopItemDetails");

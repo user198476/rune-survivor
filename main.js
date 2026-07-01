@@ -49,9 +49,7 @@ function bindMenuButtons() {
 
     profileMenuButton?.addEventListener("click", openProfileMenu);
 
-    optionsMenuButton?.addEventListener("click", () => {
-        alert("Menu Options bientôt disponible.");
-    });
+    shopMenuButton?.addEventListener("click", openShopMenu);
 
     devMenuButton?.addEventListener("click", () => {
         if (DEBUG_BOSS_TEST_ENABLED && bossTestPanel) {
@@ -121,6 +119,7 @@ function bootGame() {
     bindInputEvents();
     bindMenuButtons();
     bindProfileMenuEvents();
+    bindShopMenuEvents();
 
     requestAnimationFrame((timestamp) => {
         lastTime = timestamp;

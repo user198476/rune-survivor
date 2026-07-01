@@ -6,6 +6,7 @@
     <title>Rune Survivor</title>
     <link rel="stylesheet" href="./css/style.css" />
     <link rel="stylesheet" href="./css/profile.css" />
+    <link rel="stylesheet" href="./css/shop.css" />
   </head>
   <body>
     <div id="game-wrapper">
@@ -46,9 +47,9 @@
                 <span class="menu-nav-index">02</span>
                 <span class="menu-nav-label">Profil</span>
               </button>
-              <button id="optionsMenuButton" class="menu-nav-button">
+              <button id="shopMenuButton" class="menu-nav-button">
                 <span class="menu-nav-index">03</span>
-                <span class="menu-nav-label">Options</span>
+                <span class="menu-nav-label">Shop</span>
               </button>
               <button id="devMenuButton" class="menu-nav-button">
                 <span class="menu-nav-index">04</span>
@@ -183,6 +184,62 @@
               <span>Sélectionne un élément</span>
               <p>Les futurs cosmétiques achetés au shop apparaîtront ici.</p>
             </div>
+          </section>
+        </main>
+      </div>
+
+      <div id="shopOverlay" class="shop-overlay hidden">
+        <div class="shop-bg-noise"></div>
+
+        <aside class="shop-sidebar">
+          <button id="shopBackButton" class="shop-back-button">← Retour</button>
+
+          <div class="shop-title-block">
+            <span class="shop-kicker">Boutique</span>
+            <h1>Shop</h1>
+            <p>Achète des éléments cosmétiques pour personnaliser ton mage, ton arène et tes tirs.</p>
+          </div>
+
+          <nav class="shop-tabs">
+            <button class="shop-tab active" data-shop-category="skins">
+              <span>01</span>
+              Skins
+            </button>
+
+            <button class="shop-tab" data-shop-category="backgrounds">
+              <span>02</span>
+              Backgrounds
+            </button>
+
+            <button class="shop-tab" data-shop-category="projectiles">
+              <span>03</span>
+              Tirs
+            </button>
+          </nav>
+
+          <div class="shop-wallet">
+            Pièces
+            <strong id="shopCoinsText">0</strong>
+          </div>
+        </aside>
+
+        <main class="shop-content">
+          <section class="shop-header-panel">
+            <div>
+              <span id="shopCategoryKicker">Collection</span>
+              <h2 id="shopCategoryTitle">Skins</h2>
+            </div>
+
+            <div class="shop-info-pill">
+              Cosmétiques uniquement
+            </div>
+          </section>
+
+          <section id="shopItemsGrid" class="shop-items-grid"></section>
+
+          <section id="shopItemDetails" class="shop-item-details">
+            <span>Sélectionne un objet</span>
+            <p>Les achats seront utilisables ensuite dans le menu Profil.</p>
           </section>
         </main>
       </div>
@@ -325,6 +382,7 @@
     <script src="js/ui/skill-tree.js"></script>
     <script src="js/ui/overlays.js"></script>
     <script src="js/ui/profile.js"></script>
+    <script src="js/ui/shop.js"></script>
     <script src="js/render/draw-background.js"></script>
     <script src="js/render/draw-entities.js"></script>
     <script src="js/render/draw-boss.js"></script>
