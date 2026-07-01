@@ -49,9 +49,9 @@ const SKILL_TIER_EFFECT_BONUS = 0.25;
 const MAX_VISIBLE_SKILL_TIER = 2; // nombre de palier/tier max de l'arbre de compétence
 const SKILL_TIER_UNLOCK_BEST_SCORE = [
     0,     // Palier de base
-    2500,  // Palier 1
-    5000,  // Palier 2
-    7500   // Palier 3
+    3000,  // Palier 1
+    7500,  // Palier 2
+    10000   // Palier 3
 ];
 
 // orange enemy
