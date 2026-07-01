@@ -3,7 +3,15 @@ function shootAt(target) {
 
     player.targetAimAngle = baseAngle;
 
-    fireProjectileVolley(player.x, player.y, baseAngle, 1, "#59dfff");
+    const projectileCosmetic = getProjectileCosmetic();
+
+    fireProjectileVolley(
+        player.x,
+        player.y,
+        baseAngle,
+        1,
+        projectileCosmetic.color
+    );
 
     if (player.cloneTimer > 0) {
         const cloneAngle = Math.atan2(

@@ -1,8 +1,9 @@
 function drawBackground() {
+    const bg = getGameBackgroundPalette();
     const tileSize = 64;
-    ctx.fillStyle = "#0a0a18";
+    ctx.fillStyle = bg.color;
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-    ctx.strokeStyle = "rgba(142, 113, 255, 0.08)";
+    ctx.strokeStyle = bg.grid;
     ctx.lineWidth = 1;
     for (let x = 0; x < GAME_WIDTH; x += tileSize) {
         ctx.beginPath();
@@ -18,7 +19,7 @@ function drawBackground() {
     }
     ctx.save();
     ctx.translate(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-    ctx.strokeStyle = "rgba(135, 91, 255, 0.18)";
+    ctx.strokeStyle = bg.glow;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, 260, 0, Math.PI * 2);

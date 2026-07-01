@@ -1,21 +1,5 @@
-1. Boss toutes les X minutes (en cours)
-à 2:00 → Boss Slime royal
-à 4:00 → Boss Chauve-souris
-à 6:00 → Boss Brute runique
-
 TODO:
 ______________________________________
-
-2. Runes rares / légendaires
-Rune légendaire : Orbe gardien
-→ une boule tourne autour du joueur et touche les ennemis
-
-Rune légendaire : Pluie astrale
-→ toutes les 8s, des projectiles tombent du ciel
-
-Rune légendaire : Triple écho
-→ le clone devient 2 clones pendant 12s
-
 3. Armes alternatives
 Bâton runique      → tir normal actuel
 Dagues spectrales  → tirs très rapides mais faibles
@@ -43,12 +27,16 @@ choix entre 3 récompenses spéciales
 
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
 
-- Un vrai menu comme DBD avec a gauche de haut en bas TITRE et List avec Jouer, Profil (skins, backgrounds, couleurs tirs, etc), Options, Dev (menu boss acces directs) Quit (fermer l'onglet)
-
-- Pour le menu option mettre un code secret en dur et ensuite ça ouvre un modal ou on peut activer mode Dev par exemple
+- Pour le menu dev mettre un code secret en dur et ensuite ça ouvre un modal
 
 - Optimiser le menu principal car finit par fair elag et ralentir le PC
 
 - Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
 
 - Dans le menu Profile ajouter un accès à l'arbre de compétences et le score du joueur (au dessus de "Pieces")
+
+- Ajouter des skins :
+skins du mage
+backgrounds complets
+projectiles animés
+effets de tirs premium

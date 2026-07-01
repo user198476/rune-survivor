@@ -1,4 +1,6 @@
 function drawPlayer() {
+    const skin = getPlayerSkinPalette();
+
     ctx.save();
     const isHit = player.hitFlashTimer > 0;
     const isBlinking = player.invulnerabilityTimer > 0 && !isHit && Math.floor(gameTime * 24) % 2 === 0;
@@ -7,18 +9,19 @@ function drawPlayer() {
     if (isBlinking) {
         ctx.globalAlpha = 0.55;
     }
-    // Ombre / base sombre
-    ctx.fillStyle = "#27214f";
+    // Cape / Chapeau du mage
+    ctx.fillStyle = skin.cape;
     ctx.beginPath();
     ctx.arc(0, 0, player.radius + 4, 0, Math.PI * 2);
     ctx.fill();
     // Corps du mage
-    ctx.fillStyle = isHit ? "#ffffff" : "#6ee6ff";
+    ctx.fillStyle = isHit ? "#ffffff" : skin.body;
+    ctx.shadowColor = skin.bodyGlow;
     ctx.beginPath();
     ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
     ctx.fill();
-    // Petit visage / capuche orientée vers l’avant
-    ctx.fillStyle = isHit ? "#ff365d" : "#f7f0ff";
+    // Visage / Oeil
+    ctx.fillStyle = isHit ? "#ff365d" : skin.face;
     ctx.beginPath();
     ctx.arc(7, -3, 8, 0, Math.PI * 2);
     ctx.fill();
@@ -31,7 +34,7 @@ function drawPlayer() {
     ctx.closePath();
     ctx.fill();
     // Baguette magique orientée vers l’avant
-    ctx.strokeStyle = "#d9c9ff";
+    ctx.strokeStyle = skin.staff;
     ctx.lineWidth = 5;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -39,8 +42,8 @@ function drawPlayer() {
     ctx.lineTo(31, 0);
     ctx.stroke();
     // Orbe au bout de la baguette
-    ctx.fillStyle = "#ffdf6e";
-    ctx.shadowColor = "#ffdf6e";
+    ctx.fillStyle = skin.orb;
+    ctx.shadowColor = skin.orbGlow;
     ctx.shadowBlur = 18;
     ctx.beginPath();
     ctx.arc(35, 0, 6, 0, Math.PI * 2);
@@ -180,11 +183,13 @@ function drawEnemies() {
 
 function drawProjectiles() {
     for (const projectile of projectiles) {
-        const color = projectile.color || "#73ecff";
+        const projectileCosmetic = getProjectileCosmetic();
+        const color = projectile.color || projectileCosmetic.color;
 
         ctx.save();
 
         ctx.fillStyle = color;
+        ctx.strokeStyle = projectile?.trailColor || getProjectileCosmetic()?.trail;
         ctx.shadowColor = color;
         ctx.shadowBlur = 22;
 

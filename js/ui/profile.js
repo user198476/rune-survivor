@@ -361,3 +361,114 @@ function unlockProfileItem(category, itemId) {
         saveProfileOwnership();
     }
 }
+
+function getEquippedSkinId() {
+    return profileCustomization.skin || "skin-default";
+}
+
+function getEquippedBackgroundId() {
+    return profileCustomization.background || "bg-neon-city";
+}
+
+function getEquippedProjectileId() {
+    return profileCustomization.projectile || "projectile-blue";
+}
+
+function getPlayerSkinPalette() {
+    const skinId = getEquippedSkinId();
+
+    if (skinId === "skin-royal") {
+        return {
+            body: "#ffd86b",
+            bodyGlow: "rgba(255, 216, 107, 0.72)",
+            face: "#fff7d6",
+            cape: "rgba(92, 54, 14, 0.96)",
+            staff: "#fff0b8",
+            orb: "#ffffff",
+            orbGlow: "rgba(255, 216, 107, 0.9)"
+        };
+    }
+
+    if (skinId === "skin-void") {
+        return {
+            body: "#b56dff",
+            bodyGlow: "rgba(181, 109, 255, 0.72)",
+            face: "#f4e8ff",
+            cape: "rgba(28, 14, 56, 0.98)",
+            staff: "#d9b4ff",
+            orb: "#73ecff",
+            orbGlow: "rgba(115, 236, 255, 0.9)"
+        };
+    }
+
+    return {
+        body: "#6ee6ff",
+        bodyGlow: "rgba(110, 230, 255, 0.65)",
+        face: "#f7f0ff",
+        cape: "rgba(39, 33, 79, 0.96)",
+        staff: "#d9c9ff",
+        orb: "#ffdf6e",
+        orbGlow: "rgba(255, 223, 110, 0.85)"
+    };
+}
+
+function getProjectileCosmetic() {
+    const projectileId = getEquippedProjectileId();
+
+    if (projectileId === "projectile-gold") {
+        return {
+            color: "#ffd86b",
+            glow: "rgba(255, 216, 107, 0.9)",
+            trail: "rgba(255, 216, 107, 0.28)"
+        };
+    }
+
+    if (projectileId === "projectile-purple") {
+        return {
+            color: "#b56dff",
+            glow: "rgba(181, 109, 255, 0.9)",
+            trail: "rgba(181, 109, 255, 0.28)"
+        };
+    }
+
+    return {
+        color: "#59dfff",
+        glow: "rgba(89, 223, 255, 0.9)",
+        trail: "rgba(89, 223, 255, 0.28)"
+    };
+}
+
+function getGameBackgroundPalette() {
+    const backgroundId = getEquippedBackgroundId();
+
+    if (backgroundId === "bg-void") {
+        return {
+            top: "#090718",
+            bottom: "#02020a",
+            glowA: "rgba(181, 109, 255, 0.18)",
+            glowB: "rgba(70, 30, 140, 0.14)",
+            grid: "rgba(181, 109, 255, 0.12)",
+            particles: "rgba(181, 109, 255, 0.35)"
+        };
+    }
+
+    if (backgroundId === "bg-forge") {
+        return {
+            top: "#1c0e08",
+            bottom: "#05020a",
+            glowA: "rgba(255, 112, 55, 0.18)",
+            glowB: "rgba(255, 216, 107, 0.10)",
+            grid: "rgba(255, 112, 55, 0.12)",
+            particles: "rgba(255, 216, 107, 0.32)"
+        };
+    }
+
+    return {
+        top: "#0e1024",
+        bottom: "#070711",
+        glowA: "rgba(80, 57, 160, 0.25)",
+        glowB: "rgba(69, 215, 255, 0.10)",
+        grid: "rgba(156, 119, 255, 0.10)",
+        particles: "rgba(115, 236, 255, 0.30)"
+    };
+}

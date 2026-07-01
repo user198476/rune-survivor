@@ -112,6 +112,15 @@ function confirmResetProgression() {
 
 function bootGame() {
     loadMetaProgression();
+
+    if (typeof loadProfileCustomization === "function") {
+        loadProfileCustomization();
+    }
+
+    if (typeof loadProfileOwnership === "function") {
+        loadProfileOwnership();
+    }
+    
     updateMetaCurrencyDisplays();
     loadGameVersion();
     resetGame();
