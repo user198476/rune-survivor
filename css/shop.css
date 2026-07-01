@@ -698,3 +698,59 @@
 
   pointer-events: none;
 }
+
+/* ========================================================= */
+/* SHOP RECOLORS - LIME                                      */
+/* ========================================================= */
+
+.shop-mini-mage.skin-lime .shop-mini-mage-body {
+  background: #b7ff2a;
+  box-shadow:
+    0 0 24px rgba(183, 255, 42, 0.72),
+    inset 0 0 12px rgba(255,255,255,0.14);
+}
+
+.shop-mini-mage.skin-lime .shop-mini-mage-face {
+  background: #f8ffe3;
+}
+
+.shop-mini-mage.skin-lime .shop-mini-mage-cape {
+  background: rgba(18, 54, 12, 0.98);
+}
+
+.shop-mini-mage.skin-lime .shop-mini-mage-staff {
+  background: #eaff9f;
+}
+
+.shop-mini-mage.skin-lime .shop-mini-mage-orb {
+  background: #d7ff4a;
+  box-shadow: 0 0 24px rgba(190, 255, 40, 0.95);
+}
+
+.shop-projectile-preview.projectile-lime {
+  background: #b7ff2a;
+  box-shadow:
+    0 0 16px rgba(183, 255, 42, 0.95),
+    0 0 36px rgba(183, 255, 42, 0.45);
+}
+
+.shop-projectile-trail.projectile-lime {
+  background: linear-gradient(90deg, transparent, rgba(183, 255, 42, 0.46));
+}
+
+.shop-background-preview.bg-lime {
+  background:
+    radial-gradient(circle at center, rgba(183, 255, 42, 0.20), transparent 28%),
+    radial-gradient(circle at 70% 76%, rgba(77, 255, 140, 0.12), transparent 28%),
+    linear-gradient(180deg, #071407, #020805);
+}
+
+.shop-background-preview.bg-lime .shop-background-preview-glow {
+  background: rgba(183, 255, 42, 0.22);
+}
+
+.shop-background-preview.bg-lime .shop-background-preview-grid {
+  background-image:
+    linear-gradient(rgba(183, 255, 42, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(183, 255, 42, 0.16) 1px, transparent 1px);
+}

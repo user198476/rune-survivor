@@ -38,12 +38,21 @@ const PROFILE_ITEMS = {
         name: "Mage RunatoR",
         description: "Un skin vert vif et acidulé.",
         price: 8000,
-        defaultUnlocked: false
+        defaultUnlocked: false,
+        palette: {
+            body: "#b7ff2a",
+            bodyGlow: "rgba(183, 255, 42, 0.72)",
+            face: "#f8ffe3",
+            cape: "rgba(18, 54, 12, 0.98)",
+            staff: "#eaff9f",
+            orb: "#d7ff4a",
+            orbGlow: "rgba(190, 255, 40, 0.95)"
+        }
     }, {
         id: "skin-midnight-purple-gtr-r34",
         name: "Midnight Purple GT-R R34",
         description: "Un skin premium inspiré du Midnight Purple, avec reflets violets métalliques et style racing.",
-        price: 5000,
+        price: 15000,
         defaultUnlocked: false,
         previewImage: "assets/skins/skin-midnight-purple-gtr-r34.png",
         gameImage: "assets/skins/skin-midnight-purple-gtr-r34.png"
@@ -67,6 +76,20 @@ const PROFILE_ITEMS = {
         description: "Un décor chaud et volcanique.",
         price: 10000,
         defaultUnlocked: false
+    }, {
+        id: "bg-lime",
+        name: "Arène RunatoR",
+        description: "Une arène sombre avec une énergie verte néon.",
+        price: 8000,
+        defaultUnlocked: false,
+        palette: {
+            top: "#071407",
+            bottom: "#020805",
+            glowA: "rgba(183, 255, 42, 0.18)",
+            glowB: "rgba(77, 255, 140, 0.12)",
+            grid: "rgba(183, 255, 42, 0.12)",
+            particles: "rgba(183, 255, 42, 0.34)"
+        }
     }],
 
     projectiles: [{
@@ -87,6 +110,17 @@ const PROFILE_ITEMS = {
         description: "Projectile violet sombre.",
         price: 10000,
         defaultUnlocked: false
+    }, {
+        id: "projectile-lime",
+        name: "Tir RunatoR",
+        description: "Un projectile vert néon vif.",
+        price: 6000,
+        defaultUnlocked: false,
+        palette: {
+            color: "#b7ff2a",
+            glow: "rgba(183, 255, 42, 0.95)",
+            trail: "rgba(183, 255, 42, 0.34)"
+        }
     }]
 };
 
@@ -403,6 +437,12 @@ function getEquippedProjectileId() {
 }
 
 function getPlayerSkinPalette() {
+    const skinItem = getEquippedSkinItem();
+
+    if (skinItem && skinItem.palette) {
+        return skinItem.palette;
+    }
+
     const skinId = getEquippedSkinId();
 
     if (skinId === "skin-royal") {
@@ -441,6 +481,12 @@ function getPlayerSkinPalette() {
 }
 
 function getProjectileCosmetic() {
+    const projectileItem = getEquippedProjectileItem();
+
+    if (projectileItem && projectileItem.palette) {
+        return projectileItem.palette;
+    }
+
     const projectileId = getEquippedProjectileId();
 
     if (projectileId === "projectile-gold") {
@@ -467,6 +513,12 @@ function getProjectileCosmetic() {
 }
 
 function getGameBackgroundPalette() {
+    const backgroundItem = getEquippedBackgroundItem();
+
+    if (backgroundItem && backgroundItem.palette) {
+        return backgroundItem.palette;
+    }
+
     const backgroundId = getEquippedBackgroundId();
 
     if (backgroundId === "bg-void") {
@@ -518,6 +570,14 @@ function getProfileItemById(category, itemId) {
 
 function getEquippedSkinItem() {
     return getProfileItemById("skins", profileCustomization.skin || "skin-default");
+}
+
+function getEquippedProjectileItem() {
+    return getProfileItemById("projectiles", profileCustomization.projectile || "projectile-blue");
+}
+
+function getEquippedBackgroundItem() {
+    return getProfileItemById("backgrounds", profileCustomization.background || "bg-neon-city");
 }
 
 function preloadProfileSkinImages() {

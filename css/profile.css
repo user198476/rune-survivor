@@ -656,3 +656,43 @@
 .profile-skin-image-preview.hidden {
   display: none;
 }
+
+/* ========================================================= */
+/* PROFILE RECOLORS - LIME                                   */
+/* ========================================================= */
+
+.profile-mage-preview.skin-lime .mage-body {
+  background: #b7ff2a;
+  box-shadow:
+    0 0 24px rgba(183, 255, 42, 0.72),
+    inset 0 0 12px rgba(255,255,255,0.14);
+}
+
+.profile-mage-preview.skin-lime .mage-face {
+  background: #f8ffe3;
+}
+
+.profile-mage-preview.skin-lime .mage-cape {
+  background: rgba(18, 54, 12, 0.98);
+}
+
+.profile-mage-preview.skin-lime .mage-staff {
+  background: #eaff9f;
+}
+
+.profile-mage-preview.skin-lime .mage-orb {
+  background: #d7ff4a;
+  box-shadow: 0 0 24px rgba(190, 255, 40, 0.95);
+}
+
+.profile-projectile-preview.projectile-lime {
+  background: #b7ff2a;
+  box-shadow: 0 0 24px rgba(183, 255, 42, 0.95);
+}
+
+.profile-preview-stage.bg-lime {
+  background:
+    radial-gradient(circle at 50% 54%, rgba(183, 255, 42, 0.18), transparent 24%),
+    radial-gradient(circle at 70% 30%, rgba(77, 255, 140, 0.12), transparent 28%),
+    linear-gradient(180deg, #071407, #020805);
+}
