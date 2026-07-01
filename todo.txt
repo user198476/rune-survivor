@@ -46,3 +46,7 @@ choix entre 3 récompenses spéciales
 - Un vrai menu comme DBD avec a gauche de haut en bas TITRE et List avec Jouer, Profil (skins, backgrounds, couleurs tirs, etc), Options, Dev (menu boss acces directs) Quit (fermer l'onglet)
 
 - Pour le menu option mettre un code secret en dur et ensuite ça ouvre un modal ou on peut activer mode Dev par exemple
+
+- Optimiser le menu principal car finit par fair elag et ralentir le PC
+
+- Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite

@@ -57,3 +57,18 @@ const resetProgressionModal = document.getElementById("resetProgressionModal");
 const resetScoreCheckbox = document.getElementById("resetScoreCheckbox");
 const cancelResetProgressionButton = document.getElementById("cancelResetProgressionButton");
 const confirmResetProgressionButton = document.getElementById("confirmResetProgressionButton");
+
+// PROFILE MENU
+const profileOverlay = document.getElementById("profileOverlay");
+const profileBackButton = document.getElementById("profileBackButton");
+const profileCoinsText = document.getElementById("profileCoinsText");
+
+const profilePreviewStage = document.getElementById("profilePreviewStage");
+const profileMagePreview = document.getElementById("profileMagePreview");
+const profileProjectilePreview = document.getElementById("profileProjectilePreview");
+const profileEquippedLabel = document.getElementById("profileEquippedLabel");
+
+const profileCategoryTitle = document.getElementById("profileCategoryTitle");
+const profileCategoryKicker = document.getElementById("profileCategoryKicker");
+const profileItemsGrid = document.getElementById("profileItemsGrid");
+const profileItemDetails = document.getElementById("profileItemDetails");

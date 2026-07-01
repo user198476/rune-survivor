@@ -47,9 +47,7 @@ function bindMenuButtons() {
 
     skillTreeStatsToggleButton?.addEventListener("click", toggleSkillStatsPopover);
 
-    profileMenuButton?.addEventListener("click", () => {
-        alert("Menu Profil bientôt disponible.");
-    });
+    profileMenuButton?.addEventListener("click", openProfileMenu);
 
     optionsMenuButton?.addEventListener("click", () => {
         alert("Menu Options bientôt disponible.");
@@ -122,6 +120,7 @@ function bootGame() {
 
     bindInputEvents();
     bindMenuButtons();
+    bindProfileMenuEvents();
 
     requestAnimationFrame((timestamp) => {
         lastTime = timestamp;

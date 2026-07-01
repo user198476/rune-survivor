@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rune Survivor</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/profile.css" />
   </head>
   <body>
     <div id="game-wrapper">
@@ -105,6 +106,87 @@
           <span id="gameVersionText" class="version-text">Version ...</span>
         </div>
       </div>
+
+      <div id="profileOverlay" class="profile-overlay hidden">
+        <div class="profile-bg-noise"></div>
+
+        <aside class="profile-sidebar">
+          <button id="profileBackButton" class="profile-back-button">← Retour</button>
+
+          <div class="profile-title-block">
+            <span class="profile-kicker">Personnalisation</span>
+            <h1>Profil</h1>
+            <p>Personnalise ton mage, tes tirs et ton arène avant de repartir en run.</p>
+          </div>
+
+          <nav class="profile-tabs">
+            <button class="profile-tab active" data-profile-category="skins">
+              <span>01</span>
+              Skins
+            </button>
+
+            <button class="profile-tab" data-profile-category="backgrounds">
+              <span>02</span>
+              Backgrounds
+            </button>
+
+            <button class="profile-tab" data-profile-category="projectiles">
+              <span>03</span>
+              Tirs
+            </button>
+          </nav>
+
+          <div class="profile-wallet">
+            Pièces
+            <strong id="profileCoinsText">0</strong>
+          </div>
+        </aside>
+
+        <main class="profile-content">
+          <section class="profile-preview-section">
+            <div class="profile-preview-header">
+              <span>Aperçu</span>
+              <strong id="profileEquippedLabel">Mage runique</strong>
+            </div>
+
+            <div id="profilePreviewStage" class="profile-preview-stage bg-neon-city">
+              <div class="profile-preview-glow"></div>
+
+              <div id="profileProjectilePreview" class="profile-projectile-preview projectile-blue"></div>
+
+              <div id="profileMagePreview" class="profile-mage-preview skin-default">
+                <div class="mage-shadow"></div>
+                <div class="mage-body"></div>
+                <div class="mage-face"></div>
+                <div class="mage-cape"></div>
+                <div class="mage-staff"></div>
+                <div class="mage-orb"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="profile-custom-section">
+            <div class="profile-section-header">
+              <div>
+                <span id="profileCategoryKicker">Collection</span>
+                <h2 id="profileCategoryTitle">Skins</h2>
+              </div>
+
+              <div class="profile-shop-hint">
+                Shop bientôt disponible
+              </div>
+            </div>
+
+            <div id="profileItemsGrid" class="profile-items-grid"></div>
+
+            <div id="profileItemDetails" class="profile-item-details">
+              <span>Sélectionne un élément</span>
+              <p>Les futurs cosmétiques achetés au shop apparaîtront ici.</p>
+            </div>
+          </section>
+        </main>
+      </div>
+
       <div id="hud">
         <div class="hud-top">
           <div class="hud-panel">
@@ -242,6 +324,7 @@
     <script src="js/ui/level-up.js"></script>
     <script src="js/ui/skill-tree.js"></script>
     <script src="js/ui/overlays.js"></script>
+    <script src="js/ui/profile.js"></script>
     <script src="js/render/draw-background.js"></script>
     <script src="js/render/draw-entities.js"></script>
     <script src="js/render/draw-boss.js"></script>
