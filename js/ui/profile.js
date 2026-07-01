@@ -24,7 +24,7 @@ const PROFILE_ITEMS = {
     }, {
         id: "skin-royal",
         name: "Mage solaire",
-        description: "Une variante dorée, future récompense du shop.",
+        description: "Un skin doré premium.",
         price: 5000,
         defaultUnlocked: false
     }, {
