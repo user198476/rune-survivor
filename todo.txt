@@ -29,14 +29,16 @@ choix entre 3 récompenses spéciales
 
 - Pour le menu dev mettre un code secret en dur et ensuite ça ouvre un modal
 
-- Optimiser le menu principal car finit par fair elag et ralentir le PC
-
 - Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
 
 - Dans le menu Profile ajouter un accès à l'arbre de compétences et le score du joueur (au dessus de "Pieces")
 
+- Rajouter un previsu du skin dans le shop pour voir ce que c'est
+
+- Retirer 
+
 - Ajouter des skins :
 skins du mage
 backgrounds complets
-projectiles animés
+projectiles animés (forme flammes, shuriken)
 effets de tirs premium

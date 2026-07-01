@@ -73,6 +73,9 @@ const profileCategoryKicker = document.getElementById("profileCategoryKicker");
 const profileItemsGrid = document.getElementById("profileItemsGrid");
 const profileItemDetails = document.getElementById("profileItemDetails");
 
+const profileBestScoreText = document.getElementById("profileBestScoreText");
+const profileSkillTreeButton = document.getElementById("profileSkillTreeButton");
+
 // SHOP MENU
 const shopMenuButton = document.getElementById("shopMenuButton");
 

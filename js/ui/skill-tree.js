@@ -197,14 +197,24 @@ function openSkillTree(fromState = state) {
 function closeSkillTree() {
     skillTreeOverlay.classList.add("hidden");
     state = skillTreeReturnState;
+    
     if (skillTreeReturnState === "menu") {
         mainMenuOverlay.classList.remove("hidden");
     }
+
     if (skillTreeReturnState === "paused") {
         pauseOverlay.classList.remove("hidden");
     }
+
     if (skillTreeReturnState === "gameover") {
         gameOverOverlay.classList.remove("hidden");
+    }
+
+    if (skillTreeReturnState === "profile") {
+        profileOverlay.classList.remove("hidden");
+        state = "profile";
+        renderProfileMenu();
+        return;
     }
 }
 

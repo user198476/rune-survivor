@@ -128,6 +128,7 @@ function closeProfileMenu() {
 
 function renderProfileMenu() {
     updateProfileCoins();
+    updateProfileScore();
     renderProfileTabs();
     renderProfileItems();
     renderProfilePreview();
@@ -286,6 +287,11 @@ function renderProfilePreview() {
 
 function bindProfileMenuEvents() {
     profileBackButton?.addEventListener("click", closeProfileMenu);
+
+    profileSkillTreeButton?.addEventListener("click", () => {
+        profileOverlay.classList.add("hidden");
+        openSkillTree("profile");
+    });
 
     const tabs = document.querySelectorAll(".profile-tab");
 
@@ -471,4 +477,12 @@ function getGameBackgroundPalette() {
         grid: "rgba(156, 119, 255, 0.10)",
         particles: "rgba(115, 236, 255, 0.30)"
     };
+}
+
+function updateProfileScore() {
+    if (!profileBestScoreText) {
+        return;
+    }
+
+    profileBestScoreText.textContent = Math.floor(bestScore || 0).toLocaleString("fr-FR");
 }
