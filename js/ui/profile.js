@@ -25,13 +25,13 @@ const PROFILE_ITEMS = {
         id: "skin-royal",
         name: "Mage solaire",
         description: "Une variante dorée, future récompense du shop.",
-        price: 2500,
+        price: 5000,
         defaultUnlocked: false
     }, {
         id: "skin-void",
         name: "Mage du Néant",
         description: "Un skin violet sombre lié aux failles.",
-        price: 3500,
+        price: 10000,
         defaultUnlocked: false
     }],
 
@@ -45,13 +45,13 @@ const PROFILE_ITEMS = {
         id: "bg-void",
         name: "Abîme du Néant",
         description: "Un fond sombre et cosmique.",
-        price: 2000,
+        price: 5000,
         defaultUnlocked: false
     }, {
         id: "bg-forge",
         name: "Forge astrale",
         description: "Un décor chaud et volcanique.",
-        price: 2500,
+        price: 10000,
         defaultUnlocked: false
     }],
 
@@ -65,13 +65,13 @@ const PROFILE_ITEMS = {
         id: "projectile-gold",
         name: "Tir solaire",
         description: "Projectile doré premium.",
-        price: 3000,
+        price: 5000,
         defaultUnlocked: false
     }, {
         id: "projectile-purple",
         name: "Tir du Néant",
         description: "Projectile violet sombre.",
-        price: 3500,
+        price: 10000,
         defaultUnlocked: false
     }]
 };
