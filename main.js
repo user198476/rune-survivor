@@ -32,6 +32,7 @@ function bindMenuButtons() {
     playButton?.addEventListener("click", startGame);
     restartButton?.addEventListener("click", startGame);
     resumeButton?.addEventListener("click", resumeGame);
+    pauseMainMenuButton?.addEventListener("click", returnToMainMenuFromPause);
 
     openSkillTreeButton?.addEventListener("click", () => openSkillTree("menu"));
     pauseSkillTreeButton?.addEventListener("click", () => openSkillTree("paused"));
@@ -155,6 +156,33 @@ function startDevBossTest(bossId) {
     }
 
     startBossTest(bossId);
+}
+
+function returnToMainMenuFromPause() {
+    if (typeof finalizeScore === "function") {
+        finalizeScore();
+    }
+
+    if (typeof CURRENT_RUN_STORAGE_KEY !== "undefined") {
+        localStorage.removeItem(CURRENT_RUN_STORAGE_KEY);
+    }
+
+    if (typeof keys !== "undefined") {
+        keys.clear();
+    }
+
+    pauseOverlay?.classList.add("hidden");
+    levelUpOverlay?.classList.add("hidden");
+    skillTreeOverlay?.classList.add("hidden");
+    gameOverOverlay?.classList.add("hidden");
+
+    mainMenuOverlay?.classList.remove("hidden");
+
+    if (typeof updateMetaCurrencyDisplays === "function") {
+        updateMetaCurrencyDisplays();
+    }
+
+    state = "menu";
 }
 
 function bootGame() {

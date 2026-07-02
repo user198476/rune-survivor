@@ -25,6 +25,7 @@ const finalKillsText = document.getElementById("finalKillsText");
 const restartButton = document.getElementById("restartButton");
 const mainMenuOverlay = document.getElementById("mainMenuOverlay");
 const pauseOverlay = document.getElementById("pauseOverlay");
+const pauseMainMenuButton = document.getElementById("pauseMainMenuButton");
 const resumeButton = document.getElementById("resumeButton");
 const buffPanel = document.getElementById("buffPanel");
 const buffTimerText = document.getElementById("buffTimerText");
