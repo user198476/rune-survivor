@@ -197,6 +197,10 @@ function resetProgressionButKeepScores(resetScores = false) {
         localStorage.removeItem(key);
     }
 
+    if (typeof resetProfileCosmetics === "function") {
+        resetProfileCosmetics();
+    }
+
     if (!resetScores) {
         for (const [key, value] of preservedValues.entries()) {
             if (value !== null) {

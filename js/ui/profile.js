@@ -363,6 +363,12 @@ function loadProfileOwnership() {
     const raw = localStorage.getItem(PROFILE_OWNERSHIP_STORAGE_KEY);
 
     if (!raw) {
+        profileOwnership = {
+            skins: ["skin-default"],
+            backgrounds: ["bg-neon-city"],
+            projectiles: ["projectile-blue"]
+        };
+
         saveProfileOwnership();
         return;
     }
@@ -613,4 +619,24 @@ function getEquippedPlayerSkinImage() {
     }
 
     return image;
+}
+
+function resetProfileCosmetics() {
+    localStorage.removeItem(PROFILE_STORAGE_KEY);
+    localStorage.removeItem(PROFILE_OWNERSHIP_STORAGE_KEY);
+
+    profileCustomization = {
+        skin: "skin-default",
+        background: "bg-neon-city",
+        projectile: "projectile-blue"
+    };
+
+    profileOwnership = {
+        skins: ["skin-default"],
+        backgrounds: ["bg-neon-city"],
+        projectiles: ["projectile-blue"]
+    };
+
+    saveProfileCustomization();
+    saveProfileOwnership();
 }
