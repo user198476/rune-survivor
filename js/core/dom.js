@@ -3,7 +3,14 @@ const ctx = canvas.getContext("2d");
 const playButton = document.getElementById("playButton");
 const profileMenuButton = document.getElementById("profileMenuButton");
 const optionsMenuButton = document.getElementById("optionsMenuButton");
+
 const devMenuButton = document.getElementById("devMenuButton");
+const devBossModal = document.getElementById("devBossModal");
+const devBossCloseButton = document.getElementById("devBossCloseButton");
+const devBoss1Button = document.getElementById("devBoss1Button");
+const devBoss2Button = document.getElementById("devBoss2Button");
+const devBoss3Button = document.getElementById("devBoss3Button");
+
 const quitGameButton = document.getElementById("quitGameButton");
 const hpFill = document.getElementById("hpFill");
 const xpFill = document.getElementById("xpFill");
