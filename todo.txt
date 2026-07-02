@@ -22,17 +22,11 @@ choix entre 3 récompenses spéciales
 +10 secondes de clone
 +soin complet
 
-- Buff boss 2, missille ne vont pas asser vite, ne tracke pas le joueur assez longtemps et c'est un peu trop facile a eviter + au lieu de faire le laser en forme de croix puis en forme de +, on fait les 2 en meme temps
-
 - Pour le boss 4, basé sur le mob coward + il se clone (duplique) et si on tire sur le mauvais ça retire pas de point de vies au boss
 
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
 
-- Pour le menu dev mettre un code secret en dur et ensuite ça ouvre un modal
-
 - Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
-
-- Corriger l'accès dev aux boutons d'accès direct aux boss, là quand on change la constante ça ne fait rien car on a fait la refonte du menu principal, idéalement au clic du bouton "Dev" dans le menu pricipal, si la constante est true on ouvre un modal avec les boutons
 
 - Ajouter des skins :
 skins du mage

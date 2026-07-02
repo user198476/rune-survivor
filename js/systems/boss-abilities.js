@@ -170,24 +170,33 @@ function spawnBossMissileWave() {
     const baseAngle = Math.atan2(player.y - currentBoss.y, player.x - currentBoss.x);
 
     for (let i = 0; i < BOSS_MISSILE_COUNT; i++) {
-        const spread = (i - (BOSS_MISSILE_COUNT - 1) / 2) * 0.22;
+        const spread = (i - (BOSS_MISSILE_COUNT - 1) / 2) * 0.24;
         const angle = baseAngle + spread;
 
         bossMissiles.push({
             x: currentBoss.x,
             y: currentBoss.y,
+
             vx: Math.cos(angle) * BOSS_MISSILE_SPEED,
             vy: Math.sin(angle) * BOSS_MISSILE_SPEED,
+
             radius: BOSS_MISSILE_RADIUS,
             damage: BOSS_MISSILE_DAMAGE,
             life: BOSS_MISSILE_LIFE,
-            locked: false,
+
             trackTimer: BOSS_MISSILE_TRACK_DURATION,
             color: "#ff4d8d"
         });
     }
 
-    createParticles(currentBoss.x, currentBoss.y, 36, "#ff4d8d", 2.4);
+    addFloatingText(
+        currentBoss.x,
+        currentBoss.y - currentBoss.radius - 54,
+        "MISSILES",
+        "#ff9bd3"
+    );
+
+    createParticles(currentBoss.x, currentBoss.y, 42, "#ff4d8d", 2.6);
 }
 
 function updateBossMissiles(dt) {
@@ -206,38 +215,23 @@ function updateBossMissiles(dt) {
         const dy = player.y - missile.y;
         const distanceToPlayer = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        if (!missile.locked) {
+        if (missile.trackTimer > 0) {
             missile.trackTimer -= dt;
 
-            const shouldStopTracking =
-                missile.trackTimer <= 0 ||
-                distanceToPlayer <= BOSS_MISSILE_LOCK_DISTANCE;
+            const targetVx = (dx / distanceToPlayer) * BOSS_MISSILE_SPEED;
+            const targetVy = (dy / distanceToPlayer) * BOSS_MISSILE_SPEED;
 
-            if (shouldStopTracking) {
-                missile.locked = true;
+            const turn = Math.min(1, BOSS_MISSILE_TURN_SPEED * dt);
 
-                const currentSpeed = Math.sqrt(
-                    missile.vx * missile.vx + missile.vy * missile.vy
-                ) || 1;
+            missile.vx += (targetVx - missile.vx) * turn;
+            missile.vy += (targetVy - missile.vy) * turn;
 
-                missile.vx = (missile.vx / currentSpeed) * BOSS_MISSILE_SPEED;
-                missile.vy = (missile.vy / currentSpeed) * BOSS_MISSILE_SPEED;
-            } else {
-                const targetVx = (dx / distanceToPlayer) * BOSS_MISSILE_SPEED;
-                const targetVy = (dy / distanceToPlayer) * BOSS_MISSILE_SPEED;
+            const speed = Math.sqrt(
+                missile.vx * missile.vx + missile.vy * missile.vy
+            ) || 1;
 
-                const turn = Math.min(1, BOSS_MISSILE_TURN_SPEED * dt);
-
-                missile.vx += (targetVx - missile.vx) * turn;
-                missile.vy += (targetVy - missile.vy) * turn;
-
-                const speed = Math.sqrt(
-                    missile.vx * missile.vx + missile.vy * missile.vy
-                ) || 1;
-
-                missile.vx = (missile.vx / speed) * BOSS_MISSILE_SPEED;
-                missile.vy = (missile.vy / speed) * BOSS_MISSILE_SPEED;
-            }
+            missile.vx = (missile.vx / speed) * BOSS_MISSILE_SPEED;
+            missile.vy = (missile.vy / speed) * BOSS_MISSILE_SPEED;
         }
 
         missile.x += missile.vx * dt;
@@ -250,10 +244,11 @@ function updateBossMissiles(dt) {
         if (hitDx * hitDx + hitDy * hitDy <= hitRadius * hitRadius) {
             damagePlayer(missile.damage, null);
 
-            screenShake = 4.5;
-            screenShakeTimer = 0.12;
+            screenShake = 5.2;
+            screenShakeTimer = 0.14;
 
-            createParticles(missile.x, missile.y, 36, missile.color, 2.5);
+            createParticles(missile.x, missile.y, 40, missile.color, 2.7);
+
             addFloatingText(
                 player.x,
                 player.y - player.radius - 26,
@@ -265,14 +260,14 @@ function updateBossMissiles(dt) {
             continue;
         }
 
-        const touchesBorder =
-            missile.x - missile.radius <= 0 ||
-            missile.x + missile.radius >= GAME_WIDTH ||
-            missile.y - missile.radius <= 0 ||
-            missile.y + missile.radius >= GAME_HEIGHT;
+        const outOfBounds =
+            missile.x < -120 ||
+            missile.x > GAME_WIDTH + 120 ||
+            missile.y < -120 ||
+            missile.y > GAME_HEIGHT + 120;
 
-        if (touchesBorder) {
-            createParticles(missile.x, missile.y, 18, missile.color, 1.5);
+        if (outOfBounds) {
+            createParticles(missile.x, missile.y, 14, missile.color, 1.2);
             bossMissiles.splice(i, 1);
         }
     }
@@ -492,14 +487,8 @@ function spawnBossFixedLaserPattern(boss) {
         return;
     }
 
-    const patternIndex = boss.laserPatternIndex || 0;
-
-    const angleOffset = patternIndex % 2 === 0
-        ? 0
-        : Math.PI / BOSS_LASER_FIXED_COUNT;
-
     for (let i = 0; i < BOSS_LASER_FIXED_COUNT; i++) {
-        const angle = angleOffset + (Math.PI * 2 * i) / BOSS_LASER_FIXED_COUNT;
+        const angle = (Math.PI * 2 * i) / BOSS_LASER_FIXED_COUNT;
 
         bossLasers.push({
             x: boss.x,
@@ -514,14 +503,14 @@ function spawnBossFixedLaserPattern(boss) {
         });
     }
 
-    boss.laserPatternIndex = patternIndex + 1;
-
     addFloatingText(
         boss.x,
         boss.y - boss.radius - 34,
-        "RAYONS RUNIQUES",
+        "RAYONS SANGUINS",
         "#ff4d8d"
     );
+
+    createParticles(boss.x, boss.y, 44, "#ff4d8d", 2.5);
 }
 
 function isPlayerInsideBossLaser(laser) {

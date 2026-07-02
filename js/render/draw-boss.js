@@ -165,47 +165,92 @@ function drawRoyalSlimeAura() {
 
 function drawBossMissiles() {
     for (const missile of bossMissiles) {
-        const angle = Math.atan2(missile.vy, missile.vx);
+        if (!missile) {
+            continue;
+        }
+
+        const color = missile.color || "#ff4d8d";
+        const speed = Math.sqrt(
+            missile.vx * missile.vx + missile.vy * missile.vy
+        ) || 1;
+
+        const dirX = missile.vx / speed;
+        const dirY = missile.vy / speed;
+
+        const angle = Math.atan2(dirY, dirX);
+        const isTracking = missile.trackTimer > 0;
 
         ctx.save();
 
         ctx.translate(missile.x, missile.y);
         ctx.rotate(angle);
 
-        ctx.globalAlpha = missile.locked ? 0.95 : 0.78;
+        // Traînée arrière
+        const trailGradient = ctx.createLinearGradient(
+            -missile.radius * 5,
+            0,
+            missile.radius,
+            0
+        );
 
-        ctx.shadowColor = missile.color;
-        ctx.shadowBlur = missile.locked ? 16 : 24;
+        trailGradient.addColorStop(0, "rgba(255, 77, 141, 0)");
+        trailGradient.addColorStop(0.45, "rgba(255, 77, 141, 0.22)");
+        trailGradient.addColorStop(1, color);
 
-        ctx.fillStyle = missile.locked ? "#ffb3d7" : missile.color;
-
+        ctx.fillStyle = trailGradient;
         ctx.beginPath();
-        ctx.moveTo(18, 0);
-        ctx.lineTo(-12, -10);
-        ctx.lineTo(-7, 0);
-        ctx.lineTo(-12, 10);
-        ctx.closePath();
+        ctx.ellipse(
+            -missile.radius * 2.2,
+            0,
+            missile.radius * 3.2,
+            missile.radius * 0.7,
+            0,
+            0,
+            Math.PI * 2
+        );
         ctx.fill();
 
-        ctx.globalAlpha = 0.45;
-        ctx.fillStyle = missile.color;
+        // Halo de tracking
+        if (isTracking) {
+            ctx.save();
+            ctx.globalAlpha = 0.35 + Math.sin(gameTime * 14) * 0.12;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, missile.radius + 7, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
 
+        // Corps du missile
+        ctx.shadowColor = color;
+        ctx.shadowBlur = isTracking ? 18 : 10;
+
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(-18, 0, 8, 0, Math.PI * 2);
+        ctx.ellipse(
+            0,
+            0,
+            missile.radius * 1.35,
+            missile.radius * 0.9,
+            0,
+            0,
+            Math.PI * 2
+        );
         ctx.fill();
 
-        ctx.restore();
-
-        ctx.save();
-
-        ctx.globalAlpha = missile.locked ? 0.16 : 0.24;
-        ctx.strokeStyle = missile.color;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 7]);
-
+        // Noyau clair
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffd6e8";
         ctx.beginPath();
-        ctx.arc(missile.x, missile.y, BOSS_MISSILE_LOCK_DISTANCE, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.arc(
+            missile.radius * 0.35,
+            -missile.radius * 0.18,
+            missile.radius * 0.36,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
 
         ctx.restore();
     }
