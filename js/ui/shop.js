@@ -53,7 +53,7 @@ function renderShopTabs() {
         }
 
         if (selectedShopCategory === "backgrounds") {
-            shopCategoryTitle.textContent = "Backgrounds";
+            shopCategoryTitle.textContent = "Arènes";
         }
 
         if (selectedShopCategory === "projectiles") {

@@ -206,7 +206,7 @@ function renderProfileTabs() {
         }
 
         if (selectedProfileCategory === "backgrounds") {
-            profileCategoryTitle.textContent = "Backgrounds";
+            profileCategoryTitle.textContent = "Arènes";
         }
 
         if (selectedProfileCategory === "projectiles") {
