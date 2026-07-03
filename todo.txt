@@ -22,14 +22,22 @@ choix entre 3 récompenses spéciales
 +10 secondes de clone
 +soin complet
 
-- Pour le boss 4, basé sur le mob coward + il se clone (duplique) et si on tire sur le mauvais ça retire pas de point de vies au boss
-
 - Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
-
-- Quand on ne prend pas de rune légendaire au niveau 5 au profit d'une upgrade classique on doit attendre le niveau 10 pour la prochaine rune légendaire, il faut pas. Si on prend pas la rune leg au niveau 5 on le repropose niveau d'apres et ainsi de suite
 
 - Ajouter des skins :
 skins du mage
 backgrounds complets
 projectiles animés (forme flammes, shuriken)
 effets de tirs premium
+
+Comportement Boss4 (Coward Trickster):
+
+- se déplace comme un monstre orange : il garde ses distances
+- crée 3 à 4 faux clones
+- un seul est le vrai boss : currentBoss
+- les faux clones sont ciblables
+- tirer sur un faux clone ne retire aucun PV au boss
+- tirer sur un faux clone ralentit le joueur
+- le faux clone renvoie un projectile de punition
+- Panic Swap : le vrai boss affiche un court indice, puis échange sa position avec un clone
+- les clones tirent aussi des projectiles

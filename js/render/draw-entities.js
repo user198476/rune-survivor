@@ -184,30 +184,81 @@ function drawEnemies() {
         if (enemy.isBoss) {
             ctx.save();
 
-            ctx.globalAlpha = 0.22;
+            ctx.globalAlpha = 0.26;
             ctx.strokeStyle = enemy.color;
             ctx.lineWidth = 4;
             ctx.shadowColor = enemy.color;
-            ctx.shadowBlur = 24;
+            ctx.shadowBlur = 28;
 
             ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.radius + 18 + Math.sin(performance.now() / 160) * 4, 0, Math.PI * 2);
+            ctx.arc(
+                enemy.x,
+                enemy.y,
+                enemy.radius + 18 + Math.sin(performance.now() / 160) * 4,
+                0,
+                Math.PI * 2
+            );
             ctx.stroke();
 
             ctx.restore();
         }
 
         const sprite = getEnemySprite(enemy);
-        ctx.drawImage(sprite.canvas, enemy.x - sprite.size / 2, enemy.y - sprite.size / 2);
-        const shouldDrawHpBar = enemies.length < 120 || enemy.hp < enemy.maxHp;
+
+        ctx.save();
+
+        if (enemy.isCowardFakeClone) {
+            ctx.globalAlpha = 0.58 + Math.sin(gameTime * 8) * 0.08;
+        }
+
+        ctx.drawImage(
+            sprite.canvas,
+            enemy.x - sprite.size / 2,
+            enemy.y - sprite.size / 2
+        );
+
+        ctx.restore();
+
+        const shouldDrawHpBar =
+            !enemy.isCowardFakeClone &&
+            (enemies.length < 120 || enemy.hp < enemy.maxHp);
+
         if (shouldDrawHpBar) {
             const hpWidth = enemy.radius * 2;
             const hpHeight = 5;
             const hpPercent = Math.max(0, enemy.hp / enemy.maxHp);
+
             ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-            ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth, hpHeight);
+            ctx.fillRect(
+                enemy.x - hpWidth / 2,
+                enemy.y - enemy.radius - 14,
+                hpWidth,
+                hpHeight
+            );
+
             ctx.fillStyle = "#ff4066";
-            ctx.fillRect(enemy.x - hpWidth / 2, enemy.y - enemy.radius - 14, hpWidth * hpPercent, hpHeight);
+            ctx.fillRect(
+                enemy.x - hpWidth / 2,
+                enemy.y - enemy.radius - 14,
+                hpWidth * hpPercent,
+                hpHeight
+            );
+        }
+
+        if (enemy.isCowardFakeClone) {
+            ctx.save();
+
+            ctx.globalAlpha = 0.72;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.font = "900 18px Arial";
+            ctx.fillStyle = "#ffe0a3";
+            ctx.shadowColor = "#ff9b2f";
+            ctx.shadowBlur = 12;
+
+            ctx.fillText("?", enemy.x, enemy.y - enemy.radius - 18);
+
+            ctx.restore();
         }
     }
 }
@@ -347,12 +398,15 @@ function drawPowerUps() {
 }
 
 function getEnemySprite(enemy) {
-    const key = `${enemy.type}_${enemy.color}_${enemy.radius}`;
+    const key = `${enemy.type}_${enemy.color}_${enemy.radius}_${enemy.isBoss ? "boss" : "mob"}_${enemy.isCowardFakeClone ? "fake" : "real"}`;
+
     let sprite = enemySpriteCache.get(key);
+
     if (!sprite) {
         sprite = createEnemySprite(enemy);
         enemySpriteCache.set(key, sprite);
     }
+
     return sprite;
 }
 
@@ -393,6 +447,8 @@ function createEnemySprite(enemy) {
         bctx.arc(cx - 8, cy - 5, 3, 0, Math.PI * 2);
         bctx.arc(cx + 8, cy - 5, 3, 0, Math.PI * 2);
         bctx.fill();
+    } else if (enemy.type === "cowardBoss" || enemy.type === "cowardBossClone") {
+        drawCowardBossSprite(bctx, cx, cy, enemy);
     } else if (enemy.type === "cowardShooter") {
         bctx.save();
         bctx.translate(cx, cy);
@@ -659,4 +715,146 @@ function drawVoidRifts() {
 
         ctx.restore();
     }
+}
+
+function drawCowardBossSprite(bctx, cx, cy, enemy) {
+    const r = enemy.radius;
+    const isFake = enemy.isCowardFakeClone === true;
+
+    bctx.save();
+    bctx.translate(cx, cy);
+
+    if (isFake) {
+        bctx.globalAlpha = 0.78;
+    }
+
+    // Aura sombre extérieure
+    const aura = bctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 1.95);
+    aura.addColorStop(0, "rgba(255, 155, 47, 0.42)");
+    aura.addColorStop(0.45, "rgba(255, 80, 20, 0.18)");
+    aura.addColorStop(1, "rgba(255, 155, 47, 0)");
+
+    bctx.fillStyle = aura;
+    bctx.beginPath();
+    bctx.arc(0, 0, r * 1.95, 0, Math.PI * 2);
+    bctx.fill();
+
+    // Pointes / silhouette plus menaçante
+    bctx.shadowColor = "#ff9b2f";
+    bctx.shadowBlur = isFake ? 14 : 26;
+
+    bctx.fillStyle = isFake
+        ? "rgba(140, 72, 22, 0.72)"
+        : "#7a270d";
+
+    const spikeCount = 8;
+
+    bctx.beginPath();
+
+    for (let i = 0; i < spikeCount; i++) {
+        const angle = (Math.PI * 2 * i) / spikeCount - Math.PI / 2;
+        const spikeRadius = i % 2 === 0 ? r * 1.34 : r * 1.06;
+
+        const x = Math.cos(angle) * spikeRadius;
+        const y = Math.sin(angle) * spikeRadius;
+
+        if (i === 0) {
+            bctx.moveTo(x, y);
+        } else {
+            bctx.lineTo(x, y);
+        }
+    }
+
+    bctx.closePath();
+    bctx.fill();
+
+    // Corps principal : même logique que le coward normal, mais plus gros
+    const bodyGradient = bctx.createLinearGradient(0, -r, 0, r);
+    bodyGradient.addColorStop(0, isFake ? "#ffb45c" : "#ffb14a");
+    bodyGradient.addColorStop(0.45, isFake ? "#ff8a2c" : "#ff6a00");
+    bodyGradient.addColorStop(1, isFake ? "#8c3f16" : "#4a1408");
+
+    bctx.fillStyle = bodyGradient;
+    bctx.beginPath();
+    bctx.moveTo(0, -r * 1.22);
+    bctx.lineTo(r * 1.05, 0);
+    bctx.lineTo(0, r * 1.22);
+    bctx.lineTo(-r * 1.05, 0);
+    bctx.closePath();
+    bctx.fill();
+
+    bctx.lineWidth = Math.max(4, r * 0.09);
+    bctx.strokeStyle = isFake ? "rgba(255, 220, 150, 0.55)" : "#ffcf75";
+    bctx.stroke();
+
+    bctx.shadowBlur = 0;
+
+    // Armure noire intérieure
+    bctx.fillStyle = isFake
+        ? "rgba(18, 17, 34, 0.72)"
+        : "#151327";
+
+    bctx.beginPath();
+    bctx.moveTo(0, -r * 0.62);
+    bctx.lineTo(r * 0.48, 0);
+    bctx.lineTo(0, r * 0.62);
+    bctx.lineTo(-r * 0.48, 0);
+    bctx.closePath();
+    bctx.fill();
+
+    // Griffes / cornes latérales
+    bctx.strokeStyle = isFake ? "rgba(255, 236, 196, 0.58)" : "#ffe0a3";
+    bctx.lineWidth = Math.max(3, r * 0.07);
+    bctx.lineCap = "round";
+
+    bctx.beginPath();
+    bctx.moveTo(-r * 0.72, -r * 0.12);
+    bctx.lineTo(-r * 1.28, -r * 0.42);
+    bctx.moveTo(-r * 0.72, r * 0.12);
+    bctx.lineTo(-r * 1.28, r * 0.42);
+
+    bctx.moveTo(r * 0.72, -r * 0.12);
+    bctx.lineTo(r * 1.28, -r * 0.42);
+    bctx.moveTo(r * 0.72, r * 0.12);
+    bctx.lineTo(r * 1.28, r * 0.42);
+    bctx.stroke();
+
+    // Yeux menaçants
+    bctx.shadowColor = "#fff2cc";
+    bctx.shadowBlur = isFake ? 8 : 16;
+
+    bctx.fillStyle = isFake ? "rgba(255, 242, 204, 0.72)" : "#fff2cc";
+
+    bctx.beginPath();
+    bctx.ellipse(-r * 0.18, -r * 0.05, r * 0.11, r * 0.07, -0.35, 0, Math.PI * 2);
+    bctx.ellipse(r * 0.18, -r * 0.05, r * 0.11, r * 0.07, 0.35, 0, Math.PI * 2);
+    bctx.fill();
+
+    bctx.shadowBlur = 0;
+
+    // Noyau central
+    bctx.fillStyle = isFake ? "rgba(255, 210, 120, 0.72)" : "#ffd86b";
+    bctx.shadowColor = "#ffd86b";
+    bctx.shadowBlur = isFake ? 10 : 18;
+
+    bctx.beginPath();
+    bctx.arc(0, r * 0.18, r * 0.12, 0, Math.PI * 2);
+    bctx.fill();
+
+    bctx.shadowBlur = 0;
+
+    // Marquage des faux clones : plus spectral, moins lisible comme vrai boss
+    if (isFake) {
+        bctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+        bctx.lineWidth = 2;
+        bctx.setLineDash([8, 7]);
+
+        bctx.beginPath();
+        bctx.arc(0, 0, r * 1.42, 0, Math.PI * 2);
+        bctx.stroke();
+
+        bctx.setLineDash([]);
+    }
+
+    bctx.restore();
 }

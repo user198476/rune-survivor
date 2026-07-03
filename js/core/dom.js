@@ -10,6 +10,7 @@ const devBossCloseButton = document.getElementById("devBossCloseButton");
 const devBoss1Button = document.getElementById("devBoss1Button");
 const devBoss2Button = document.getElementById("devBoss2Button");
 const devBoss3Button = document.getElementById("devBoss3Button");
+const devBoss4Button = document.getElementById("devBoss4Button");
 
 const quitGameButton = document.getElementById("quitGameButton");
 const hpFill = document.getElementById("hpFill");

@@ -194,7 +194,9 @@ function updateEnemies(dt) {
             continue;
         }
 
-        if (enemy.type === "cowardShooter") {
+        if (enemy.bossId === "coward_trickster" || enemy.type === "cowardBossClone") {
+            updateCowardTricksterEnemy(enemy, dt);
+        } else if (enemy.type === "cowardShooter") {
             updateCowardShooterEnemy(enemy, dt);
         } else {
             const dx = player.x - enemy.x;
@@ -347,6 +349,82 @@ function fireCowardShooterProjectile(enemy, dirX, dirY) {
         color: "#ff9b2f",
         life: COWARD_SHOOTER_PROJECTILE_LIFETIME
     });
+}
+
+function fireCowardTricksterProjectile(enemy, dirX, dirY) {
+    enemyProjectiles.push({
+        x: enemy.x + dirX * (enemy.radius + 8),
+        y: enemy.y + dirY * (enemy.radius + 8),
+        vx: dirX * COWARD_TRICKSTER_PROJECTILE_SPEED,
+        vy: dirY * COWARD_TRICKSTER_PROJECTILE_SPEED,
+        radius: COWARD_TRICKSTER_PROJECTILE_RADIUS,
+        damage: COWARD_TRICKSTER_PROJECTILE_DAMAGE,
+        color: "#ff9b2f",
+        life: COWARD_TRICKSTER_PROJECTILE_LIFETIME
+    });
+}
+
+function updateCowardTricksterEnemy(enemy, dt) {
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const distanceToPlayer = Math.sqrt(dx * dx + dy * dy) || 1;
+
+    const dirX = dx / distanceToPlayer;
+    const dirY = dy / distanceToPlayer;
+
+    const preferredDistance = enemy.isCowardFakeClone
+        ? COWARD_TRICKSTER_CLONE_PREFERRED_DISTANCE
+        : COWARD_TRICKSTER_BOSS_PREFERRED_DISTANCE;
+
+    let moveX = 0;
+    let moveY = 0;
+
+    if (distanceToPlayer < COWARD_TRICKSTER_TOO_CLOSE_DISTANCE) {
+        moveX = -dirX;
+        moveY = -dirY;
+    } else if (distanceToPlayer > COWARD_TRICKSTER_LEASH_DISTANCE) {
+        moveX = dirX * 0.32;
+        moveY = dirY * 0.32;
+    } else if (distanceToPlayer < preferredDistance) {
+        moveX = -dirX * 0.74 + (-dirY * enemy.strafeDirection) * 0.38;
+        moveY = -dirY * 0.74 + (dirX * enemy.strafeDirection) * 0.38;
+    } else {
+        moveX = -dirY * enemy.strafeDirection * 0.72;
+        moveY = dirX * enemy.strafeDirection * 0.72;
+    }
+
+    const moveLength = Math.sqrt(moveX * moveX + moveY * moveY) || 1;
+
+    enemy.x += (moveX / moveLength) * enemy.speed * dt;
+    enemy.y += (moveY / moveLength) * enemy.speed * dt;
+
+    enemy.x = Math.max(enemy.radius, Math.min(GAME_WIDTH - enemy.radius, enemy.x));
+    enemy.y = Math.max(enemy.radius + 76, Math.min(GAME_HEIGHT - enemy.radius, enemy.y));
+
+    if (enemy.isCowardFakeClone) {
+        enemy.fakeHitCooldown = Math.max(0, (enemy.fakeHitCooldown || 0) - dt);
+    }
+
+    if (typeof enemy.cowardShootCooldown !== "number") {
+        enemy.cowardShootCooldown = randomBetween(
+            COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MIN,
+            COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MAX
+        );
+    }
+
+    enemy.cowardShootCooldown -= dt;
+
+    if (
+        enemy.cowardShootCooldown <= 0 &&
+        distanceToPlayer <= COWARD_TRICKSTER_PROJECTILE_RANGE
+    ) {
+        fireCowardTricksterProjectile(enemy, dirX, dirY);
+
+        enemy.cowardShootCooldown = randomBetween(
+            COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MIN,
+            COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MAX
+        );
+    }
 }
 
 function updateCowardShooterEnemy(enemy, dt) {

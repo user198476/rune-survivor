@@ -1,434 +1,365 @@
 <!DOCTYPE html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rune Survivor</title>
-    <link rel="stylesheet" href="./css/style.css" />
-    <link rel="stylesheet" href="./css/profile.css" />
-    <link rel="stylesheet" href="./css/shop.css" />
-  </head>
-  <body>
-    <div id="game-wrapper">
-      <canvas id="gameCanvas" width="1280" height="720"></canvas>
-      <div id="mainMenuOverlay" class="overlay menu-overlay">
-        <div class="menu-background-image"></div>
-        <div class="menu-background-tint"></div>
-
-        <div class="menu-floating-particles">
-          <span class="particle particle-1"></span>
-          <span class="particle particle-2"></span>
-          <span class="particle particle-3"></span>
-          <span class="particle particle-4"></span>
-          <span class="particle particle-5"></span>
-        </div>
-
-        <div class="menu-background-glow menu-glow-left"></div>
-        <div class="menu-background-glow menu-glow-right"></div>
-        <div class="menu-noise"></div>
-
-        <div class="main-menu-layout">
-          <aside class="main-menu-sidebar">
-            <div class="game-title-block">
-              <h1 class="game-title">RUNE SURVIVOR</h1>
-              <p class="game-subtitle"> Survivre, progresser, dominer les boss. </p>
-            </div>
-            <nav class="main-menu-nav">
-              <button id="playButton" class="menu-nav-button is-primary">
-                <span class="menu-nav-index">01</span>
-                <span class="menu-nav-label">Jouer</span>
-              </button>
-              <button id="profileMenuButton" class="menu-nav-button">
-                <span class="menu-nav-index">02</span>
-                <span class="menu-nav-label">Profil</span>
-              </button>
-              <button id="shopMenuButton" class="menu-nav-button">
-                <span class="menu-nav-index">03</span>
-                <span class="menu-nav-label">Boutique</span>
-              </button>
-              <button id="devMenuButton" class="menu-nav-button">
-                <span class="menu-nav-index">04</span>
-                <span class="menu-nav-label">Dev</span>
-              </button>
-              <button id="quitGameButton" class="menu-nav-button">
-                <span class="menu-nav-index">05</span>
-                <span class="menu-nav-label">Quitter</span>
-              </button>
-            </nav>
-            <div class="main-menu-side-footer">
-              <button id="resetProgressionButton" class="reset-progression-button"> Réinitialiser la progression </button>
-              <div id="resetProgressionModal" class="reset-progression-modal hidden">
-                <div class="reset-progression-box">
-                  <h2>Réinitialiser la progression ?</h2>
-                  <p> Cette action supprimera les pièces, les compétences et la progression permanente. </p>
-                  <label class="reset-score-checkbox">
-                    <input id="resetScoreCheckbox" type="checkbox" />
-                    <span>Supprimer aussi le meilleur score</span>
-                  </label>
-                  <div class="reset-progression-actions">
-                    <button id="cancelResetProgressionButton" class="reset-cancel-button"> Annuler </button>
-                    <button id="confirmResetProgressionButton" class="reset-confirm-button"> Confirmer </button>
-                  </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Rune Survivor</title>
+        <link rel="stylesheet" href="./css/style.css" />
+        <link rel="stylesheet" href="./css/profile.css" />
+        <link rel="stylesheet" href="./css/shop.css" />
+    </head>
+    <body>
+        <div id="game-wrapper">
+            <canvas id="gameCanvas" width="1280" height="720"></canvas>
+            <div id="mainMenuOverlay" class="overlay menu-overlay">
+                <div class="menu-background-image"></div>
+                <div class="menu-background-tint"></div>
+                <div class="menu-floating-particles">
+                    <span class="particle particle-1"></span>
+                    <span class="particle particle-2"></span>
+                    <span class="particle particle-3"></span>
+                    <span class="particle particle-4"></span>
+                    <span class="particle particle-5"></span>
                 </div>
-              </div>
-            </div>
-          </aside>
-          <section class="main-menu-visual">
-            <div class="menu-visual-panel">
-              <div class="menu-visual-badge">MODE PRINCIPAL</div>
-              <h2 class="menu-visual-title">Entre dans l’arène</h2>
-              <p class="menu-visual-text"> Affronte des vagues de monstres, récupère des runes, terrasse des boss et construis ta progression au fil du temps. </p>
-              <div class="menu-visual-cards">
-                <div class="menu-preview-card">
-                  <div class="menu-preview-label">Progression</div>
-                  <div class="menu-preview-value">Infinie</div>
+                <div class="menu-background-glow menu-glow-left"></div>
+                <div class="menu-background-glow menu-glow-right"></div>
+                <div class="menu-noise"></div>
+                <div class="main-menu-layout">
+                    <aside class="main-menu-sidebar">
+                        <div class="game-title-block">
+                            <h1 class="game-title">RUNE SURVIVOR</h1>
+                            <p class="game-subtitle"> Survivre, progresser, dominer les boss. </p>
+                        </div>
+                        <nav class="main-menu-nav">
+                            <button id="playButton" class="menu-nav-button is-primary">
+                                <span class="menu-nav-index">01</span>
+                                <span class="menu-nav-label">Jouer</span>
+                            </button>
+                            <button id="profileMenuButton" class="menu-nav-button">
+                                <span class="menu-nav-index">02</span>
+                                <span class="menu-nav-label">Profil</span>
+                            </button>
+                            <button id="shopMenuButton" class="menu-nav-button">
+                                <span class="menu-nav-index">03</span>
+                                <span class="menu-nav-label">Boutique</span>
+                            </button>
+                            <button id="devMenuButton" class="menu-nav-button">
+                                <span class="menu-nav-index">04</span>
+                                <span class="menu-nav-label">Dev</span>
+                            </button>
+                            <button id="quitGameButton" class="menu-nav-button">
+                                <span class="menu-nav-index">05</span>
+                                <span class="menu-nav-label">Quitter</span>
+                            </button>
+                        </nav>
+                        <div class="main-menu-side-footer">
+                            <button id="resetProgressionButton" class="reset-progression-button"> Réinitialiser la progression </button>
+                            <div id="resetProgressionModal" class="reset-progression-modal hidden">
+                                <div class="reset-progression-box">
+                                    <h2>Réinitialiser la progression ?</h2>
+                                    <p> Cette action supprimera les pièces, les compétences et la progression permanente. </p>
+                                    <label class="reset-score-checkbox">
+                                        <input id="resetScoreCheckbox" type="checkbox" />
+                                        <span>Supprimer aussi le meilleur score</span>
+                                    </label>
+                                    <div class="reset-progression-actions">
+                                        <button id="cancelResetProgressionButton" class="reset-cancel-button"> Annuler </button>
+                                        <button id="confirmResetProgressionButton" class="reset-confirm-button"> Confirmer </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    <section class="main-menu-visual">
+                        <div class="menu-visual-panel">
+                            <div class="menu-visual-badge">MODE PRINCIPAL</div>
+                            <h2 class="menu-visual-title">Entre dans l’arène</h2>
+                            <p class="menu-visual-text"> Affronte des vagues de monstres, récupère des runes, terrasse des boss et construis ta progression au fil du temps. </p>
+                            <div class="menu-visual-cards">
+                                <div class="menu-preview-card">
+                                    <div class="menu-preview-label">Progression</div>
+                                    <div class="menu-preview-value">Infinie</div>
+                                </div>
+                                <div class="menu-preview-card">
+                                    <div class="menu-preview-label">Runes / Legs</div>
+                                    <div class="menu-preview-value">19 / 3</div>
+                                </div>
+                                <div class="menu-preview-card">
+                                    <div class="menu-preview-label">Boss</div>
+                                    <div class="menu-preview-value">4</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-                <div class="menu-preview-card">
-                  <div class="menu-preview-label">Runes / Legs</div>
-                  <div class="menu-preview-value">19 / 3</div>
+                <div class="main-menu-bottom-left">
+                    <!-- si besoin d'autres petits boutons plus tard -->
                 </div>
-                <div class="menu-preview-card">
-                  <div class="menu-preview-label">Boss</div>
-                  <div class="menu-preview-value">3</div>
+                <div class="main-menu-bottom-right">
+                    <span id="gameVersionText" class="version-text">Version ...</span>
                 </div>
-              </div>
-            </div>
-          </section>
-        </div>
-        <div class="main-menu-bottom-left">
-          <!-- si besoin d'autres petits boutons plus tard -->
-        </div>
-        <div class="main-menu-bottom-right">
-          <span id="gameVersionText" class="version-text">Version ...</span>
-        </div>
-
-        <div id="devBossModal" class="dev-boss-modal hidden">
-          <div class="dev-boss-modal-backdrop"></div>
-
-          <div class="dev-boss-modal-box">
-            <button id="devBossCloseButton" class="dev-boss-close-button">×</button>
-
-            <span class="dev-boss-kicker">Mode développeur</span>
-            <h2>Accès direct Boss</h2>
-
-            <p>
-              Lance une partie de test directement contre un boss.
-            </p>
-
-            <div class="dev-boss-actions">
-              <button id="devBoss1Button" class="dev-boss-button">
-                <span>Boss 01</span>
-                Royal Slime
-              </button>
-
-              <button id="devBoss2Button" class="dev-boss-button">
-                <span>Boss 02</span>
-                Blood Bat
-              </button>
-
-              <button id="devBoss3Button" class="dev-boss-button">
-                <span>Boss 03</span>
-                Rune Brute
-              </button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div id="profileOverlay" class="profile-overlay hidden">
-        <div class="profile-bg-noise"></div>
-
-        <aside class="profile-sidebar">
-          <button id="profileBackButton" class="profile-back-button">← Retour</button>
-
-          <div class="profile-title-block">
-            <span class="profile-kicker">Personnalisation</span>
-            <h1>Profil</h1>
-            <p>Personnalise ton mage, tes tirs et ton arène avant de repartir en run.</p>
-          </div>
-
-          <nav class="profile-tabs">
-            <button class="profile-tab active" data-profile-category="skins">
-              <span>01</span>
-              Skins
-            </button>
-
-            <button class="profile-tab" data-profile-category="backgrounds">
-              <span>02</span>
-              Arènes
-            </button>
-
-            <button class="profile-tab" data-profile-category="projectiles">
-              <span>03</span>
-              Tirs
-            </button>
-          </nav>
-
-          <div class="profile-player-panel">
-            <div class="profile-score-line">
-              <span>Meilleur score</span>
-              <strong id="profileBestScoreText">0</strong>
-            </div>
-
-            <button id="profileSkillTreeButton" class="profile-skill-tree-button">
-              Arbre de compétences
-            </button>
-          </div>
-
-          <div class="profile-wallet">
-            Pièces
-            <strong id="profileCoinsText">0</strong>
-          </div>
-        </aside>
-
-        <main class="profile-content">
-          <section class="profile-preview-section">
-            <div class="profile-preview-header">
-              <span>Aperçu</span>
-              <strong id="profileEquippedLabel">Mage runique</strong>
-            </div>
-
-            <div id="profilePreviewStage" class="profile-preview-stage bg-neon-city">
-              <div class="profile-preview-glow"></div>
-
-              <div id="profileProjectilePreview" class="profile-projectile-preview projectile-blue"></div>
-
-              <img id="profileSkinImagePreview" class="profile-skin-image-preview hidden" alt="" />
-
-              <div id="profileMagePreview" class="profile-mage-preview skin-default">
-                <div class="mage-shadow"></div>
-                <div class="mage-body"></div>
-                <div class="mage-face"></div>
-                <div class="mage-cape"></div>
-                <div class="mage-staff"></div>
-                <div class="mage-orb"></div>
-              </div>
-            </div>
-          </section>
-
-          <section class="profile-custom-section">
-            <div class="profile-section-header">
-              <div>
-                <span id="profileCategoryKicker">Collection</span>
-                <h2 id="profileCategoryTitle">Skins</h2>
-              </div>
-            </div>
-            <div id="profileItemDetails" class="profile-item-details">
-              <p>Les futurs cosmétiques achetés au shop apparaîtront ici.</p>
-            </div>
-
-            <div id="profileItemsGrid" class="profile-items-grid"></div>
-          </section>
-        </main>
-      </div>
-
-      <div id="shopOverlay" class="shop-overlay hidden">
-        <div class="shop-bg-noise"></div>
-
-        <aside class="shop-sidebar">
-          <button id="shopBackButton" class="shop-back-button">← Retour</button>
-
-          <div class="shop-title-block">
-            <span class="shop-kicker">Achats</span>
-            <h1>Boutique</h1>
-            <p>Achète des éléments cosmétiques pour personnaliser ton mage, ton arène et tes tirs.</p>
-          </div>
-
-          <nav class="shop-tabs">
-            <button class="shop-tab active" data-shop-category="skins">
-              <span>01</span>
-              Skins
-            </button>
-
-            <button class="shop-tab" data-shop-category="backgrounds">
-              <span>02</span>
-              Arènes
-            </button>
-
-            <button class="shop-tab" data-shop-category="projectiles">
-              <span>03</span>
-              Tirs
-            </button>
-          </nav>
-
-          <div class="shop-wallet">
-            Pièces
-            <strong id="shopCoinsText">0</strong>
-          </div>
-        </aside>
-
-        <main class="shop-content">
-          <section class="shop-header-panel">
-            <div>
-              <span id="shopCategoryKicker">Collection</span>
-              <h2 id="shopCategoryTitle">Skins</h2>
-            </div>
-
-            <div class="shop-info-pill">
-              Cosmétiques uniquement
-            </div>
-          </section>
-
-          <section id="shopItemsGrid" class="shop-items-grid"></section>
-
-          <section id="shopItemDetails" class="shop-item-details">
-            <span>Sélectionne un objet</span>
-            <p>Les achats seront utilisables ensuite dans le menu Profil.</p>
-          </section>
-        </main>
-      </div>
-
-      <div id="hud">
-        <div class="hud-top">
-          <div class="hud-panel">
-            <div class="label">PV</div>
-            <div class="bar">
-              <div id="hpFill" class="bar-fill hp"></div>
-            </div>
-          </div>
-          <div class="hud-panel">
-            <div class="label">XP</div>
-            <div class="bar">
-              <div id="xpFill" class="bar-fill xp"></div>
-            </div>
-          </div>
-          <div class="hud-info">
-            <span>Niveau <strong id="levelText">1</strong>
-            </span>
-            <span>Kills <strong id="killsText">0</strong>
-            </span>
-            <span>Temps <strong id="timerText">00:00</strong>
-            </span>
-            <span class="score-wrapper"> Score <strong id="scoreText">0</strong>
-              <em id="newBestBadge" class="new-badge hidden">NEW</em>
-            </span>
-            <span>Record <strong id="bestScoreText">0</strong>
-            </span>
-          </div>
-        </div>
-        <div id="buffPanel" class="buff-panel hidden">
-          <span>Dégâts x2</span>
-          <strong id="buffTimerText">12s</strong>
-        </div>
-        <div id="shieldPanel" class="buff-panel shield-panel hidden">
-          <span>Bouclier</span>
-          <strong id="shieldTimerText">8s</strong>
-        </div>
-        <div id="clonePanel" class="buff-panel clone-panel hidden">
-          <span>Clone d’écho</span>
-          <strong id="cloneTimerText">18s</strong>
-        </div>
-        <div class="controls-hint"> ZQSD / WASD / Flèches pour bouger — Le tir est automatique </div>
-      </div>
-      <div id="levelUpOverlay" class="overlay hidden">
-        <div class="level-card-wrapper">
-          <h1>Niveau supérieur</h1>
-          <p>Choisis une rune d’amélioration</p>
-          <div id="upgradeCards" class="upgrade-cards"></div>
-        </div>
-      </div>
-      <div id="pauseOverlay" class="overlay hidden">
-        <div class="pause-box">
-          <h1>Pause</h1>
-          <p>La partie est arrêtée.</p>
-
-          <button id="pauseMainMenuButton" class="pause-main-menu-button">
-            Menu principal
-          </button>
-
-          <div class="pause-score-box">
-            <div>
-              <span>Score actuel</span>
-              <strong id="pauseScoreText">0</strong>
-            </div>
-            <div>
-              <span>Record</span>
-              <strong id="pauseBestScoreText">0</strong>
-            </div>
-          </div>
-          <button id="resumeButton">Reprendre</button>
-          <button id="pauseSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
-          <div class="menu-controls"> Échap / Entrée / Espace / P pour reprendre </div>
-        </div>
-      </div>
-      <div id="skillTreeOverlay" class="overlay hidden">
-        <div class="skill-tree-box">
-          <div class="skill-tree-header">
-            <div class="skill-tree-title-block">
-              <h1>Arbre de compétences</h1>
-              <p>Utilise tes pièces gagnées en run pour acheter des bonus permanents.</p>
-              <div class="skill-stats-popover-wrapper">
-                <button id="skillTreeStatsToggleButton" class="skill-stats-toggle-button"> Stats permanentes cumulées </button>
-                <div id="skillTreeTotalStats" class="skill-total-stats skill-total-stats-popover hidden"></div>
-              </div>
-            </div>
-            <div class="skill-tree-header-right">
-              <div class="skill-tier-controls">
-                <button id="skillTierPreviousButton" class="skill-tier-button">‹</button>
-                <div class="skill-tier-display">
-                  <span id="skillTierLabel">Palier de base</span>
-                  <small id="skillTierStatus">Progression actuelle</small>
+                <div id="devBossModal" class="dev-boss-modal hidden">
+                    <div class="dev-boss-modal-backdrop"></div>
+                    <div class="dev-boss-modal-box">
+                        <button id="devBossCloseButton" class="dev-boss-close-button">×</button>
+                        <span class="dev-boss-kicker">Mode développeur</span>
+                        <h2>Accès direct Boss</h2>
+                        <p> Lance une partie de test directement contre un boss. </p>
+                        <div class="dev-boss-actions">
+                            <button id="devBoss1Button" class="dev-boss-button">
+                                <span>Boss 01</span> Royal Slime </button>
+                            <button id="devBoss2Button" class="dev-boss-button">
+                                <span>Boss 02</span> Blood Bat </button>
+                            <button id="devBoss3Button" class="dev-boss-button">
+                                <span>Boss 03</span> Rune Brute </button>
+                            <button id="devBoss4Button" class="dev-boss-button">
+                                <span>Boss 04</span> Coward Trickster </button>
+                        </div>
+                    </div>
                 </div>
-                <button id="skillTierNextButton" class="skill-tier-button">›</button>
-              </div>
-              <div class="skill-tree-wallet"> Pièces <strong id="skillTreeCoinsText">0</strong>
-              </div>
-              <button id="closeSkillTreeButton" class="skill-tree-close-button">✕</button>
             </div>
-          </div>
-          <div id="skillTreeBranches" class="skill-tree-branches"></div>
+            <div id="profileOverlay" class="profile-overlay hidden">
+                <div class="profile-bg-noise"></div>
+                <aside class="profile-sidebar">
+                    <button id="profileBackButton" class="profile-back-button">← Retour</button>
+                    <div class="profile-title-block">
+                        <span class="profile-kicker">Personnalisation</span>
+                        <h1>Profil</h1>
+                        <p>Personnalise ton mage, tes tirs et ton arène avant de repartir en run.</p>
+                    </div>
+                    <nav class="profile-tabs">
+                        <button class="profile-tab active" data-profile-category="skins">
+                            <span>01</span> Skins </button>
+                        <button class="profile-tab" data-profile-category="backgrounds">
+                            <span>02</span> Arènes </button>
+                        <button class="profile-tab" data-profile-category="projectiles">
+                            <span>03</span> Tirs </button>
+                    </nav>
+                    <div class="profile-player-panel">
+                        <div class="profile-score-line">
+                            <span>Meilleur score</span>
+                            <strong id="profileBestScoreText">0</strong>
+                        </div>
+                        <button id="profileSkillTreeButton" class="profile-skill-tree-button"> Arbre de compétences </button>
+                    </div>
+                    <div class="profile-wallet"> Pièces <strong id="profileCoinsText">0</strong>
+                    </div>
+                </aside>
+                <main class="profile-content">
+                    <section class="profile-preview-section">
+                        <div class="profile-preview-header">
+                            <span>Aperçu</span>
+                            <strong id="profileEquippedLabel">Mage runique</strong>
+                        </div>
+                        <div id="profilePreviewStage" class="profile-preview-stage bg-neon-city">
+                            <div class="profile-preview-glow"></div>
+                            <div id="profileProjectilePreview" class="profile-projectile-preview projectile-blue"></div>
+                            <img id="profileSkinImagePreview" class="profile-skin-image-preview hidden" alt="" />
+                            <div id="profileMagePreview" class="profile-mage-preview skin-default">
+                                <div class="mage-shadow"></div>
+                                <div class="mage-body"></div>
+                                <div class="mage-face"></div>
+                                <div class="mage-cape"></div>
+                                <div class="mage-staff"></div>
+                                <div class="mage-orb"></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="profile-custom-section">
+                        <div class="profile-section-header">
+                            <div>
+                                <span id="profileCategoryKicker">Collection</span>
+                                <h2 id="profileCategoryTitle">Skins</h2>
+                            </div>
+                        </div>
+                        <div id="profileItemDetails" class="profile-item-details">
+                            <p>Les futurs cosmétiques achetés au shop apparaîtront ici.</p>
+                        </div>
+                        <div id="profileItemsGrid" class="profile-items-grid"></div>
+                    </section>
+                </main>
+            </div>
+            <div id="shopOverlay" class="shop-overlay hidden">
+                <div class="shop-bg-noise"></div>
+                <aside class="shop-sidebar">
+                    <button id="shopBackButton" class="shop-back-button">← Retour</button>
+                    <div class="shop-title-block">
+                        <span class="shop-kicker">Achats</span>
+                        <h1>Boutique</h1>
+                        <p>Achète des éléments cosmétiques pour personnaliser ton mage, ton arène et tes tirs.</p>
+                    </div>
+                    <nav class="shop-tabs">
+                        <button class="shop-tab active" data-shop-category="skins">
+                            <span>01</span> Skins </button>
+                        <button class="shop-tab" data-shop-category="backgrounds">
+                            <span>02</span> Arènes </button>
+                        <button class="shop-tab" data-shop-category="projectiles">
+                            <span>03</span> Tirs </button>
+                    </nav>
+                    <div class="shop-wallet"> Pièces <strong id="shopCoinsText">0</strong>
+                    </div>
+                </aside>
+                <main class="shop-content">
+                    <section class="shop-header-panel">
+                        <div>
+                            <span id="shopCategoryKicker">Collection</span>
+                            <h2 id="shopCategoryTitle">Skins</h2>
+                        </div>
+                        <div class="shop-info-pill"> Cosmétiques uniquement </div>
+                    </section>
+                    <section id="shopItemsGrid" class="shop-items-grid"></section>
+                    <section id="shopItemDetails" class="shop-item-details">
+                        <span>Sélectionne un objet</span>
+                        <p>Les achats seront utilisables ensuite dans le menu Profil.</p>
+                    </section>
+                </main>
+            </div>
+            <div id="hud">
+                <div class="hud-top">
+                    <div class="hud-panel">
+                        <div class="label">PV</div>
+                        <div class="bar">
+                            <div id="hpFill" class="bar-fill hp"></div>
+                        </div>
+                    </div>
+                    <div class="hud-panel">
+                        <div class="label">XP</div>
+                        <div class="bar">
+                            <div id="xpFill" class="bar-fill xp"></div>
+                        </div>
+                    </div>
+                    <div class="hud-info">
+                        <span>Niveau <strong id="levelText">1</strong>
+                        </span>
+                        <span>Kills <strong id="killsText">0</strong>
+                        </span>
+                        <span>Temps <strong id="timerText">00:00</strong>
+                        </span>
+                        <span class="score-wrapper"> Score <strong id="scoreText">0</strong>
+                            <em id="newBestBadge" class="new-badge hidden">NEW</em>
+                        </span>
+                        <span>Record <strong id="bestScoreText">0</strong>
+                        </span>
+                    </div>
+                </div>
+                <div id="buffPanel" class="buff-panel hidden">
+                    <span>Dégâts x2</span>
+                    <strong id="buffTimerText">12s</strong>
+                </div>
+                <div id="shieldPanel" class="buff-panel shield-panel hidden">
+                    <span>Bouclier</span>
+                    <strong id="shieldTimerText">8s</strong>
+                </div>
+                <div id="clonePanel" class="buff-panel clone-panel hidden">
+                    <span>Clone d’écho</span>
+                    <strong id="cloneTimerText">18s</strong>
+                </div>
+                <div class="controls-hint"> ZQSD / WASD / Flèches pour bouger — Le tir est automatique </div>
+            </div>
+            <div id="levelUpOverlay" class="overlay hidden">
+                <div class="level-card-wrapper">
+                    <h1>Niveau supérieur</h1>
+                    <p>Choisis une rune d’amélioration</p>
+                    <div id="upgradeCards" class="upgrade-cards"></div>
+                </div>
+            </div>
+            <div id="pauseOverlay" class="overlay hidden">
+                <div class="pause-box">
+                    <h1>Pause</h1>
+                    <p>La partie est arrêtée.</p>
+                    <button id="pauseMainMenuButton" class="pause-main-menu-button"> Menu principal </button>
+                    <div class="pause-score-box">
+                        <div>
+                            <span>Score actuel</span>
+                            <strong id="pauseScoreText">0</strong>
+                        </div>
+                        <div>
+                            <span>Record</span>
+                            <strong id="pauseBestScoreText">0</strong>
+                        </div>
+                    </div>
+                    <button id="resumeButton">Reprendre</button>
+                    <button id="pauseSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
+                    <div class="menu-controls"> Échap / Entrée / Espace / P pour reprendre </div>
+                </div>
+            </div>
+            <div id="skillTreeOverlay" class="overlay hidden">
+                <div class="skill-tree-box">
+                    <div class="skill-tree-header">
+                        <div class="skill-tree-title-block">
+                            <h1>Arbre de compétences</h1>
+                            <p>Utilise tes pièces gagnées en run pour acheter des bonus permanents.</p>
+                            <div class="skill-stats-popover-wrapper">
+                                <button id="skillTreeStatsToggleButton" class="skill-stats-toggle-button"> Stats permanentes cumulées </button>
+                                <div id="skillTreeTotalStats" class="skill-total-stats skill-total-stats-popover hidden"></div>
+                            </div>
+                        </div>
+                        <div class="skill-tree-header-right">
+                            <div class="skill-tier-controls">
+                                <button id="skillTierPreviousButton" class="skill-tier-button">‹</button>
+                                <div class="skill-tier-display">
+                                    <span id="skillTierLabel">Palier de base</span>
+                                    <small id="skillTierStatus">Progression actuelle</small>
+                                </div>
+                                <button id="skillTierNextButton" class="skill-tier-button">›</button>
+                            </div>
+                            <div class="skill-tree-wallet"> Pièces <strong id="skillTreeCoinsText">0</strong>
+                            </div>
+                            <button id="closeSkillTreeButton" class="skill-tree-close-button">✕</button>
+                        </div>
+                    </div>
+                    <div id="skillTreeBranches" class="skill-tree-branches"></div>
+                </div>
+            </div>
+            <div id="gameOverOverlay" class="overlay hidden">
+                <div class="game-over-box">
+                    <h1>Game Over</h1>
+                    <p>Tu as survécu <strong id="finalTimeText">00:00</strong>
+                    </p>
+                    <p>Kills : <strong id="finalKillsText">0</strong>
+                    </p>
+                    <p class="final-score-line"> Score : <strong id="finalScoreText">0</strong>
+                        <em id="finalNewBestBadge" class="new-badge final-new-badge hidden">NEW</em>
+                    </p>
+                    <p>Meilleur score : <strong id="finalBestScoreText">0</strong>
+                    </p>
+                    <button id="restartButton">Rejouer</button>
+                    <button id="gameOverSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
+                </div>
+            </div>
         </div>
-      </div>
-      <div id="gameOverOverlay" class="overlay hidden">
-        <div class="game-over-box">
-          <h1>Game Over</h1>
-          <p>Tu as survécu <strong id="finalTimeText">00:00</strong>
-          </p>
-          <p>Kills : <strong id="finalKillsText">0</strong>
-          </p>
-          <p class="final-score-line"> Score : <strong id="finalScoreText">0</strong>
-            <em id="finalNewBestBadge" class="new-badge final-new-badge hidden">NEW</em>
-          </p>
-          <p>Meilleur score : <strong id="finalBestScoreText">0</strong>
-          </p>
-          <button id="restartButton">Rejouer</button>
-          <button id="gameOverSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
-        </div>
-      </div>
-    </div>
-    <script src="js/core/dom.js"></script>
-    <script src="js/core/state.js"></script>
-    <script src="js/core/constants.js"></script>
-    <script src="js/core/utils.js"></script>
-    <script src="js/core/storage.js"></script>
-    <script src="js/core/input.js"></script>
-    <script src="js/data/upgrades.js"></script>
-    <script src="js/data/skill-tree-data.js"></script>
-    <script src="js/data/bosses-data.js"></script>
-    <script src="js/systems/score.js"></script>
-    <script src="js/systems/meta-progression.js"></script>
-    <script src="js/systems/particles.js"></script>
-    <script src="js/systems/player.js"></script>
-    <script src="js/systems/enemies.js"></script>
-    <script src="js/systems/horde-pressure.js"></script>
-    <script src="js/systems/projectiles.js"></script>
-    <script src="js/systems/pickups.js"></script>
-    <script src="js/systems/xp-gems.js"></script>
-    <script src="js/systems/boss-abilities.js"></script>
-    <script src="js/systems/boss.js"></script>
-    <script src="js/ui/hud.js"></script>
-    <script src="js/ui/level-up.js"></script>
-    <script src="js/ui/skill-tree.js"></script>
-    <script src="js/ui/overlays.js"></script>
-    <script src="js/ui/profile.js"></script>
-    <script src="js/ui/shop.js"></script>
-    <script src="js/render/draw-background.js"></script>
-    <script src="js/render/draw-entities.js"></script>
-    <script src="js/render/draw-boss.js"></script>
-    <script src="js/render/draw-effects.js"></script>
-    <script src="js/render/render.js"></script>
-    <script src="js/core/game-loop.js"></script>
-    <script src="main.js"></script>
-  </body>
+        <script src="js/core/dom.js"></script>
+        <script src="js/core/state.js"></script>
+        <script src="js/core/constants.js"></script>
+        <script src="js/core/utils.js"></script>
+        <script src="js/core/storage.js"></script>
+        <script src="js/core/input.js"></script>
+        <script src="js/data/upgrades.js"></script>
+        <script src="js/data/skill-tree-data.js"></script>
+        <script src="js/data/bosses-data.js"></script>
+        <script src="js/systems/score.js"></script>
+        <script src="js/systems/meta-progression.js"></script>
+        <script src="js/systems/particles.js"></script>
+        <script src="js/systems/player.js"></script>
+        <script src="js/systems/enemies.js"></script>
+        <script src="js/systems/horde-pressure.js"></script>
+        <script src="js/systems/projectiles.js"></script>
+        <script src="js/systems/pickups.js"></script>
+        <script src="js/systems/xp-gems.js"></script>
+        <script src="js/systems/boss-abilities.js"></script>
+        <script src="js/systems/boss.js"></script>
+        <script src="js/ui/hud.js"></script>
+        <script src="js/ui/level-up.js"></script>
+        <script src="js/ui/skill-tree.js"></script>
+        <script src="js/ui/overlays.js"></script>
+        <script src="js/ui/profile.js"></script>
+        <script src="js/ui/shop.js"></script>
+        <script src="js/render/draw-background.js"></script>
+        <script src="js/render/draw-entities.js"></script>
+        <script src="js/render/draw-boss.js"></script>
+        <script src="js/render/draw-effects.js"></script>
+        <script src="js/render/render.js"></script>
+        <script src="js/core/game-loop.js"></script>
+        <script src="main.js"></script>
+    </body>
 </html>

@@ -712,3 +712,244 @@ function getWallPushVector(wall) {
 
     return { x: 0, y: 0 };
 }
+
+function updateCowardTricksterAbilities(dt) {
+    if (!currentBoss || currentBoss.bossId !== "coward_trickster") {
+        return;
+    }
+
+    currentBoss.cowardCloneCooldown -= dt;
+
+    if (currentBoss.cowardCloneCooldown <= 0) {
+        spawnCowardTricksterClones(currentBoss);
+        currentBoss.cowardCloneCooldown = COWARD_TRICKSTER_CLONE_COOLDOWN;
+    }
+
+    if (currentBoss.cowardSwapWarningTimer > 0) {
+        currentBoss.cowardSwapWarningTimer -= dt;
+
+        if (currentBoss.cowardSwapWarningTimer <= 0) {
+            finishCowardTricksterSwap(currentBoss);
+        }
+
+        return;
+    }
+
+    currentBoss.cowardSwapCooldown -= dt;
+
+    if (currentBoss.cowardSwapCooldown <= 0) {
+        startCowardTricksterSwapWarning(currentBoss);
+        currentBoss.cowardSwapCooldown = COWARD_TRICKSTER_SWAP_COOLDOWN;
+    }
+}
+
+function getActiveCowardTricksterClones(boss) {
+    if (!boss) {
+        return [];
+    }
+
+    return enemies.filter((enemy) => {
+        return enemy &&
+            !enemy.dead &&
+            enemy.isCowardFakeClone &&
+            enemy.cowardOwner === boss;
+    });
+}
+
+function removeCowardTricksterClones(boss) {
+    enemies = enemies.filter((enemy) => {
+        return !(
+            enemy &&
+            enemy.isCowardFakeClone &&
+            enemy.cowardOwner === boss
+        );
+    });
+
+    if (boss) {
+        boss.cowardClones = [];
+    }
+}
+
+function spawnCowardTricksterClones(boss) {
+    if (!boss || boss.dead) {
+        return;
+    }
+
+    removeCowardTricksterClones(boss);
+
+    const cloneCount = Math.floor(
+        randomBetween(
+            COWARD_TRICKSTER_CLONE_COUNT_MIN,
+            COWARD_TRICKSTER_CLONE_COUNT_MAX + 1
+        )
+    );
+
+    const clones = [];
+
+    for (let i = 0; i < cloneCount; i++) {
+        const angle = (Math.PI * 2 * i) / cloneCount + randomBetween(-0.22, 0.22);
+        const distance = COWARD_TRICKSTER_CLONE_DISTANCE + randomBetween(-35, 45);
+
+        const clone = {
+            type: "cowardBossClone",
+            isCowardFakeClone: true,
+            cowardOwner: boss,
+
+            x: Math.max(
+                boss.radius,
+                Math.min(GAME_WIDTH - boss.radius, boss.x + Math.cos(angle) * distance)
+            ),
+            y: Math.max(
+                boss.radius + 78,
+                Math.min(GAME_HEIGHT - boss.radius, boss.y + Math.sin(angle) * distance)
+            ),
+
+            radius: boss.radius,
+            hp: 999999,
+            maxHp: 999999,
+            speed: boss.speed * 1.05,
+            damage: COWARD_TRICKSTER_CLONE_CONTACT_DAMAGE,
+            xp: 0,
+            color: boss.color,
+
+            attackCooldown: 0,
+            fakeHitCooldown: 0,
+            strafeDirection: Math.random() > 0.5 ? 1 : -1,
+            cowardShootCooldown: randomBetween(
+                COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MIN,
+                COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MAX
+            )
+        };
+
+        clones.push(clone);
+        enemies.push(clone);
+    }
+
+    boss.cowardClones = clones;
+
+    addFloatingText(
+        boss.x,
+        boss.y - boss.radius - 34,
+        "DUPLICATION",
+        boss.color
+    );
+
+    createParticles(boss.x, boss.y, 68, boss.color, 2.7);
+
+    screenShake = Math.max(screenShake, 3.6);
+    screenShakeTimer = Math.max(screenShakeTimer, 0.14);
+}
+
+function startCowardTricksterSwapWarning(boss) {
+    const clones = getActiveCowardTricksterClones(boss);
+
+    if (clones.length === 0) {
+        spawnCowardTricksterClones(boss);
+        return;
+    }
+
+    const targetClone = clones[Math.floor(Math.random() * clones.length)];
+
+    boss.cowardSwapTarget = targetClone;
+    boss.cowardSwapWarningTimer = COWARD_TRICKSTER_SWAP_WARNING_DURATION;
+
+    addFloatingText(
+        boss.x,
+        boss.y - boss.radius - 48,
+        "LE VRAI ?",
+        "#fff0b8"
+    );
+
+    createParticles(boss.x, boss.y, 38, "#fff0b8", 2.2);
+}
+
+function finishCowardTricksterSwap(boss) {
+    if (!boss || !boss.cowardSwapTarget || boss.cowardSwapTarget.dead) {
+        boss.cowardSwapTarget = null;
+        boss.cowardSwapWarningTimer = 0;
+        return;
+    }
+
+    const clone = boss.cowardSwapTarget;
+
+    const bossX = boss.x;
+    const bossY = boss.y;
+
+    boss.x = clone.x;
+    boss.y = clone.y;
+
+    clone.x = bossX;
+    clone.y = bossY;
+
+    boss.cowardSwapTarget = null;
+    boss.cowardSwapWarningTimer = 0;
+
+    addFloatingText(
+        boss.x,
+        boss.y - boss.radius - 38,
+        "PANIC SWAP",
+        boss.color
+    );
+
+    createParticles(boss.x, boss.y, 44, boss.color, 2.4);
+    createParticles(clone.x, clone.y, 34, boss.color, 1.9);
+
+    screenShake = Math.max(screenShake, 4.2);
+    screenShakeTimer = Math.max(screenShakeTimer, 0.16);
+}
+
+function triggerCowardClonePunishment(clone, projectile) {
+    if (!clone || clone.dead) {
+        return;
+    }
+
+    if (clone.fakeHitCooldown > 0) {
+        return;
+    }
+
+    clone.fakeHitCooldown = COWARD_TRICKSTER_FAKE_HIT_COOLDOWN;
+
+    player.slowTimer = Math.max(
+        player.slowTimer || 0,
+        COWARD_TRICKSTER_FAKE_HIT_SLOW_DURATION
+    );
+
+    player.slowMultiplier = Math.min(
+        player.slowMultiplier || 1,
+        COWARD_TRICKSTER_FAKE_HIT_SLOW_MULTIPLIER
+    );
+
+    addFloatingText(
+        clone.x,
+        clone.y - clone.radius - 26,
+        "FAUX CLONE",
+        "#ffcc75"
+    );
+
+    createParticles(clone.x, clone.y, 36, clone.color || "#ff9b2f", 2.1);
+
+    fireCowardTricksterReturnShot(clone);
+
+    screenShake = Math.max(screenShake, 2.8);
+    screenShakeTimer = Math.max(screenShakeTimer, 0.1);
+}
+
+function fireCowardTricksterReturnShot(source) {
+    const dx = player.x - source.x;
+    const dy = player.y - source.y;
+    const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+
+    const dirX = dx / distance;
+    const dirY = dy / distance;
+
+    enemyProjectiles.push({
+        x: source.x + dirX * (source.radius + 8),
+        y: source.y + dirY * (source.radius + 8),
+        vx: dirX * COWARD_TRICKSTER_PROJECTILE_SPEED,
+        vy: dirY * COWARD_TRICKSTER_PROJECTILE_SPEED,
+        radius: COWARD_TRICKSTER_PROJECTILE_RADIUS,
+        damage: COWARD_TRICKSTER_PROJECTILE_DAMAGE,
+        color: "#ff9b2f",
+        life: COWARD_TRICKSTER_PROJECTILE_LIFETIME
+    });
+}

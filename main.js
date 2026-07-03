@@ -93,6 +93,10 @@ function bindMenuButtons() {
         testBoss3Button?.addEventListener("click", () => {
             startBossTest("rune_brute");
         });
+
+        devBoss4Button?.addEventListener("click", () => {
+            startBossTest("coward_trickster");
+        });
     }
 
     window.addEventListener("beforeunload", () => {

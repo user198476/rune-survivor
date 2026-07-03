@@ -71,6 +71,17 @@ function updateProjectiles(dt) {
             const dy = projectile.y - enemy.y;
             const radius = projectile.radius + enemy.radius;
             if (dx * dx + dy * dy < radius * radius) {
+                if (enemy.isCowardFakeClone) {
+                    if (typeof triggerCowardClonePunishment === "function") {
+                        triggerCowardClonePunishment(enemy, projectile);
+                    }
+
+                    projectiles.splice(i, 1);
+                    projectileRemoved = true;
+
+                    return true;
+                }
+
                 const damageDealt = Math.min(projectile.damage, enemy.hp);
                 enemy.hp -= projectile.damage;
                 if (typeof applyLifeSteal === "function") {

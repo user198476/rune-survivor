@@ -116,6 +116,17 @@ function startBossFight() {
         laserPatternIndex: 0,
         wallDangerCooldown: 0,
 
+        cowardCloneCooldown: 1.1,
+        cowardSwapCooldown: 3.2,
+        cowardSwapWarningTimer: 0,
+        cowardSwapTarget: null,
+        cowardClones: [],
+        cowardShootCooldown: randomBetween(
+            COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MIN,
+            COWARD_TRICKSTER_PROJECTILE_COOLDOWN_MAX
+        ),
+        strafeDirection: Math.random() > 0.5 ? 1 : -1,
+
         rewardXp: bossDefinition.rewardXp,
         rewardGemCount: bossDefinition.rewardGemCount
     };
@@ -269,6 +280,10 @@ function updateBossAbilities(dt) {
 
     if (currentBoss.bossId === "rune_brute") {
         updateRuneBruteAbilities(dt);
+    }
+
+    if (currentBoss.bossId === "coward_trickster") {
+        updateCowardTricksterAbilities(dt);
     }
 }
 
