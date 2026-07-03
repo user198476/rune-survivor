@@ -13,8 +13,12 @@ const devBoss3Button = document.getElementById("devBoss3Button");
 const devBoss4Button = document.getElementById("devBoss4Button");
 
 const quitGameButton = document.getElementById("quitGameButton");
+
 const hpFill = document.getElementById("hpFill");
 const xpFill = document.getElementById("xpFill");
+const hpValueText = document.getElementById("hpValueText");
+const xpValueText = document.getElementById("xpValueText");
+
 const levelText = document.getElementById("levelText");
 const killsText = document.getElementById("killsText");
 const timerText = document.getElementById("timerText");
