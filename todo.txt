@@ -30,11 +30,11 @@ backgrounds complets
 projectiles animés (forme flammes, shuriken)
 effets de tirs premium
 
-Comportement Boss4 (Coward Trickster):
+Comportement Boss 4 (Couard illusionniste):
 
 - se déplace comme un monstre orange : il garde ses distances
 - crée 3 à 4 faux clones
-- un seul est le vrai boss : currentBoss
+- un seul est le vrai boss
 - les faux clones sont ciblables
 - tirer sur un faux clone ne retire aucun PV au boss
 - tirer sur un faux clone ralentit le joueur
