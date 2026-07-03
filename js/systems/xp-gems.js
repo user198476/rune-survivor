@@ -1,4 +1,21 @@
+function clampGemSpawnPosition(x, y, radius = 10) {
+    const margin = radius + 8;
+
+    return {
+        x: Math.max(margin, Math.min(GAME_WIDTH - margin, x)),
+        y: Math.max(margin, Math.min(GAME_HEIGHT - margin, y))
+    };
+}
+
 function dropGem(x, y, value) {
+    const spawnPosition = clampGemSpawnPosition(x, y, 10);
+
+    x = spawnPosition.x + randomBetween(-6, 6);
+    y = spawnPosition.y + randomBetween(-6, 6);
+
+    x = Math.max(10, Math.min(GAME_WIDTH - 10, x));
+    y = Math.max(10, Math.min(GAME_HEIGHT - 10, y));
+
     gems.push({
         x,
         y,
