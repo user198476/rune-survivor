@@ -1,6 +1,8 @@
 function showLevelUp() {
     state = "levelup";
 
+    updatePendingLegendaryRuneOffer();
+
     const normalUpgrades = getRandomNormalUpgrades(3);
     const legendaryCards = getLegendaryCardsForLevelUp(2);
 
@@ -151,6 +153,11 @@ function chooseUpgrade(index) {
         return;
     }
     upgrade.apply();
+
+    if (upgrade.rarity === "legendary") {
+        player.pendingLegendaryRuneOffer = false;
+    }
+    
     clampPlayerStats();
     createParticles(player.x, player.y, 40, "#b88cff", 2.2);
     levelUpOverlay.classList.add("hidden");
@@ -158,12 +165,22 @@ function chooseUpgrade(index) {
     updateHud();
 }
 
+function updatePendingLegendaryRuneOffer() {
+    if (!player || player.level <= 1) {
+        return;
+    }
+
+    if (player.level % LEGENDARY_UPGRADE_INTERVAL === 0) {
+        player.pendingLegendaryRuneOffer = true;
+    }
+}
+
 function shouldOfferLegendaryUpgrade() {
     if (!player || player.level <= 1) {
         return false;
     }
 
-    return player.level % LEGENDARY_UPGRADE_INTERVAL === 0;
+    return player.pendingLegendaryRuneOffer === true;
 }
 
 function getRandomLegendaryUpgrade() {
@@ -174,6 +191,7 @@ function getRandomLegendaryUpgrade() {
     const pool = legendaryUpgrades.filter((upgrade) => canUpgradeAppear(upgrade));
 
     if (pool.length === 0) {
+        player.pendingLegendaryRuneOffer = false;
         return null;
     }
 

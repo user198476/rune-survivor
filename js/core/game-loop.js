@@ -144,6 +144,7 @@ function resetGame() {
         knockbackY: 0,
         slowTimer: 0,
         slowMultiplier: 1,
+        pendingLegendaryRuneOffer: false,
 
         guardianOrbUnlocked: false,
         guardianOrbAngle: 0,
