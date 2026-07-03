@@ -500,6 +500,88 @@ body {
   color: #d9d2ff;
 }
 
+/* ========================================================= */
+/* GAME OVER BUTTONS                                          */
+/* ========================================================= */
+
+.game-over-actions {
+  margin-top: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.game-over-button {
+  min-width: 180px;
+  min-height: 48px;
+  padding: 0 24px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(120, 170, 255, 0.45);
+
+  color: #f2f6ff;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.game-over-button--primary {
+  border-color: rgba(137, 198, 255, 0.95);
+
+  background:
+    linear-gradient(90deg, #46cfff 0%, #7b8dff 55%, #a96cff 100%);
+
+  color: #ffffff;
+
+  box-shadow:
+    0 0 22px rgba(90, 182, 255, 0.28),
+    0 0 40px rgba(154, 108, 255, 0.18);
+}
+
+.game-over-button--secondary {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)),
+    rgba(23, 17, 58, 0.92);
+
+  border-color: rgba(120, 170, 255, 0.45);
+
+  color: #f2f6ff;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 16px rgba(82, 132, 255, 0.12);
+}
+
+.game-over-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.game-over-button--primary:hover {
+  box-shadow:
+    0 0 28px rgba(90, 182, 255, 0.34),
+    0 0 50px rgba(154, 108, 255, 0.22);
+}
+
+.game-over-button--secondary:hover {
+  border-color: rgba(120, 195, 255, 0.8);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 22px rgba(90, 175, 255, 0.2);
+}
+
 .upgrade-cards {
   display: grid;
   justify-content: center;
@@ -675,20 +757,6 @@ body {
   box-shadow: 0 0 50px rgba(125, 88, 255, 0.35);
 }
 
-#restartButton {
-  margin-top: 18px;
-  padding: 14px 26px;
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #45d7ff, #9b6dff);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 16px;
-}
-#restartButton:hover {
-  filter: brightness(1.15);
-}
 @media (max-width: 800px) {
   .hud-top {
     align-items: flex-start;
