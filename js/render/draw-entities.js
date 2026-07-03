@@ -447,6 +447,8 @@ function createEnemySprite(enemy) {
         bctx.arc(cx - 8, cy - 5, 3, 0, Math.PI * 2);
         bctx.arc(cx + 8, cy - 5, 3, 0, Math.PI * 2);
         bctx.fill();
+    } else if (enemy.type === "goldenRunner") {
+        drawGoldenRunnerSprite(bctx, cx, cy, enemy);
     } else if (enemy.type === "cowardBoss" || enemy.type === "cowardBossClone") {
         drawCowardBossSprite(bctx, cx, cy, enemy);
     } else if (enemy.type === "cowardShooter") {
@@ -855,6 +857,91 @@ function drawCowardBossSprite(bctx, cx, cy, enemy) {
 
         bctx.setLineDash([]);
     }
+
+    bctx.restore();
+}
+
+function drawGoldenRunnerSprite(bctx, cx, cy, enemy) {
+    const r = enemy.radius;
+
+    bctx.save();
+    bctx.translate(cx, cy);
+
+    // Aura dorée
+    const aura = bctx.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 2.4);
+    aura.addColorStop(0, "rgba(255, 216, 107, 0.55)");
+    aura.addColorStop(0.45, "rgba(255, 168, 48, 0.24)");
+    aura.addColorStop(1, "rgba(255, 216, 107, 0)");
+
+    bctx.fillStyle = aura;
+    bctx.beginPath();
+    bctx.arc(0, 0, r * 2.4, 0, Math.PI * 2);
+    bctx.fill();
+
+    bctx.shadowColor = "#ffd86b";
+    bctx.shadowBlur = 22;
+
+    // Forme libre : scarabée / cristal doré
+    const spikes = 10;
+
+    bctx.beginPath();
+
+    for (let i = 0; i < spikes; i++) {
+        const angle = (Math.PI * 2 * i) / spikes - Math.PI / 2;
+        const radius = i % 2 === 0 ? r * 1.28 : r * 0.82;
+
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        if (i === 0) {
+            bctx.moveTo(x, y);
+        } else {
+            bctx.lineTo(x, y);
+        }
+    }
+
+    bctx.closePath();
+
+    const bodyGradient = bctx.createLinearGradient(0, -r, 0, r);
+    bodyGradient.addColorStop(0, "#fff7a8");
+    bodyGradient.addColorStop(0.35, "#ffd86b");
+    bodyGradient.addColorStop(0.72, "#ff9f2f");
+    bodyGradient.addColorStop(1, "#7a3b08");
+
+    bctx.fillStyle = bodyGradient;
+    bctx.fill();
+
+    bctx.lineWidth = 3;
+    bctx.strokeStyle = "#fff2b8";
+    bctx.stroke();
+
+    bctx.shadowBlur = 0;
+
+    // Noyau
+    bctx.fillStyle = "#fffbe0";
+    bctx.shadowColor = "#ffffff";
+    bctx.shadowBlur = 14;
+
+    bctx.beginPath();
+    bctx.arc(0, 0, r * 0.34, 0, Math.PI * 2);
+    bctx.fill();
+
+    bctx.shadowBlur = 0;
+
+    // Petite couronne pour signaler qu'il est précieux
+    bctx.fillStyle = "#fff0a3";
+    bctx.beginPath();
+    bctx.moveTo(-r * 0.55, -r * 1.05);
+    bctx.lineTo(-r * 0.28, -r * 1.42);
+    bctx.lineTo(0, -r * 1.08);
+    bctx.lineTo(r * 0.28, -r * 1.42);
+    bctx.lineTo(r * 0.55, -r * 1.05);
+    bctx.closePath();
+    bctx.fill();
+
+    bctx.strokeStyle = "#8a4a0d";
+    bctx.lineWidth = 1.5;
+    bctx.stroke();
 
     bctx.restore();
 }

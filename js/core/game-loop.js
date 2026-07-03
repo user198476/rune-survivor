@@ -188,6 +188,11 @@ function resetGame() {
     pauseOverlay.classList.add("hidden");
     gameOverOverlay.classList.add("hidden");
     mainMenuOverlay.classList.remove("hidden");
+
+    if (typeof resetGoldenRunnerSpawnTimer === "function") {
+        resetGoldenRunnerSpawnTimer();
+    }
+
     updateHud();
     updateMetaCurrencyDisplays();
 }

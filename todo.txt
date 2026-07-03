@@ -1,6 +1,6 @@
 TODO:
 ______________________________________
-3. Armes alternatives
+3. Armes alternatives (peut etre a mettre en achat dans le shop)
 Bâton runique      → tir normal actuel
 Dagues spectrales  → tirs très rapides mais faibles
 Orbe tournoyante   → dégâts autour du joueur
@@ -14,7 +14,7 @@ Marteau astral     → onde de choc lente mais puissante
 Élite doré    → donne beaucoup d’XP
 Élite violet  → explose à la mort
 
-5. Coffres runiques
+5. Coffres runiques (a recuperer sur le sol de l'arene par exemple)
 choix entre 3 récompenses spéciales
 +1 niveau gratuit
 +500 pièces
@@ -22,7 +22,11 @@ choix entre 3 récompenses spéciales
 +10 secondes de clone
 +soin complet
 
-- Un faux bonus qui apparait qui a pour effet d'inversés les touches de déplacements (icone points d'interrogation pour indiquer le mystere), en fait cest un effet aleatoire dont celui des touches inversées
+- Un faux bonus qui apparait qui a pour effet d'inverser les touches de déplacements (icone point d'interrogation pour indiquer le mystere), en fait c'est un effet aleatoire dont celui des touches inversées
+
+- Pour le boss 4, faire en sorte que le boss ET les clones se fuient tous entre eux aussi
+
+- Ajout d'une card d'upgrade pour un effet de ricochet de tir sur les ennemis a portée (effet unique comme le rebond sur les murs), par defaut on ricoche 3 fois et ensuite avec une autre upgrade on fait + 1 ricchet (dispo que si base débloquée), dégats dégréssif, donc premier monstres 100% puis monstres 2 90% de dégâts etc etc
 
 - Ajouter des skins :
 skins du mage

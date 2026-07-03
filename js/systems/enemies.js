@@ -1,3 +1,8 @@
+let goldenRunnerSpawnTimer = randomBetween(
+    GOLDEN_RUNNER_SPAWN_INTERVAL_MIN,
+    GOLDEN_RUNNER_SPAWN_INTERVAL_MAX
+);
+
 function spawnEnemy() {
     if (enemies.length >= getCurrentEnemyCap()) {
         return false;
@@ -91,6 +96,8 @@ function spawnEnemy() {
 }
 
 function updateSpawns(dt) {
+    updateGoldenRunnerSpawn(dt);
+    
     const enemyCap = getCurrentEnemyCap();
 
     if (enemies.length >= enemyCap) {
@@ -194,7 +201,9 @@ function updateEnemies(dt) {
             continue;
         }
 
-        if (enemy.bossId === "coward_trickster" || enemy.type === "cowardBossClone") {
+        if (enemy.type === "goldenRunner") {
+            updateGoldenRunnerEnemy(enemy, dt);
+        } else if (enemy.bossId === "coward_trickster" || enemy.type === "cowardBossClone") {
             updateCowardTricksterEnemy(enemy, dt);
         } else if (enemy.type === "cowardShooter") {
             updateCowardShooterEnemy(enemy, dt);
@@ -234,11 +243,32 @@ function trimEnemyOverflow() {
         return;
     }
 
-    enemies.sort((a, b) => {
+    const protectedEnemies = enemies.filter((enemy) => {
+        return enemy &&
+            (
+                enemy.isBoss ||
+                enemy.type === "goldenRunner" ||
+                enemy.type === "hordeBomb"
+            );
+    });
+
+    const normalEnemies = enemies.filter((enemy) => {
+        return enemy &&
+            !enemy.isBoss &&
+            enemy.type !== "goldenRunner" &&
+            enemy.type !== "hordeBomb";
+    });
+
+    normalEnemies.sort((a, b) => {
         return getEnemyDistanceSqToPlayer(a) - getEnemyDistanceSqToPlayer(b);
     });
 
-    enemies.length = enemyCap;
+    const remainingSlots = Math.max(0, enemyCap - protectedEnemies.length);
+
+    enemies = [
+        ...protectedEnemies,
+        ...normalEnemies.slice(0, remainingSlots)
+    ];
 }
 
 function buildEnemyGrid() {
@@ -772,4 +802,173 @@ function getCurrentSpawnIntervalMultiplier() {
     }
 
     return 1;
+}
+
+function canSpawnGoldenRunner() {
+    if (bossState !== "none") {
+        return false;
+    }
+
+    if (waveTime < GOLDEN_RUNNER_MIN_WAVE_TIME) {
+        return false;
+    }
+
+    const activeGoldenCount = enemies.filter((enemy) => {
+        return enemy &&
+            !enemy.dead &&
+            enemy.type === "goldenRunner";
+    }).length;
+
+    return activeGoldenCount < GOLDEN_RUNNER_MAX_ALIVE;
+}
+
+function resetGoldenRunnerSpawnTimer() {
+    goldenRunnerSpawnTimer = randomBetween(
+        GOLDEN_RUNNER_SPAWN_INTERVAL_MIN,
+        GOLDEN_RUNNER_SPAWN_INTERVAL_MAX
+    );
+}
+
+function updateGoldenRunnerSpawn(dt) {
+    if (!canSpawnGoldenRunner()) {
+        return;
+    }
+
+    goldenRunnerSpawnTimer -= dt;
+
+    if (goldenRunnerSpawnTimer > 0) {
+        return;
+    }
+
+    spawnGoldenRunner();
+
+    resetGoldenRunnerSpawnTimer();
+}
+
+function spawnGoldenRunner() {
+    const difficulty = 1 + waveTime / 80;
+    const enemy = createGoldenRunnerEnemy(difficulty);
+
+    enemies.push(enemy);
+
+    addFloatingText(
+        enemy.x,
+        enemy.y + enemy.radius + 28,
+        "ENNEMI DORÉ",
+        "#ffd86b"
+    );
+
+    createParticles(enemy.x, enemy.y, 46, "#ffd86b", 2.4);
+
+    return true;
+}
+
+function createGoldenRunnerEnemy(difficulty) {
+    const side = Math.floor(Math.random() * 4);
+    const margin = GOLDEN_RUNNER_EDGE_MARGIN;
+
+    let x = margin;
+    let y = margin;
+
+    if (side === 0) {
+        x = randomBetween(margin, GAME_WIDTH - margin);
+        y = margin;
+    }
+
+    if (side === 1) {
+        x = GAME_WIDTH - margin;
+        y = randomBetween(margin, GAME_HEIGHT - margin);
+    }
+
+    if (side === 2) {
+        x = randomBetween(margin, GAME_WIDTH - margin);
+        y = GAME_HEIGHT - margin;
+    }
+
+    if (side === 3) {
+        x = margin;
+        y = randomBetween(margin, GAME_HEIGHT - margin);
+    }
+
+    const hp = GOLDEN_RUNNER_BASE_HP + difficulty * GOLDEN_RUNNER_HP_PER_DIFFICULTY;
+    const xp = GOLDEN_RUNNER_BASE_XP + Math.floor((waveTime / 60) * GOLDEN_RUNNER_XP_PER_MINUTE);
+
+    return {
+        type: "goldenRunner",
+        x,
+        y,
+        radius: GOLDEN_RUNNER_RADIUS,
+        hp,
+        maxHp: hp,
+        speed: GOLDEN_RUNNER_SPEED,
+        damage: GOLDEN_RUNNER_DAMAGE,
+        xp,
+        color: "#ffd86b",
+        edgeSide: side,
+        edgeDirection: Math.random() > 0.5 ? 1 : -1,
+        attackCooldown: 0
+    };
+}
+
+function updateGoldenRunnerEnemy(enemy, dt) {
+    const margin = GOLDEN_RUNNER_EDGE_MARGIN;
+    const speed = enemy.speed * dt;
+    const direction = enemy.edgeDirection || 1;
+
+    if (enemy.edgeSide === 0) {
+        enemy.y = margin;
+        enemy.x += direction * speed;
+
+        if (enemy.x >= GAME_WIDTH - margin) {
+            enemy.x = GAME_WIDTH - margin;
+            enemy.edgeSide = direction > 0 ? 1 : 0;
+        }
+
+        if (enemy.x <= margin) {
+            enemy.x = margin;
+            enemy.edgeSide = direction > 0 ? 0 : 3;
+        }
+    } else if (enemy.edgeSide === 1) {
+        enemy.x = GAME_WIDTH - margin;
+        enemy.y += direction * speed;
+
+        if (enemy.y >= GAME_HEIGHT - margin) {
+            enemy.y = GAME_HEIGHT - margin;
+            enemy.edgeSide = direction > 0 ? 2 : 1;
+        }
+
+        if (enemy.y <= margin) {
+            enemy.y = margin;
+            enemy.edgeSide = direction > 0 ? 1 : 0;
+        }
+    } else if (enemy.edgeSide === 2) {
+        enemy.y = GAME_HEIGHT - margin;
+        enemy.x -= direction * speed;
+
+        if (enemy.x <= margin) {
+            enemy.x = margin;
+            enemy.edgeSide = direction > 0 ? 3 : 2;
+        }
+
+        if (enemy.x >= GAME_WIDTH - margin) {
+            enemy.x = GAME_WIDTH - margin;
+            enemy.edgeSide = direction > 0 ? 2 : 1;
+        }
+    } else if (enemy.edgeSide === 3) {
+        enemy.x = margin;
+        enemy.y -= direction * speed;
+
+        if (enemy.y <= margin) {
+            enemy.y = margin;
+            enemy.edgeSide = direction > 0 ? 0 : 3;
+        }
+
+        if (enemy.y >= GAME_HEIGHT - margin) {
+            enemy.y = GAME_HEIGHT - margin;
+            enemy.edgeSide = direction > 0 ? 3 : 2;
+        }
+    }
+
+    enemy.x = Math.max(margin, Math.min(GAME_WIDTH - margin, enemy.x));
+    enemy.y = Math.max(margin, Math.min(GAME_HEIGHT - margin, enemy.y));
 }
