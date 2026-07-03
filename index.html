@@ -269,7 +269,7 @@
                 <div class="pause-box">
                     <h1>Pause</h1>
                     <p>La partie est arrêtée.</p>
-                    <button id="pauseMainMenuButton" class="pause-main-menu-button"> Menu principal </button>
+
                     <div class="pause-score-box">
                         <div>
                             <span>Score actuel</span>
@@ -280,9 +280,13 @@
                             <strong id="pauseBestScoreText">0</strong>
                         </div>
                     </div>
-                    <button id="resumeButton">Reprendre</button>
-                    <button id="pauseSkillTreeButton" class="secondary-menu-button">Arbre de compétences</button>
-                    <div class="menu-controls"> Échap / Entrée / Espace / P pour reprendre </div>
+
+                    <div class="pause-actions">
+                        <button id="resumeButton" class="pause-action-btn pause-action-btn--primary">Reprendre</button>
+                        <button id="pauseSkillTreeButton" class="pause-action-btn pause-action-btn--secondary">Arbre de compétences</button>
+                        <button id="pauseMainMenuButton" class="pause-action-btn pause-action-btn--secondary">Menu principal</button>
+                        <div class="menu-controls"> Échap / Entrée / Espace / P pour reprendre </div>
+                    </div>
                 </div>
             </div>
             <div id="skillTreeOverlay" class="overlay hidden">
