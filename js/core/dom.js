@@ -96,3 +96,12 @@ const shopCategoryTitle = document.getElementById("shopCategoryTitle");
 const shopCategoryKicker = document.getElementById("shopCategoryKicker");
 const shopItemsGrid = document.getElementById("shopItemsGrid");
 const shopItemDetails = document.getElementById("shopItemDetails");
+
+// Training Mode
+const trainingResultOverlay = document.getElementById("trainingResultOverlay");
+const trainingResultTitle = document.getElementById("trainingResultTitle");
+const trainingDeathText = document.getElementById("trainingDeathText");
+const trainingDurationText = document.getElementById("trainingDurationText");
+const trainingDamageTakenText = document.getElementById("trainingDamageTakenText");
+const trainingRestartButton = document.getElementById("trainingRestartButton");
+const trainingMainMenuButton = document.getElementById("trainingMainMenuButton");

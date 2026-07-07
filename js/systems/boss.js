@@ -152,6 +152,11 @@ function checkBossDeath() {
     }
 
     if (currentBoss.dead || currentBoss.hp <= 0) {
+        if (trainingMode) {
+            endTrainingSession(false);
+            return;
+        }
+
         defeatBoss();
     }
 }

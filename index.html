@@ -45,7 +45,7 @@
                             </button>
                             <button id="devMenuButton" class="menu-nav-button">
                                 <span class="menu-nav-index">04</span>
-                                <span class="menu-nav-label">Dev</span>
+                                <span class="menu-nav-label">Entraînement</span>
                             </button>
                             <button id="quitGameButton" class="menu-nav-button">
                                 <span class="menu-nav-index">05</span>
@@ -102,18 +102,18 @@
                     <div class="dev-boss-modal-backdrop"></div>
                     <div class="dev-boss-modal-box">
                         <button id="devBossCloseButton" class="dev-boss-close-button">×</button>
-                        <span class="dev-boss-kicker">Mode développeur</span>
-                        <h2>Accès direct Boss</h2>
-                        <p> Lance une partie de test directement contre un boss. </p>
+                        <span class="dev-boss-kicker">Mode entraînement</span>
+                        <h2>Entraînement Boss</h2>
+                        <p>Entraîne-toi contre un boss. Aucun score ni pièce ne sera gagné.</p>
                         <div class="dev-boss-actions">
                             <button id="devBoss1Button" class="dev-boss-button">
-                                <span>Boss 01</span> Royal Slime </button>
+                                <span>Boss 01</span> Slime Royal  </button>
                             <button id="devBoss2Button" class="dev-boss-button">
-                                <span>Boss 02</span> Blood Bat </button>
+                                <span>Boss 02</span> Reine Chauve-Souris </button>
                             <button id="devBoss3Button" class="dev-boss-button">
-                                <span>Boss 03</span> Rune Brute </button>
+                                <span>Boss 03</span> Brute Runique </button>
                             <button id="devBoss4Button" class="dev-boss-button">
-                                <span>Boss 04</span> Coward Trickster </button>
+                                <span>Boss 04</span> Couard illusionniste </button>
                         </div>
                     </div>
                 </div>
@@ -337,6 +337,29 @@
                     <button id="gameOverSkillTreeButton" class="game-over-button game-over-button--secondary">
                         Arbre de compétences
                     </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="trainingResultOverlay" class="overlay hidden">
+                <div class="pause-box training-result-box">
+                    <h1 id="trainingResultTitle">Entraînement terminé</h1>
+                    <p id="trainingDeathText" class="hidden">🪦 Tu es tombé pendant l'entraînement.</p>
+
+                    <div class="pause-score-box">
+                        <div>
+                            <span>Durée</span>
+                            <strong id="trainingDurationText">00:00</strong>
+                        </div>
+                        <div>
+                            <span>Dégâts reçus</span>
+                            <strong id="trainingDamageTakenText">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="pause-actions">
+                        <button id="trainingRestartButton" class="pause-action-btn pause-action-btn--primary">Recommencer</button>
+                        <button id="trainingMainMenuButton" class="pause-action-btn pause-action-btn--secondary">Menu principal</button>
                     </div>
                 </div>
             </div>

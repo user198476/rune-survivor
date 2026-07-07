@@ -51,6 +51,10 @@ function saveCurrentRunScore(score) {
 }
 
 function getCurrentScore() {
+    if (trainingMode) {
+        return 0;
+    }
+
     if (!player) {
         return 0;
     }
@@ -58,8 +62,14 @@ function getCurrentScore() {
 }
 
 function updateScoreState() {
+    if (trainingMode) {
+        currentScore = 0;
+        return;
+    }
+
     currentScore = getCurrentScore();
     saveCurrentRunScore(currentScore);
+
     if (currentScore > bestScore) {
         bestScore = currentScore;
         newBestThisRun = true;
@@ -68,15 +78,20 @@ function updateScoreState() {
 }
 
 function finalizeScore() {
+    if (trainingMode) {
+        return;
+    }
+    
     updateScoreState();
     saveBestScore(bestScore);
     saveCurrentRunScore(currentScore);
 }
 
 function grantCoinsForRun() {
-    if (runRewardGranted) {
+    if (trainingMode || runRewardGranted) {
         return;
     }
+
     metaCoins += currentScore;
     runRewardGranted = true;
     saveMetaProgression();

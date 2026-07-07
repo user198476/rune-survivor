@@ -55,13 +55,19 @@ function damagePlayer(amount, source) {
     if (state !== "playing") {
         return;
     }
+
     if (blockDamageWithShield(source)) {
         return;
     }
+
     if (player.invulnerabilityTimer > 0) {
         return;
     }
+
+    const previousHp = player.hp;
     player.hp = Math.max(0, player.hp - amount);
+    registerTrainingDamage(previousHp - player.hp);
+
     player.invulnerabilityTimer = 0.45;
     player.hitFlashTimer = 0.18;
     player.healLockTimer = Math.max(player.healLockTimer, HIT_HEAL_LOCK_DURATION);
@@ -70,6 +76,7 @@ function damagePlayer(amount, source) {
     screenShakeTimer = 0.06; // durée
     addFloatingText(player.x, player.y - player.radius - 18, `-${Math.ceil(amount)}`, "#ff5f75");
     createParticles(player.x, player.y, 26, "#ff365d", 1.9);
+
     if (source) {
         const dir = normalize(player.x - source.x, player.y - source.y);
         player.knockbackX += dir.x * 430;
@@ -77,9 +84,10 @@ function damagePlayer(amount, source) {
         source.x -= dir.x * 18;
         source.y -= dir.y * 18;
     }
+
     if (player.hp <= 0) {
         player.hp = 0;
-        endGame();
+        handlePlayerDefeat();
     }
     updateHud();
 }
@@ -88,14 +96,21 @@ function damagePlayerFromSpike(spike) {
     if (state !== "playing") {
         return;
     }
+
     if (blockDamageWithShield(spike)) {
         return;
     }
+
     if (player.spikeInvulnerabilityTimer > 0) {
         return;
     }
+
     const damage = player.maxHp / 2;
+
+    const previousHp = player.hp;
     player.hp = Math.max(0, player.hp - damage);
+    registerTrainingDamage(previousHp - player.hp);
+
     player.hitFlashTimer = 0.22;
     player.invulnerabilityTimer = Math.max(player.invulnerabilityTimer, 0.25);
     player.spikeInvulnerabilityTimer = 1;
@@ -108,10 +123,12 @@ function damagePlayerFromSpike(spike) {
     const dir = normalize(player.x - spike.x, player.y - spike.y);
     player.knockbackX += dir.x * 650;
     player.knockbackY += dir.y * 650;
+
     if (player.hp <= 0) {
         player.hp = 0;
-        endGame();
+        handlePlayerDefeat();
     }
+
     updateHud();
 }
 
@@ -119,23 +136,31 @@ function damagePlayerByHordePressure(amount, nearbyEnemies) {
     if (state !== "playing") {
         return;
     }
+
     if (blockDamageWithShield(null)) {
         return;
     }
+
+    const previousHp = player.hp;
     player.hp = Math.max(0, player.hp - amount);
+    registerTrainingDamage(previousHp - player.hp);
+
     player.hitFlashTimer = 0.12;
     player.healLockTimer = Math.max(player.healLockTimer || 0, HORDE_PRESSURE_HEAL_LOCK);
     damageFlash = Math.max(damageFlash, 0.24);
     screenShake = 1.8;
     screenShakeTimer = 0.045;
+
     if (player.hordeWarningTimer <= 0) {
         addFloatingText(player.x, player.y - player.radius - 42, `SUBMERGÉ -${Math.ceil(amount)}`, "#ff5f75");
         player.hordeWarningTimer = 0.65;
     }
+
     if (player.hp <= 0) {
         player.hp = 0;
-        endGame();
+        handlePlayerDefeat();
     }
+
     updateHud();
 }
 

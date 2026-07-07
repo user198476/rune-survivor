@@ -746,7 +746,10 @@ function explodeHordeBomb(bomb) {
 function damagePlayerByHordeBomb() {
     const damage = Math.ceil(player.maxHp * HORDE_BOMB_PLAYER_DAMAGE_RATIO);
 
+    const previousHp = player.hp;
     player.hp = Math.max(0, player.hp - damage);
+    registerTrainingDamage(previousHp - player.hp);
+
     player.hitFlashTimer = 0.16;
     player.invulnerabilityTimer = Math.max(player.invulnerabilityTimer, 0.35);
 
@@ -760,7 +763,7 @@ function damagePlayerByHordeBomb() {
     );
 
     if (player.hp <= 0) {
-        endGame();
+        handlePlayerDefeat();
     }
 }
 

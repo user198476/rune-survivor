@@ -452,7 +452,9 @@ function damagePlayerByBossZone(amount, overlapCount) {
         return;
     }
 
+    const previousHp = player.hp;
     player.hp = Math.max(0, player.hp - amount);
+    registerTrainingDamage(previousHp - player.hp);
 
     player.hitFlashTimer = 0.18;
     player.healLockTimer = Math.max(player.healLockTimer || 0, 0.55);
@@ -476,7 +478,7 @@ function damagePlayerByBossZone(amount, overlapCount) {
 
     if (player.hp <= 0) {
         player.hp = 0;
-        endGame();
+        handlePlayerDefeat();
     }
 
     updateHud();

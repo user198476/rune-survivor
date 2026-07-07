@@ -43,3 +43,10 @@ let skillTreeReturnState = "menu";
 let currentUpgrades = [];
 let astralStrikes = [];
 let voidRifts = [];
+
+// Training mode
+let trainingMode = false;
+let trainingBossId = null;
+let trainingDamageTaken = 0;
+let trainingDuration = 0;
+let trainingPlayerDefeated = false;

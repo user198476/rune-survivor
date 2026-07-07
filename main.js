@@ -51,22 +51,24 @@ function bindMenuButtons() {
 
     shopMenuButton?.addEventListener("click", openShopMenu);
 
-    if (DEBUG_BOSS_TEST_ENABLED) {
-        devMenuButton?.addEventListener("click", openDevBossModal);
+    devMenuButton?.addEventListener("click", openTrainingBossModal);
 
-        devBossModal?.addEventListener("click", (event) => {
-            const clickedCloseButton = event.target.closest("#devBossCloseButton");
-            const clickedBackdrop = event.target.classList.contains("dev-boss-modal-backdrop");
+    devBossModal?.addEventListener("click", (event) => {
+        const clickedCloseButton = event.target.closest("#devBossCloseButton");
+        const clickedBackdrop = event.target.classList.contains("dev-boss-modal-backdrop");
 
-            if (clickedCloseButton || clickedBackdrop) {
-                closeDevBossModal();
-            }
-        });
+        if (clickedCloseButton || clickedBackdrop) {
+            closeTrainingBossModal();
+        }
+    });
 
-        devBoss1Button?.addEventListener("click", () => startDevBossTest("royal_slime"));
-        devBoss2Button?.addEventListener("click", () => startDevBossTest("blood_bat"));
-        devBoss3Button?.addEventListener("click", () => startDevBossTest("rune_brute"));
-    }
+    devBoss1Button?.addEventListener("click", () => startTrainingBossTest("royal_slime"));
+    devBoss2Button?.addEventListener("click", () => startTrainingBossTest("blood_bat"));
+    devBoss3Button?.addEventListener("click", () => startTrainingBossTest("rune_brute"));
+    devBoss4Button?.addEventListener("click", () => startTrainingBossTest("coward_trickster"));
+
+    trainingRestartButton?.addEventListener("click", restartTrainingSession);
+    trainingMainMenuButton?.addEventListener("click", returnToMainMenuFromTraining);
 
     quitGameButton?.addEventListener("click", () => {
         window.close();
@@ -140,9 +142,11 @@ function startDevBossTest(bossId) {
 }
 
 function returnToMainMenuFromPause() {
-    if (typeof finalizeScore === "function") {
+    if (!trainingMode && typeof finalizeScore === "function") {
         finalizeScore();
     }
+
+    trainingMode = false;
 
     if (typeof CURRENT_RUN_STORAGE_KEY !== "undefined") {
         localStorage.removeItem(CURRENT_RUN_STORAGE_KEY);
@@ -164,6 +168,133 @@ function returnToMainMenuFromPause() {
     }
 
     state = "menu";
+}
+
+function openTrainingBossModal() {
+    devBossModal?.classList.remove("hidden");
+}
+
+function closeTrainingBossModal() {
+    devBossModal?.classList.add("hidden");
+}
+
+function startTrainingBossTest(bossId) {
+    const bossDefinition = BOSS_WAVES.find((boss) => boss.id === bossId);
+
+    if (!bossDefinition) {
+        return;
+    }
+
+    resetGame();
+
+    trainingMode = true;
+    trainingBossId = bossId;
+    trainingDamageTaken = 0;
+    trainingDuration = 0;
+    trainingPlayerDefeated = false;
+
+    state = "playing";
+    gameTime = 0;
+    waveTime = bossDefinition.time;
+    currentScore = 0;
+
+    closeTrainingBossModal();
+
+    mainMenuOverlay.classList.add("hidden");
+    trainingResultOverlay.classList.add("hidden");
+    pauseOverlay.classList.add("hidden");
+    gameOverOverlay.classList.add("hidden");
+    levelUpOverlay.classList.add("hidden");
+    skillTreeOverlay.classList.add("hidden");
+
+    triggeredBossIds = new Set(
+        BOSS_WAVES
+            .filter((boss) => boss.time < bossDefinition.time)
+            .map((boss) => boss.id)
+    );
+
+    enemies = [];
+    projectiles = [];
+    enemyProjectiles = [];
+    gems = [];
+    powerUps = [];
+    spikes = [];
+    particles = [];
+    floatingTexts = [];
+    enemyGrid.clear();
+
+    player.x = GAME_WIDTH / 2;
+    player.y = GAME_HEIGHT - 135;
+    player.hp = player.maxHp;
+    player.fireCooldown = 0;
+
+    startBossIntro(bossDefinition);
+    updateHud();
+}
+
+function registerTrainingDamage(amount) {
+    if (!trainingMode || amount <= 0) {
+        return;
+    }
+
+    trainingDamageTaken += amount;
+}
+
+function handlePlayerDefeat() {
+    if (trainingMode) {
+        endTrainingSession(true);
+        return;
+    }
+
+    endGame();
+}
+
+function endTrainingSession(playerDefeated) {
+    if (!trainingMode) {
+        return;
+    }
+
+    trainingDuration = gameTime;
+    trainingPlayerDefeated = playerDefeated;
+    trainingMode = false;
+
+    state = "trainingover";
+
+    enemies = [];
+    projectiles = [];
+    enemyProjectiles = [];
+    gems = [];
+    powerUps = [];
+    spikes = [];
+    bossDangerZones = [];
+    bossLasers = [];
+    bossMissiles = [];
+    bossWallStrikes = [];
+    currentBoss = null;
+    bossState = "none";
+    enemyGrid.clear();
+
+    trainingResultTitle.textContent = playerDefeated ? "Entraînement terminé" : "Boss vaincu";
+    trainingDeathText.classList.toggle("hidden", !playerDefeated);
+    trainingDurationText.textContent = formatTime(trainingDuration);
+    trainingDamageTakenText.textContent = Math.ceil(trainingDamageTaken).toLocaleString("fr-FR");
+
+    trainingResultOverlay.classList.remove("hidden");
+}
+
+function restartTrainingSession() {
+    if (!trainingBossId) {
+        returnToMainMenuFromTraining();
+        return;
+    }
+
+    startTrainingBossTest(trainingBossId);
+}
+
+function returnToMainMenuFromTraining() {
+    trainingMode = false;
+    trainingResultOverlay.classList.add("hidden");
+    resetGame();
 }
 
 function bootGame() {
