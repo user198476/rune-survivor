@@ -178,6 +178,24 @@ function closeTrainingBossModal() {
     devBossModal?.classList.add("hidden");
 }
 
+function resetTrainingSessionState() {
+    trainingMode = false;
+    trainingDamageTaken = 0;
+    trainingDuration = 0;
+    trainingPlayerDefeated = false;
+
+    trainingResultOverlay?.classList.add("hidden");
+    trainingDeathText?.classList.add("hidden");
+
+    if (trainingDurationText) {
+        trainingDurationText.textContent = "00:00";
+    }
+
+    if (trainingDamageTakenText) {
+        trainingDamageTakenText.textContent = "0";
+    }
+}
+
 function startTrainingBossTest(bossId) {
     const bossDefinition = BOSS_WAVES.find((boss) => boss.id === bossId);
 
@@ -292,8 +310,7 @@ function restartTrainingSession() {
 }
 
 function returnToMainMenuFromTraining() {
-    trainingMode = false;
-    trainingResultOverlay.classList.add("hidden");
+    resetTrainingSessionState();
     resetGame();
 }
 

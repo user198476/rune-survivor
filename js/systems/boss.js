@@ -268,26 +268,51 @@ function updateBossAbilities(dt) {
         return;
     }
 
-    updateBossPull(dt);
-    updateBossLasers(dt);
-    updateBossMissiles(dt);
-    updateBossDangerZones(dt);
-    updateBossWallStrikes(dt);
-    updateRoyalSlimeAura(dt);
+    const bossId = currentBoss.bossId;
 
-    if (currentBoss.bossId === "royal_slime") {
+    updateBossPull(dt);
+    if (state !== "playing" || bossState !== "active" || !currentBoss) {
+        return;
+    }
+
+    updateBossLasers(dt);
+    if (state !== "playing" || bossState !== "active" || !currentBoss) {
+        return;
+    }
+
+    updateBossMissiles(dt);
+    if (state !== "playing" || bossState !== "active" || !currentBoss) {
+        return;
+    }
+
+    updateBossDangerZones(dt);
+    if (state !== "playing" || bossState !== "active" || !currentBoss) {
+        return;
+    }
+
+    updateBossWallStrikes(dt);
+    if (state !== "playing" || bossState !== "active" || !currentBoss) {
+        return;
+    }
+
+    updateRoyalSlimeAura(dt);
+    if (state !== "playing" || bossState !== "active" || !currentBoss) {
+        return;
+    }
+
+    if (bossId === "royal_slime") {
         updateRoyalSlimeAbilities(dt);
     }
 
-    if (currentBoss.bossId === "blood_bat") {
+    if (bossId === "blood_bat") {
         updateBloodBatAbilities(dt);
     }
 
-    if (currentBoss.bossId === "rune_brute") {
+    if (bossId === "rune_brute") {
         updateRuneBruteAbilities(dt);
     }
 
-    if (currentBoss.bossId === "coward_trickster") {
+    if (bossId === "coward_trickster") {
         updateCowardTricksterAbilities(dt);
     }
 }

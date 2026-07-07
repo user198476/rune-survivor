@@ -52,17 +52,40 @@ function update(dt) {
     }
 
     updateEnemies(dt);
+    if (state !== "playing") {
+        return;
+    }
+
     updateEnemyProjectiles(dt);
+    if (state !== "playing") {
+        return;
+    }
+
     trimEnemyOverflow();
     buildEnemyGrid();
+
     updateBossAbilities(dt);
+    if (state !== "playing") {
+        return;
+    }
 
     if (bossState === "none") {
         updateHordePressure(dt);
+
+        if (state !== "playing") {
+            return;
+        }
     }
 
     updateProjectiles(dt);
+    if (state !== "playing") {
+        return;
+    }
+
     checkBossDeath();
+    if (state !== "playing") {
+        return;
+    }
 
     updateLifeStealHealing(dt);
     updateGems(dt);
@@ -72,6 +95,10 @@ function update(dt) {
 }
 
 function resetGame() {
+    if (typeof resetTrainingSessionState === "function") {
+        resetTrainingSessionState();
+    }
+
     state = "menu";
     gameTime = 0;
     waveTime = 0;
