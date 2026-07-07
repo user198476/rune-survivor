@@ -34,16 +34,25 @@ function countEnemiesNearPlayer(radius) {
 }
 
 function updateHordePressure(dt) {
+    player.hordeDamageTimer = Math.max(0, (player.hordeDamageTimer || 0) - dt);
+
     const nearbyEnemies = countEnemiesNearPlayer(HORDE_PRESSURE_RADIUS);
+
     if (nearbyEnemies <= HORDE_PRESSURE_START) {
         return;
     }
+
     const extraEnemies = nearbyEnemies - HORDE_PRESSURE_START;
+
     player.healLockTimer = Math.max(player.healLockTimer || 0, HORDE_PRESSURE_HEAL_LOCK);
+
     if (player.hordeDamageTimer > 0) {
         return;
     }
+
     const damage = HORDE_PRESSURE_BASE_DAMAGE + extraEnemies * HORDE_PRESSURE_DAMAGE_PER_EXTRA_ENEMY;
+
     damagePlayerByHordePressure(damage, nearbyEnemies);
+
     player.hordeDamageTimer = HORDE_PRESSURE_TICK;
 }

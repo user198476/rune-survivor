@@ -339,14 +339,6 @@ function isPostBossRampActive() {
     return postBossRampTimer > 0;
 }
 
-function getPostBossRampRatio() {
-    if (postBossRampTimer <= 0) {
-        return 1;
-    }
-
-    return 1 - postBossRampTimer / POST_BOSS_RAMP_DURATION;
-}
-
 function getCurrentSpawnInterval(baseInterval) {
     if (!isPostBossRampActive()) {
         return baseInterval;

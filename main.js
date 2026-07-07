@@ -34,7 +34,6 @@ function bindMenuButtons() {
     resumeButton?.addEventListener("click", resumeGame);
     pauseMainMenuButton?.addEventListener("click", returnToMainMenuFromPause);
 
-    openSkillTreeButton?.addEventListener("click", () => openSkillTree("menu"));
     pauseSkillTreeButton?.addEventListener("click", () => openSkillTree("paused"));
     gameOverSkillTreeButton?.addEventListener("click", () => openSkillTree("gameover"));
     closeSkillTreeButton?.addEventListener("click", closeSkillTree);
@@ -76,28 +75,6 @@ function bindMenuButtons() {
             alert("Si l’onglet ne se ferme pas automatiquement, ferme-le manuellement.");
         }, 120);
     });
-
-    if (bossTestPanel) {
-        bossTestPanel.classList.toggle("hidden", !DEBUG_BOSS_TEST_ENABLED);
-    }
-
-    if (DEBUG_BOSS_TEST_ENABLED) {
-        testBoss1Button?.addEventListener("click", () => {
-            startBossTest("royal_slime");
-        });
-
-        testBoss2Button?.addEventListener("click", () => {
-            startBossTest("blood_bat");
-        });
-
-        testBoss3Button?.addEventListener("click", () => {
-            startBossTest("rune_brute");
-        });
-
-        devBoss4Button?.addEventListener("click", () => {
-            startBossTest("coward_trickster");
-        });
-    }
 
     window.addEventListener("beforeunload", () => {
         if (!player) {
