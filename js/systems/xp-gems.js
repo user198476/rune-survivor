@@ -29,10 +29,11 @@ function dropGem(x, y, value) {
 function updateGems(dt) {
     for (let i = gems.length - 1; i >= 0; i--) {
         const gem = gems[i];
+        const velocityDamping = Math.pow(0.92, dt * 60);
         gem.x += gem.vx * dt;
         gem.y += gem.vy * dt;
-        gem.vx *= 0.92;
-        gem.vy *= 0.92;
+        gem.vx *= velocityDamping;
+        gem.vy *= velocityDamping;
         const d = distance(player, gem);
         if (d < player.magnetRadius) {
             const dir = normalize(player.x - gem.x, player.y - gem.y);

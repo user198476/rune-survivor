@@ -2,7 +2,6 @@ function getNextScheduledBoss() {
     if (bossState !== "none") {
         return null;
     }
-
     return BOSS_WAVES.find((bossDefinition) => {
         return waveTime >= bossDefinition.time && !triggeredBossIds.has(bossDefinition.id);
     }) || null;
@@ -228,7 +227,7 @@ function updateBossReward(dt) {
 
     bossRewardTimer -= dt;
 
-    // Pendant la récompense de boss, les gemmes sont aspirées beaucoup plus vite.
+    // Pendant la rÃ©compense de boss, les gemmes sont aspirÃ©es beaucoup plus vite.
     for (const gem of gems) {
         const dx = player.x - gem.x;
         const dy = player.y - gem.y;
@@ -315,57 +314,4 @@ function updateBossAbilities(dt) {
     if (bossId === "coward_trickster") {
         updateCowardTricksterAbilities(dt);
     }
-}
-
-function startBossTest(bossId) {
-    if (!DEBUG_BOSS_TEST_ENABLED) {
-        return;
-    }
-
-    const bossDefinition = BOSS_WAVES.find((boss) => boss.id === bossId);
-
-    if (!bossDefinition) {
-        console.warn("Boss test introuvable :", bossId);
-        return;
-    }
-
-    resetGame();
-
-    state = "playing";
-
-    mainMenuOverlay.classList.add("hidden");
-    pauseOverlay.classList.add("hidden");
-    gameOverOverlay.classList.add("hidden");
-    levelUpOverlay.classList.add("hidden");
-    skillTreeOverlay.classList.add("hidden");
-
-    gameTime = 0;
-    waveTime = bossDefinition.time;
-
-    triggeredBossIds = new Set(
-        BOSS_WAVES
-            .filter((boss) => boss.time < bossDefinition.time)
-            .map((boss) => boss.id)
-    );
-
-    enemies = [];
-    projectiles = [];
-    enemyProjectiles = [];
-    gems = [];
-    powerUps = [];
-    spikes = [];
-    particles = [];
-    floatingTexts = [];
-    enemyGrid.clear();
-
-    player.x = GAME_WIDTH / 2;
-    player.y = GAME_HEIGHT - 135;
-    player.hp = player.maxHp;
-    player.fireCooldown = 0;
-
-    startBossIntro(bossDefinition);
-
-    updateHud();
-
-    console.log(`Mode test boss lancé : ${bossDefinition.name}`);
 }

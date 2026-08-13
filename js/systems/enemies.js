@@ -550,12 +550,18 @@ function updateHordeBombSpawn(dt) {
         return;
     }
 
-    const normalEnemyCount = enemies.filter((enemy) => {
-        return enemy &&
+    let normalEnemyCount = 0;
+
+    for (const enemy of enemies) {
+        if (
+            enemy &&
             !enemy.dead &&
             !enemy.isBoss &&
-            enemy.type !== "hordeBomb";
-    }).length;
+            enemy.type !== "hordeBomb"
+        ) {
+            normalEnemyCount++;
+        }
+    }
 
     if (normalEnemyCount < HORDE_BOMB_MIN_ENEMIES_TO_SPAWN) {
         hordeBombSpawnTimer = Math.min(hordeBombSpawnTimer, 4);
@@ -808,11 +814,17 @@ function canSpawnGoldenRunner() {
         return false;
     }
 
-    const activeGoldenCount = enemies.filter((enemy) => {
-        return enemy &&
+    let activeGoldenCount = 0;
+
+    for (const enemy of enemies) {
+        if (
+            enemy &&
             !enemy.dead &&
-            enemy.type === "goldenRunner";
-    }).length;
+            enemy.type === "goldenRunner"
+        ) {
+            activeGoldenCount++;
+        }
+    }
 
     return activeGoldenCount < GOLDEN_RUNNER_MAX_ALIVE;
 }
@@ -841,6 +853,10 @@ function updateGoldenRunnerSpawn(dt) {
 }
 
 function spawnGoldenRunner() {
+    if (enemies.length >= getCurrentEnemyCap()) {
+        return false;
+    }
+
     const difficulty = 1 + waveTime / 80;
     const enemy = createGoldenRunnerEnemy(difficulty);
 

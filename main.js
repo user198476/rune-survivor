@@ -104,42 +104,6 @@ function confirmResetProgression() {
     closeResetProgressionModal();
 }
 
-function openDevBossModal() {
-    if (!DEBUG_BOSS_TEST_ENABLED) {
-        console.warn("Mode Dev Boss désactivé. Mets DEBUG_BOSS_TEST_ENABLED à true.");
-        return;
-    }
-
-    if (!devBossModal) {
-        console.warn("Modal Dev Boss introuvable dans le HTML.");
-        return;
-    }
-
-    devBossModal.classList.remove("hidden");
-}
-
-function closeDevBossModal() {
-    if (!devBossModal) {
-        return;
-    }
-
-    devBossModal.classList.add("hidden");
-}
-
-function startDevBossTest(bossId) {
-    if (!DEBUG_BOSS_TEST_ENABLED) {
-        return;
-    }
-
-    closeDevBossModal();
-
-    if (typeof startBossTest !== "function") {
-        console.warn("startBossTest est introuvable.");
-        return;
-    }
-
-    startBossTest(bossId);
-}
 
 function returnToMainMenuFromPause() {
     if (!trainingMode && typeof finalizeScore === "function") {
